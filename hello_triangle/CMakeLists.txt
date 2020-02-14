@@ -5,7 +5,9 @@ project(${ProjectId})
 
 set(CMAKE_CXX_STANDARD 14)
 
+include_directories(./include)
+add_subdirectory(./include)
 #　添加源文件
-set(SOURCE_FILES src/main.cpp src/glad.c)
+set(SOURCE_FILES src/main.cpp src/glad.c include/OpenGLApplication.cpp)
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} glfw3 GL Xi X11 pthread dl )
