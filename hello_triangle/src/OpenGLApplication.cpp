@@ -27,8 +27,8 @@ bool OpenGLApplication::init_application(int w, int h) {
 
     bool glad_init = this->init_glad();
     this->shader_program = new ShaderProgram();
-    shader_program->attach_shader("vertex_shader", "/home/zhiquan/Git-Repository/Learn-OpenGL/hello_triangle/src/vertex_shader.glsl");
-    shader_program->attach_shader("fragment_shader", "/home/zhiquan/Git-Repository/Learn-OpenGL/hello_triangle/src/fragment_shader.glsl");
+    shader_program->attach_shader("vertex_shader", "/home/vrlab/Git-Repositories/Learn-OpenGL/hello_triangle/src/vertex_shader.glsl");
+    shader_program->attach_shader("fragment_shader", "/home/vrlab/Git-Repositories/Learn-OpenGL/hello_triangle/src/fragment_shader.glsl");
     shader_program->link_program();
     this->set_render_objects();
     return window_init && glad_init;
@@ -89,7 +89,7 @@ void OpenGLApplication::main_loop() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         shader_program->use_shader_program();
-        std::cout << *this->vao_list.begin() << std::endl;
+        // std::cout << *this->vao_list.begin() << std::endl;
         glBindVertexArray(*this->vao_list.begin());
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glfwPollEvents(); // check for events
