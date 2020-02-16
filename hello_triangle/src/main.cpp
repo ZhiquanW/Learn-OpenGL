@@ -12,7 +12,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 int main() {
-    std::cout << "AAAAA" << std::endl;
+    glm::vec3 t(1,1,1);
     OpenGLApplication *tmp_app = new OpenGLApplication;
     if (!tmp_app->init_application(SCR_WIDTH, SCR_HEIGHT)) {
         std::cout << "Application failed to initialize" << std::endl;

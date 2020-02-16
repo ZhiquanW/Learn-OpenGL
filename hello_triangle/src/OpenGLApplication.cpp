@@ -1,7 +1,7 @@
 #include <glad/glad.h>
 
-#include "OpenGLApplication.h"
-#include "ShaderProgram.h"
+#include "../include/OpenGLApplication.h"
+#include "../include/ShaderProgram.h"
 #include <iostream>
 
 // Utility Functions
@@ -79,7 +79,6 @@ void OpenGLApplication::set_render_objects() {
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
                           (void *)0);
-                          glVertexAttribPointer()
     glEnableVertexAttribArray(0);
     this->add_vao(vao);
 }

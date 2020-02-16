@@ -1,4 +1,4 @@
-#include "VertexArrayObject.h"
+#include "../include/VertexArrayObject.h"
 
 VertexArrayObject::VertexArrayObject() {
     glGenVertexArrays(1, &this->vao_id);
@@ -16,8 +16,8 @@ void VertexArrayObject::add_vertex_buffer_object(std::vector<glm::vec3> data,
                                                  GLsizei size,
                                                  const void *offset) {
     //data, location,size,stride,offset
-    unsigned int vbo_id;
-    glGenBuffers(q, &vbo_id);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
+    // unsigned int vbo_id;
+    // glGenBuffers(1, &vbo_id);
+    // glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
 }
