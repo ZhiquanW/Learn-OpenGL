@@ -10,5 +10,5 @@ include_directories(include)
 
 #　
 aux_source_directory(src source_files)
-add_executable(${PROJECT_NAME} ${source_files})
+add_executable(${PROJECT_NAME} ${source_files} src/ElementBufferObject.cpp include/ElementBufferObject.h src/custom_func.cpp include/stb_image.h src/stb_image.cpp src/Texture.cpp include/Texture.h)
 target_link_libraries(${PROJECT_NAME} glfw3 GL Xi X11 pthread dl )

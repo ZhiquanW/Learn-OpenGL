@@ -24,9 +24,10 @@ public:
 };
 class VertexBufferObject {
 private:
-    unsigned  int vbo_id;
+    GLuint vbo_id;
 public:
     VertexBufferObject( const std::vector<GLfloat> & ,GLenum);
+    GLuint id();
 };
 
 

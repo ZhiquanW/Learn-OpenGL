@@ -27,4 +27,7 @@ VertexBufferObject::VertexBufferObject(const std::vector<GLfloat> &data,GLenum d
     glBufferData(GL_ARRAY_BUFFER,data.size() * sizeof(GLfloat),&data[0],data_type);
 }
 
+GLuint VertexBufferObject::id() {
+    return this->vbo_id;
+}
 

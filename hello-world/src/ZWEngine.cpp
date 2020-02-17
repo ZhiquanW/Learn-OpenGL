@@ -1,35 +1,17 @@
 //
 // @Author: Zhiquan Wang 
 // @Date: 2/16/20.
+// @Email: zhiquan.wzq@gmail.com
 // Copyright (c) 2020 Zhiquan Wang. All rights reserved.
 //
 
 #include "ZWEngine.h"
-#include <glad/glad.h>
-#include "ShaderProgram.h"
-#include "VertexArrayObject.h"
-#include "VertexBufferObject.h"
-#include <iostream>
-
-// Utility Functions
-void release_vao(){
-    glBindVertexArray(0);
-}
-void framebuffer_size_callback(GLFWwindow, int, int);
-void process_input(GLFWwindow *);
 
 void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
     glViewport(0, 0, w, h);
 }
 
-void process_input(GLFWwindow *window) {
-    // check 'ESC' is pressed
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, true);
-    }
-}
-// Opengl functions
-void bind_vertex_buffer_object(const std::vector<GLfloat> &data,GLenum data_type = GL_STATIC_DRAW){
+void bind_vertex_buffer_object(const std::vector<GLfloat> &data,GLenum data_type ){
     GLuint vbo_id = -1;
     glGenBuffers(1,&vbo_id);
     glBindBuffer(GL_ARRAY_BUFFER,vbo_id);
@@ -47,14 +29,16 @@ ZWEngine::ZWEngine() {
 // ZWEngine Member Functions
 bool ZWEngine::init_engine(int w, int h) {
     bool window_init = this->init_window(w, h);
-
     bool glad_init = ZWEngine::init_glad();
+    return window_init && glad_init;
+}
+bool ZWEngine::init_shader_program(const GLchar *vs_shader,const GLchar * fs_shader){
     this->shader_program = new ShaderProgram();
-    shader_program->attach_shader("vertex_shader", "/home/vrlab/Git-Repositories/Learn-OpenGL/hello_triangle/src/vertex_shader.glsl");
-    shader_program->attach_shader("fragment_shader", "/home/vrlab/Git-Repositories/Learn-OpenGL/hello_triangle/src/fragment_shader.glsl");
+    shader_program->attach_shader("vertex_shader", vs_shader);
+    shader_program->attach_shader("fragment_shader", fs_shader);
     shader_program->link_program();
     this->set_render_objects();
-    return window_init && glad_init;
+
 }
 
 void ZWEngine::run() {
@@ -62,31 +46,29 @@ void ZWEngine::run() {
     this->cleanup();
 }
 
-void ZWEngine::set_render_objects() {
-    std::vector<GLfloat> vertices = {-0.5f, -0.5f, 0.0f, 0.5f, -0.5f,
-                                     0.0f, 0.0f, 0.5f, 0.0f};
-    VertexArrayObject vao(true);
-
-    bind_vertex_buffer_object(vertices,GL_STATIC_DRAW);
-    bind_vertex_attribute(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void *) nullptr);
-    release_vao();
-    this->add_vao("tmp_vao", vao);
-
-}
-void ZWEngine::draw_frame() {
-    glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    shader_program->use_shader_program();
-//    glBindVertexArray(1);
-        this->activate_vao("tmp_vao");
-
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+void ZWEngine::add_vao(const std::string &name, VertexArrayObject &vao) {
+    this->vao_map.insert(std::pair<std::string, VertexArrayObject> ("tmp_vao",vao));
 }
 
 void ZWEngine::activate_vao(const std::string& name) {
     glBindVertexArray(this->vao_map.at(name).id());
 
+}
+void ZWEngine::disable_vao() {
+    glBindVertexArray(0);
+}
+void ZWEngine::add_texture(Texture tex) {
+    this->texture_list.push_back(tex);
+}
+void ZWEngine::activate_texture(GLint index) {
+    if (index==-1){//activate all textures
+        std::vector<Texture>::iterator itor;
+        for(itor= this->texture_list.begin();itor != this->texture_list.end();++ itor){
+            itor->activate();
+        }
+    }else{
+        this->texture_list[index].activate();
+    }
 }
 // private member functions
 bool ZWEngine::init_window(int width, int height) {
@@ -110,9 +92,7 @@ bool ZWEngine::init_glad() {
     return gladLoadGLLoader((GLADloadproc) glfwGetProcAddress) != 0;
 }
 
-void ZWEngine::add_vao(const std::string &name, VertexArrayObject &vao) {
-    this->vao_map.insert(std::pair<std::string, VertexArrayObject> ("tmp_vao",vao));
-}
+
 
 void ZWEngine::main_loop() {
     while (!glfwWindowShouldClose(this->window)) {
@@ -123,13 +103,20 @@ void ZWEngine::main_loop() {
     }
 }
 
-void ZWEngine::clean_vao(){
-    std::map<std::string ,GLuint>::iterator itor;
-    for(utir)
-}
-void ZWEngine::cleanup() {
-    // optional: de-allocate all resources once they've outlived their purpose:
 
+void ZWEngine::cleanup() {
+    // clean vao
+    std::map<std::string ,VertexArrayObject>::iterator itor_vao;
+    for(itor_vao = this->vao_map.begin(); itor_vao != this->vao_map.end(); ++ itor_vao){
+        itor_vao->second.release();
+    }
+    //  clean textures
+    std::vector<Texture>::iterator  itor_tex;
+    for(itor_tex= this->texture_list.begin();itor_tex!=this->texture_list.end();++ itor_tex){
+        itor_tex->release();
+    }
+
+    // optional: de-allocate all resources once they've outlived their purpose:
     glfwDestroyWindow(this->window);
     glfwTerminate();
 }
