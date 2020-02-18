@@ -1,5 +1,5 @@
 //
-// @Author: Zhiquan Wang 
+// @Author: Zhiquan Wang
 // @Date: 2/16/20.
 // @Email: zhiquan.wzq@gmail.com
 // Copyright (c) 2020 Zhiquan Wang. All rights reserved.
@@ -7,25 +7,25 @@
 
 #include "ZWEngine.h"
 
-void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
-    glViewport(0, 0, w, h);
+void bind_vertex_buffer_object(const std::vector<GLfloat> &data, GLenum data_type) {
+    GLuint vbo_id = -1;
+    glGenBuffers(1, &vbo_id);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
+    glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(GLfloat), &data[0], data_type);
 }
 
-void bind_vertex_buffer_object(const std::vector<GLfloat> &data,GLenum data_type ){
-    GLuint vbo_id = -1;
-    glGenBuffers(1,&vbo_id);
-    glBindBuffer(GL_ARRAY_BUFFER,vbo_id);
-    glBufferData(GL_ARRAY_BUFFER,data.size() * sizeof(GLfloat),&data[0],data_type);
-}
-void bind_vertex_attribute(GLuint index,GLint size,GLenum type,GLboolean normalized,GLsizei stride,const void * pointer){
-    glVertexAttribPointer(index,size,type,normalized,stride,pointer);
+void bind_vertex_attribute(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride,
+                           const void *pointer) {
+    glVertexAttribPointer(index, size, type, normalized, stride, pointer);
     glEnableVertexAttribArray(index);
 }
-ZWEngine::ZWEngine() {
+
+ZWEngine::ZWEngine() : delta_time(0), last_time(0) {
     this->window = nullptr;
     this->shader_program = nullptr;
     std::cout << "initialing Opengl engine ..." << std::endl;
 }
+
 // ZWEngine Member Functions
 bool ZWEngine::init_engine(int w, int h) {
     bool window_init = this->init_window(w, h);
@@ -37,7 +37,7 @@ bool ZWEngine::init_shader_program(const GLchar *vs_shader,const GLchar * fs_sha
     shader_program->attach_shader("vertex_shader", vs_shader);
     shader_program->attach_shader("fragment_shader", fs_shader);
     shader_program->link_program();
-    this->set_render_objects();
+    this->set_render_info();
 
 }
 
@@ -72,6 +72,8 @@ void ZWEngine::activate_texture(GLint index) {
 }
 // private member functions
 bool ZWEngine::init_window(int width, int height) {
+    this->window_size.x = width;
+    this->window_size.y = height;
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -83,7 +85,6 @@ bool ZWEngine::init_window(int width, int height) {
         return false;
     }
     glfwMakeContextCurrent(this->window);
-    glfwSetFramebufferSizeCallback(this->window, framebuffer_size_callback);
 
     return true;
 }
@@ -92,11 +93,14 @@ bool ZWEngine::init_glad() {
     return gladLoadGLLoader((GLADloadproc) glfwGetProcAddress) != 0;
 }
 
-
-
 void ZWEngine::main_loop() {
     while (!glfwWindowShouldClose(this->window)) {
-        process_input(this->window);
+        // update delta time
+        GLfloat c_time = glfwGetTime();
+        this->delta_time = c_time - this->last_time;
+        this->last_time = c_time;
+        //
+//        process_input(this->window);
         this->draw_frame();
         glfwPollEvents(); // check for events
         glfwSwapBuffers(this->window);
@@ -106,17 +110,25 @@ void ZWEngine::main_loop() {
 
 void ZWEngine::cleanup() {
     // clean vao
-    std::map<std::string ,VertexArrayObject>::iterator itor_vao;
-    for(itor_vao = this->vao_map.begin(); itor_vao != this->vao_map.end(); ++ itor_vao){
+    std::map<std::string, VertexArrayObject>::iterator itor_vao;
+    for (itor_vao = this->vao_map.begin(); itor_vao != this->vao_map.end(); ++itor_vao) {
         itor_vao->second.release();
     }
     //  clean textures
-    std::vector<Texture>::iterator  itor_tex;
-    for(itor_tex= this->texture_list.begin();itor_tex!=this->texture_list.end();++ itor_tex){
+    std::vector<Texture>::iterator itor_tex;
+    for (itor_tex = this->texture_list.begin(); itor_tex != this->texture_list.end(); ++itor_tex) {
         itor_tex->release();
     }
 
     // optional: de-allocate all resources once they've outlived their purpose:
     glfwDestroyWindow(this->window);
     glfwTerminate();
+}
+
+bool ZWEngine::attach_camera(Camera camera) {
+    this->main_camera = camera;
+}
+
+Camera ZWEngine::get_camera() {
+    return this->main_camera;
 }

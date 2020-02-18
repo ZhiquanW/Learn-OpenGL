@@ -10,6 +10,8 @@
 #include <sstream>
 #include <cstring>
 #include <string>
+#include <glm/detail/type_mat4x4.hpp>
+
 ShaderProgram::ShaderProgram() {
     this->success_flag = 0;
     this->shader_program_id = glCreateProgram();
@@ -64,9 +66,29 @@ void ShaderProgram::link_program() {
         glDeleteShader(*itor);
     }
     this->shader_id_list.clear();
-    std::cout <<"shader program successfully linked" << std::endl;
+    std::cout << "shader program successfully linked" << std::endl;
 }
 
 void ShaderProgram::use_shader_program() {
     glUseProgram(this->shader_program_id);
+}
+
+bool ShaderProgram::check_uniform_loc(GLuint id) {
+    if (this->uniform_id_set.count(id)) {
+        return false;
+    }
+    this->uniform_id_set.insert(id);
+    return true;
+}
+
+GLuint ShaderProgram::id() {
+    return this->shader_program_id;
+}
+
+bool ShaderProgram::set_uniform_mat4fv(GLuint loc, glm::mat4 &m, bool reuse) {
+    if (!this->check_uniform_loc(loc) && reuse) {
+        return false;
+    }
+    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(m));
+    return true;
 }
