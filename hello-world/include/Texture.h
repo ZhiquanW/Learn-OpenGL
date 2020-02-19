@@ -8,11 +8,12 @@
 #define HELLO_WORLD_TEXTURE_H
 
 #include <glad/glad.h>
-
+#include <string>
 class Texture {
 private:
     GLuint texture_id;
     GLuint index;
+    std::string type;
     static GLuint texture_counter;
 public :
     Texture();

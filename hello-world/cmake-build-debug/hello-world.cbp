@@ -86,6 +86,9 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="/home/zhiquan/Git-Repository/Learn-OpenGL/hello-world/include/Camera.h">
+			<Option target="hello-world"/>
+		</Unit>
 		<Unit filename="/home/zhiquan/Git-Repository/Learn-OpenGL/hello-world/include/ElementBufferObject.h">
 			<Option target="hello-world"/>
 		</Unit>
@@ -95,7 +98,13 @@
 		<Unit filename="/home/zhiquan/Git-Repository/Learn-OpenGL/hello-world/include/stb_image.h">
 			<Option target="hello-world"/>
 		</Unit>
+		<Unit filename="/home/zhiquan/Git-Repository/Learn-OpenGL/hello-world/src/Camera.cpp">
+			<Option target="hello-world"/>
+		</Unit>
 		<Unit filename="/home/zhiquan/Git-Repository/Learn-OpenGL/hello-world/src/ElementBufferObject.cpp">
+			<Option target="hello-world"/>
+		</Unit>
+		<Unit filename="/home/zhiquan/Git-Repository/Learn-OpenGL/hello-world/src/Mesh.cpp">
 			<Option target="hello-world"/>
 		</Unit>
 		<Unit filename="/home/zhiquan/Git-Repository/Learn-OpenGL/hello-world/src/ShaderProgram.cpp">

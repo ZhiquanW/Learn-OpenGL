@@ -12,7 +12,6 @@
 #include <glad/glad.h>
 
 #include <GLFW/glfw3.h>
-
 #define GLM_ENABLE_EXPERIMENTAL
 
 #include <glm/gtx/transform.hpp>
@@ -21,6 +20,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include "assimp/scene.h"
 
 #include "ShaderProgram.h"
 #include "VertexArrayObject.h"

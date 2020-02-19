@@ -50,7 +50,7 @@ void ZWEngine::scroll_callback(GLFWwindow *window, double xoffset, double yoffse
 }
 
 // Opengl functions
-void ZWEngine::set_render_objects() {
+void ZWEngine::set_render_info() {
     shader_program->use_shader_program();
 
     std::vector<GLfloat> vertices = {0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
