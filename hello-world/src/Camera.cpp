@@ -24,6 +24,7 @@ inline void Camera::update_coord() {
 
     this->right = glm::normalize(glm::cross(this->front, this->world_up));
     this->up = glm::normalize(glm::cross(this->right, this->front));
+//    std::cout << up.x << " " << up.y << " " << up.z << std::endl;
 }
 
 glm::mat4 Camera::get_view_mat() {

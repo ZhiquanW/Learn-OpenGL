@@ -24,7 +24,7 @@ enum Camera_Movement {
 };
 
 class Camera {
-private:
+public:
     // camera attributes
     glm::vec3 pos;
     glm::vec3 front;
@@ -46,7 +46,7 @@ private:
     inline void update_coord();
 
 public:
-    Camera(glm::vec3= glm::vec3(0.0f, 1.0f, -1.0f), glm::vec3 = glm::vec3(0.0f, 1.0f, 0.0f),
+    Camera(glm::vec3= glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3 = glm::vec3(0.0f, 1.0f, 0.0f),
            GLfloat= 45.0f, GLfloat= 10.0f, GLfloat = 0.1f, GLfloat = 0.1f);
 
     glm::mat4 get_view_mat();

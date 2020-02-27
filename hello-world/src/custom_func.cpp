@@ -51,6 +51,8 @@ void ZWEngine::scroll_callback(GLFWwindow *window, double xoffset, double yoffse
 
 // Opengl functions
 void ZWEngine::set_render_info() {
+//    self = this;
+//    glfwSetFramebufferSizeCallback(this->window,framebuffer_size_callback);
     shader_program->use_shader_program();
 
     std::vector<GLfloat> vertices = {0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
@@ -76,11 +78,11 @@ void ZWEngine::set_render_info() {
     this->add_vao("tmp_vao", vao);
     ZWEngine::disable_vao();
 
-    Texture tex_0(1);
+    Texture tex_0(0);
     tex_0.load_image("../resources/test0.jpeg");
-    Texture tex_1(2);
-    tex_1.load_image("../resources/test_image.jpg");
     this->add_texture(tex_0);
+    Texture tex_1(1);
+    tex_1.load_image("../resources/test_image.jpg");
     this->add_texture(tex_1);
 }
 
@@ -93,6 +95,11 @@ void ZWEngine::draw_frame() {
 //    glBindTexture(GL_TEXTURE_2D, this->texture1);
 //    glUniform1i(5,0);
 //    glBindVertexArray(1);
+    glm::mat4 view = this->main_camera.get_view_mat();
+    bool tmp = shader_program->set_uniform_mat4fv(2,view);
+    glm::mat4 proj = glm::perspective(100.0f,this->window_size.x / this->window_size.y,0.001f,10000.0f);
+    tmp = shader_program->set_uniform_mat4fv(3,proj);
+//    std::cout << tmp<< std::endl;
     this->activate_texture();
     this->activate_vao("tmp_vao");
 //    glDrawArrays(GL_TRIANGLES,0,3);

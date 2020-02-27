@@ -100,7 +100,7 @@ void ZWEngine::main_loop() {
         this->delta_time = c_time - this->last_time;
         this->last_time = c_time;
         //
-//        process_input(this->window);
+        process_input(this->window);
         this->draw_frame();
         glfwPollEvents(); // check for events
         glfwSwapBuffers(this->window);
