@@ -55,7 +55,7 @@ void ZWEngine::set_render_info() {
 //    glfwSetFramebufferSizeCallback(this->window,framebuffer_size_callback);
     shader_program->use_shader_program();
 
-    std::vector<GLfloat> vertices = {1.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+    std::vector<GLfloat> vertices = {0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
                                      0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
                                      -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
                                      -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f};
@@ -91,20 +91,14 @@ void ZWEngine::draw_frame() {
     // clear buffers
     glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-//    glActiveTexture(GL_TEXTURE0);
-//    glBindTexture(GL_TEXTURE_2D, this->texture1);
-//    glUniform1i(5,0);
-//    glBindVertexArray(1);
-//    glm::mat4 view = this->main_camera.get_view_mat();
-    glm::mat4 view =glm::lookAt(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    bool tmp = shader_program->set_uniform_mat4fv(2,view);
-    glm::mat4 proj = glm::perspective(glm::radians(60.0f),this->window_size.x / this->window_size.y,0.1f,10000.0f);
 
+    glm::mat4 view = this->main_camera.get_view_mat();
+//    glm::mat4 view =glm::lookAt(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    bool tmp = shader_program->set_uniform_mat4fv(2,view);
+    glm::mat4 proj = this->main_camera.get_projection_mat();
     tmp = shader_program->set_uniform_mat4fv(3,proj);
-//    std::cout << tmp<< std::endl;
     this->activate_texture();
     this->activate_vao("tmp_vao");
-//    glDrawArrays(GL_TRIANGLES,0,3);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 

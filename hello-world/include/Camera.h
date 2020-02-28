@@ -47,9 +47,11 @@ public:
 
 public:
     Camera(glm::vec3= glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3 = glm::vec3(0.0f, 1.0f, 0.0f),
-           GLfloat= 45.0f, GLfloat= 10.0f, GLfloat = 0.1f, GLfloat = 0.1f);
+           GLfloat= 45.0f, GLfloat= 1.0f, GLfloat = 0.1f, GLfloat = 0.1f);
 
     glm::mat4 get_view_mat();
+
+    glm::mat4 get_projection_mat();
 
     void process_keyboard(Camera_Movement, float);
 

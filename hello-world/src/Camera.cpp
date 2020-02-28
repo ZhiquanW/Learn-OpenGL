@@ -31,6 +31,11 @@ glm::mat4 Camera::get_view_mat() {
     return glm::lookAt(this->pos, this->pos + this->front, this->up);
 }
 
+
+glm::mat4 Camera::get_projection_mat(){
+    return glm::perspective(glm::radians(this->fov),this->aspect,0.1f,10000.0f);
+}
+
 void Camera::process_keyboard(Camera_Movement dir, float delta_time) {
     float v = this->movement_speed * delta_time;
     switch (dir) {
