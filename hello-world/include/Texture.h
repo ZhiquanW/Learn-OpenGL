@@ -9,6 +9,7 @@
 
 #include <glad/glad.h>
 #include <string>
+
 class Texture {
 private:
     GLuint texture_id;
@@ -17,9 +18,13 @@ private:
     static GLuint texture_counter;
 public :
     Texture();
-    explicit Texture(GLuint,GLenum=GL_REPEAT,GLenum=GL_LINEAR);
+
+    explicit Texture(GLuint, GLenum= GL_REPEAT, GLenum= GL_LINEAR);
+
     bool load_image(const char *);
+
     void activate();
+
     void release();
 };
 

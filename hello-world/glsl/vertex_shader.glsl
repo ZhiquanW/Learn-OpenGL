@@ -9,7 +9,7 @@ out vec3 oCol;
 out vec2 oTexCoord;
 void main() {
     gl_Position =  project * view  * model * vec4(aPos.xyz, 1.0);
-//    gl_Position = vec4(aPos.xyz, 1.0);
+    //    gl_Position = vec4(aPos.xyz, 1.0);
     oCol = aCol;
     oTexCoord = aTexCoord;
 }

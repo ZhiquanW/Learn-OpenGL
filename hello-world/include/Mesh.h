@@ -21,15 +21,18 @@ private:
 public:
 };
 
-class Mesh{
+class Mesh {
 private:
     std::vector<Vertex> vertices;
     std::vector<GLuint> indices;
     std::vector<Texture> textures;
-    GLuint vao,vbo,ebo;
+    GLuint vao, vbo, ebo;
+
     void setup();
+
 public:
-    Mesh(std::vector<Vertex>, std::vector<GLuint>,std::vector<Texture>);
+    Mesh(std::vector<Vertex>, std::vector<GLuint>, std::vector<Texture>);
+
     void render();
 };
 

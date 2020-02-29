@@ -18,9 +18,9 @@ void ZWEngine::set_render_info() {
     // Set Render
     self = this;
     Camera main_cam;
-    main_camera.set_pos(glm::vec3(0,0,6));
+    main_camera.set_pos(glm::vec3(0, 0, 6));
     this->attach_camera(main_camera);
-    glfwSetFramebufferSizeCallback(this->window,framebuffer_size_callback);
+    glfwSetFramebufferSizeCallback(this->window, framebuffer_size_callback);
     shader_program->use_shader_program();
 
     std::vector<GLfloat> vertices = {-1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
@@ -75,33 +75,35 @@ void ZWEngine::render_ui() {
     ImGui::NewFrame();
     // Create a window called "Hello, world!" and append into it.
     ImGui::Begin("Hello, world!");
-    if (this->uniform_failed_id != -1){
-        std::string tmp ="uniform variable ";
-        tmp+= std::to_string(uniform_failed_id);
-        tmp+= " declare failed";
+    if (this->uniform_failed_id != -1) {
+        std::string tmp = "uniform variable ";
+        tmp += std::to_string(uniform_failed_id);
+        tmp += " declare failed";
         ImGui::Text("%s", tmp.c_str());
     }
 
     ImGui::SliderFloat("obj angle: ", &obj_angle, -180.0f, 180.0f);
+    ImGui::SliderFloat2("camera angle", &this->main_camera.get_pitch_yaw()[0], -180, 180);
     ImGui::End();
     ImGui::Render();
 }
+
 void ZWEngine::render_world() {
     // clear buffers
     glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 model = glm::rotate(glm::radians(this->obj_angle), glm::vec3(0.0f, 1.0f, 0.0f));
-    if(!shader_program->set_uniform_mat4fv(2,model)){
+    if (!shader_program->set_uniform_mat4fv(2, model)) {
         this->uniform_failed_id = 2;
     }
     glm::mat4 view = this->main_camera.get_view_mat();
-    if(!shader_program->set_uniform_mat4fv(3,view)){
+    if (!shader_program->set_uniform_mat4fv(3, view)) {
         this->uniform_failed_id = 3;
     }
     glm::mat4 proj = this->main_camera.get_projection_mat();
-    if(!shader_program->set_uniform_mat4fv(4,proj)){
-        this->uniform_failed_id =4;
+    if (!shader_program->set_uniform_mat4fv(4, proj)) {
+        this->uniform_failed_id = 4;
     }
     this->activate_texture();
     this->activate_vao("tmp_vao");
@@ -122,6 +124,7 @@ void ZWEngine::process_input() {
 
 void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
     glViewport(0, 0, w, h);
+    self->get_camera().set_aspect((GLfloat) w / (GLfloat) h);
 }
 
 bool first_in = true;

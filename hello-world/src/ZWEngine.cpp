@@ -31,9 +31,11 @@ bool ZWEngine::init_engine(int w, int h) {
     bool window_init = this->init_window(w, h);
     bool glad_init = ZWEngine::init_glad();
     this->init_imgui();
+    this->main_camera.set_aspect((GLfloat) w / (GLfloat) h);
     return window_init && glad_init;
 }
-bool ZWEngine::init_shader_program(const GLchar *vs_shader,const GLchar * fs_shader){
+
+bool ZWEngine::init_shader_program(const GLchar *vs_shader, const GLchar *fs_shader) {
     this->shader_program = new ShaderProgram();
     shader_program->attach_shader("vertex_shader", vs_shader);
     shader_program->attach_shader("fragment_shader", fs_shader);
@@ -48,29 +50,33 @@ void ZWEngine::run() {
 }
 
 void ZWEngine::add_vao(const std::string &name, VertexArrayObject &vao) {
-    this->vao_map.insert(std::pair<std::string, VertexArrayObject> ("tmp_vao",vao));
+    this->vao_map.insert(std::pair<std::string, VertexArrayObject>("tmp_vao", vao));
 }
 
-void ZWEngine::activate_vao(const std::string& name) {
+void ZWEngine::activate_vao(const std::string &name) {
     glBindVertexArray(this->vao_map.at(name).id());
 
 }
+
 void ZWEngine::disable_vao() {
     glBindVertexArray(0);
 }
+
 void ZWEngine::add_texture(Texture tex) {
     this->texture_list.push_back(tex);
 }
+
 void ZWEngine::activate_texture(GLint index) {
-    if (index==-1){//activate all textures
+    if (index == -1) {//activate all textures
         std::vector<Texture>::iterator itor;
-        for(itor= this->texture_list.begin();itor != this->texture_list.end();++ itor){
+        for (itor = this->texture_list.begin(); itor != this->texture_list.end(); ++itor) {
             itor->activate();
         }
-    }else{
+    } else {
         this->texture_list[index].activate();
     }
 }
+
 // private member functions
 bool ZWEngine::init_window(int width, int height) {
     this->window_size.x = width;
@@ -101,12 +107,13 @@ bool ZWEngine::init_imgui() {
     ImGuiIO &io = ImGui::GetIO();
     // Setup Platform/Renderer bindings
 
-    const char* glsl_version = "#version 460 core";
+    const char *glsl_version = "#version 460 core";
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
     return true;
 }
+
 void ZWEngine::main_loop() {
     while (!glfwWindowShouldClose(this->window)) {
         // update delta time
@@ -147,6 +154,6 @@ bool ZWEngine::attach_camera(Camera camera) {
     this->main_camera = camera;
 }
 
-Camera ZWEngine::get_camera() {
+Camera &ZWEngine::get_camera() {
     return this->main_camera;
 }

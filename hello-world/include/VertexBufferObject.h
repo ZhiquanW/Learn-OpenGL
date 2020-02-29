@@ -9,24 +9,29 @@
 
 #include <glad/glad.h>
 #include <vector>
-class VertexAttribute{
+
+class VertexAttribute {
 private:
     GLuint index;
     GLint size;
     GLenum type;
     GLboolean normalized;
     GLsizei stride;
-    const void * pointer;
+    const void *pointer;
 public:
     VertexAttribute();
-    VertexAttribute(GLuint ,GLint ,GLenum,GLboolean,GLsizei,const void *);
+
+    VertexAttribute(GLuint, GLint, GLenum, GLboolean, GLsizei, const void *);
+
     void activate();
 };
+
 class VertexBufferObject {
 private:
     GLuint vbo_id;
 public:
-    VertexBufferObject( const std::vector<GLfloat> & ,GLenum);
+    VertexBufferObject(const std::vector<GLfloat> &, GLenum);
+
     GLuint id();
 };
 

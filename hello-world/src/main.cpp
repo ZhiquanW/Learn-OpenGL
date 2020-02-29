@@ -5,12 +5,14 @@
 #include <glm/glm.hpp>
 #include <iostream>
 #include "imgui.h"
+
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-const GLchar * vs_shader_path = "../glsl/vertex_shader.glsl";
-const GLchar * fs_shader_path = "../glsl/fragment_shader.glsl";
+const GLchar *vs_shader_path = "../glsl/vertex_shader.glsl";
+const GLchar *fs_shader_path = "../glsl/fragment_shader.glsl";
+
 int main() {
     auto *tmp_app = new ZWEngine();
 
@@ -19,7 +21,7 @@ int main() {
     } else {
         std::cout << "engine initialized successfully" << std::endl;
     }
-    tmp_app->init_shader_program(vs_shader_path,fs_shader_path);
+    tmp_app->init_shader_program(vs_shader_path, fs_shader_path);
     std::cout << "engine start running" << std::endl;
     tmp_app->run();
 }

@@ -49,7 +49,7 @@ void ShaderProgram::attach_shader(const GLchar *type, const GLchar *file_path) {
     }
     glAttachShader(this->shader_program_id, shader_id);
     this->shader_id_list.push_back(shader_id);
-    std::cout <<type <<" loaded successfully" << std::endl;
+    std::cout << type << " loaded successfully" << std::endl;
 }
 
 void ShaderProgram::link_program() {

@@ -11,13 +11,14 @@
 
 
 #include <glad/glad.h>
-#define IMGUI_IMPL_OPENGL_LOADER_X
+
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 //
 
 #include <GLFW/glfw3.h>
+
 #define GLM_ENABLE_EXPERIMENTAL
 
 #include <glm/gtx/transform.hpp>
@@ -47,7 +48,7 @@ public:
 
     bool attach_camera(Camera);
 
-    Camera get_camera();
+    Camera &get_camera();
 
 private:
     GLFWwindow *window;
@@ -61,12 +62,14 @@ private:
     // custom varibles
     GLuint uniform_failed_id = -1;
     GLfloat obj_angle = 0.0f;
+
     //functions
     bool init_window(int, int);
 
     static bool init_glad();
 
     bool init_imgui();
+
     void main_loop();
 
     void cleanup();
@@ -75,6 +78,7 @@ private:
     void set_render_info();
 
     void render_ui();
+
     void render_world();
 
     //utilities functions
@@ -96,7 +100,12 @@ private:
 
     static void keycode_callback(GLFWwindow *, int, int, int, int);
 };
-void bind_vertex_buffer_object(const std::vector<GLfloat> &data,GLenum data_type = GL_STATIC_DRAW);
-void bind_vertex_attribute(GLuint index,GLint size,GLenum type,GLboolean normalized,GLsizei stride,const void * pointer);
-void framebuffer_size_callback(GLFWwindow *window, int w, int h) ;
+
+void bind_vertex_buffer_object(const std::vector<GLfloat> &data, GLenum data_type = GL_STATIC_DRAW);
+
+void
+bind_vertex_attribute(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
+
+void framebuffer_size_callback(GLFWwindow *window, int w, int h);
+
 #endif //HELLO_WORLD_ZWENGINE_H

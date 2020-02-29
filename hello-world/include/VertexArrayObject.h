@@ -16,15 +16,21 @@
 class VertexArrayObject {
 private:
     GLuint vao_id;
-    std::vector<GLuint > vbo_list;
+    std::vector<GLuint> vbo_list;
     std::vector<GLuint> ebo_list;
 public:
     VertexArrayObject();
+
     explicit VertexArrayObject(bool);
+
     GLuint id();
+
     void activate();
-    void attach_vbo(GLuint );
-    void attach_ebo(GLuint );
+
+    void attach_vbo(GLuint);
+
+    void attach_ebo(GLuint);
+
     void release();
 
 };
