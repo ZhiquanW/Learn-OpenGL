@@ -48,7 +48,7 @@ public:
 public:
     Camera(glm::vec3= glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3 = glm::vec3(0.0f, 1.0f, 0.0f),
            GLfloat= 45.0f, GLfloat= 1.0f, GLfloat = 0.1f, GLfloat = 0.1f);
-
+    void set_pos(glm::vec3);
     glm::mat4 get_view_mat();
 
     glm::mat4 get_projection_mat();

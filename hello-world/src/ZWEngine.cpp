@@ -30,6 +30,7 @@ ZWEngine::ZWEngine() : delta_time(0), last_time(0) {
 bool ZWEngine::init_engine(int w, int h) {
     bool window_init = this->init_window(w, h);
     bool glad_init = ZWEngine::init_glad();
+    this->init_imgui();
     return window_init && glad_init;
 }
 bool ZWEngine::init_shader_program(const GLchar *vs_shader,const GLchar * fs_shader){
@@ -93,6 +94,19 @@ bool ZWEngine::init_glad() {
     return gladLoadGLLoader((GLADloadproc) glfwGetProcAddress) != 0;
 }
 
+bool ZWEngine::init_imgui() {
+    //Set ImGUI
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    // Setup Platform/Renderer bindings
+
+    const char* glsl_version = "#version 460 core";
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init(glsl_version);
+    return true;
+}
 void ZWEngine::main_loop() {
     while (!glfwWindowShouldClose(this->window)) {
         // update delta time
@@ -100,8 +114,9 @@ void ZWEngine::main_loop() {
         this->delta_time = c_time - this->last_time;
         this->last_time = c_time;
         //
-        process_input(this->window);
-        this->draw_frame();
+        process_input();
+        this->render_ui();
+        this->render_world();
         glfwPollEvents(); // check for events
         glfwSwapBuffers(this->window);
     }
@@ -119,7 +134,10 @@ void ZWEngine::cleanup() {
     for (itor_tex = this->texture_list.begin(); itor_tex != this->texture_list.end(); ++itor_tex) {
         itor_tex->release();
     }
-
+    //clean up imgui
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     // optional: de-allocate all resources once they've outlived their purpose:
     glfwDestroyWindow(this->window);
     glfwTerminate();

@@ -24,7 +24,6 @@ inline void Camera::update_coord() {
 
     this->right = glm::normalize(glm::cross(this->front, this->world_up));
     this->up = glm::normalize(glm::cross(this->right, this->front));
-    std::cout << up.x << " " << up.y << " " << up.z << std::endl;
 }
 
 glm::mat4 Camera::get_view_mat() {
@@ -72,6 +71,10 @@ void Camera::process_mouse_scroll(GLfloat y_offset) {
 
 GLfloat Camera::get_fov() {
     return this->fov;
+}
+
+void Camera::set_pos(glm::vec3 pos) {
+    this->pos = pos;
 }
 
 
