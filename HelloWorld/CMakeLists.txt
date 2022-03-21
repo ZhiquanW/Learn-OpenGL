@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
-project(HelloWorld)
-include_directories(${CMAKE_SOURCE_DIR}/includes ${CMAKE_SOURCE_DIR}/dependency/GLFW)
+project(main)
+include_directories(${CMAKE_SOURCE_DIR}/includes ${CMAKE_SOURCE_DIR}/dependency/)
 link_directories(${CMAKE_SOURCE_DIR}/dependency/GLFW)
 
 aux_source_directory(${CMAKE_SOURCE_DIR}/src source_files)
