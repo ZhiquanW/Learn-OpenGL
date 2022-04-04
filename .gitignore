@@ -46,3 +46,4 @@ _deps
 .history/
 .vscode
 build/
+assets/
