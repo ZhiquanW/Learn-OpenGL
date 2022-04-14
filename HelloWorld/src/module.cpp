@@ -27,13 +27,13 @@ void VisualShapeModule::initGLData() {
     glBindBuffer(GL_ARRAY_BUFFER, this->glVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(this->vertexData.data()) * this->vertexData.size(), this->vertexData.data(),
                  GL_STATIC_DRAW);
-    const int vertex_size = 6;
-    const int pos_len = 3;
-    const int normal_len = 3;
-    const int data_offsets[] = {0, pos_len};
-    glVertexAttribPointer(0, pos_len, GL_FLOAT, GL_FALSE, vertex_size * sizeof(float), (void *)0);
+    const int posLen = 3;
+    const int normalLen = 3;
+    const int vertexSize = posLen + normalLen;
+    const int data_offsets[] = {0, posLen};
+    glVertexAttribPointer(0, posLen, GL_FLOAT, GL_FALSE, vertexSize * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, normal_len, GL_FLOAT, GL_FALSE, vertex_size * sizeof(float),
+    glVertexAttribPointer(1, normalLen, GL_FLOAT, GL_FALSE, vertexSize * sizeof(float),
                           (void *)((data_offsets[1]) * sizeof(float)));
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, 0);

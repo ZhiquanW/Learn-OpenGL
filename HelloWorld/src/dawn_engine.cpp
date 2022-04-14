@@ -26,25 +26,18 @@ DawnEngine::~DawnEngine() {
 }
 
 void DawnEngine::addDefaultLight() {
-    std::shared_ptr<PointLight> pLight(
-        new PointLight(glm::vec3(1.0f), glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.0f, 0.0f, 1.0f)));
-    this->lights.emplace_back(pLight);
+    std::shared_ptr<PointLight> pLight(new PointLight(glm::vec3(1.0f), glm::vec3(0.9f), glm::vec3(0.9f), glm::vec3(0.9f)));
+    this->addLight(pLight);
 }
 
-void DawnEngine::addDefaultCube() {
-    this->gameObjects.emplace_back(GameObject::createPrimitive(CubePrimitiveType));
-    // float vertices[] = {-1.0f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f, 0.0f, 0.5f, 0.0f};
-    // glGenVertexArrays(1, &this->VAO);
-    // glBindVertexArray(this->VAO);
-    // glGenBuffers(1, &this->VBO);
-    // glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-    // glEnableVertexAttribArray(0);
-}
+void DawnEngine::addDefaultCube() { this->gameObjects.emplace_back(GameObject::createPrimitive(CubePrimitiveType)); }
+
+void DawnEngine::addGameObject(bool isEntity) {}
+
 void DawnEngine::launch() {
-
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+    this->awake();
+    this->start();
+    glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
     glClearDepth(1.0);
     while (!this->renderWindow->should_close()) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -52,12 +45,26 @@ void DawnEngine::launch() {
         this->deltaTime = currentTime - this->lastTime;
         this->lastTime = currentTime;
         this->renderWindow->process_inputs(&this->mainCamera, this->deltaTime);
+        this->update();
         this->render();
         this->renderWindow->swap_buffers();
     }
 }
 
 void DawnEngine::setupLights() {}
+
+void DawnEngine::addLight(const std::shared_ptr<DirectionalLight> light) {
+    if (this->dirLightNum < this->MAX_DIR_LIGHT_NUM) {
+        this->lights.emplace_back(light);
+        this->dirLightNum += 1;
+    }
+}
+void DawnEngine::addLight(const std::shared_ptr<PointLight> light) {
+    if (this->pointLightNum < this->MAX_POINT_LIGHT_NUM) {
+        this->lights.emplace_back(light);
+        this->pointLightNum += 1;
+    }
+}
 void DawnEngine::render() {
     glm::mat4 modelMat = glm::mat4(1.0f);
     glm::mat4 view = this->mainCamera.getViewMatrix();
@@ -65,25 +72,16 @@ void DawnEngine::render() {
         glm::radians(this->mainCamera.getFov()),
         (float)this->renderWindow->get_win_width() / (float)this->renderWindow->get_win_height(), 0.001f, 100.0f);
     glm::vec3 camPos = this->mainCamera.getPos();
-    // render object
     this->gameObjectShader->activate();
     this->gameObjectShader->setMatrix4fv("view", view);
     this->gameObjectShader->setMatrix4fv("projection", projection);
-    this->gameObjectShader->setVec3fv("p_light.position",
-                                      dynamic_cast<PointLight *>(this->lights.begin()->get())->getPosition());
-    this->gameObjectShader->setVec3fv("p_light.ambient", this->lights.begin()->get()->getAmbient());
-    this->gameObjectShader->setVec3fv("p_light.diffuse", this->lights.begin()->get()->getDiffuse());
-    this->gameObjectShader->setVec3fv("p_light.specular", this->lights.begin()->get()->getSpecular());
-    this->gameObjectShader->setVec3fv("cam_pos", camPos);
+    this->gameObjectShader->setUniform("cam_pos", camPos);
+    this->gameObjectShader->setUniforms(dynamic_cast<PointLight *>(this->lights.begin()->get())->getUniforms("p_light"));
     for (auto gObj : this->gameObjects) {
         VisualShapeModule *visualShape = gObj->getModule<VisualShapeModule>();
         if (visualShape) {
             this->gameObjectShader->setMatrix4fv("model_mat", gObj->getModule<TransformModule>()->getModelMat4());
-            Material material = visualShape->getMaterial();
-            this->gameObjectShader->setVec3fv("material.ambient", material.getAmbient());
-            this->gameObjectShader->setVec3fv("material.diffuse", material.getDiffuse());
-            this->gameObjectShader->setVec3fv("material.specular", material.getSpecular());
-            this->gameObjectShader->setFloat("material.shininess", material.getShininess());
+            this->gameObjectShader->setUniforms(visualShape->getMaterial().getUniforms("material"));
             visualShape->setRenderTarget();
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
@@ -100,29 +98,7 @@ void DawnEngine::render() {
     // this->lights.glBindVertexArray(this->lightVAO);
     // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 }
-void DawnEngine::add_data() {
-
-    // float lightCubeVertices[] = {
-    //     -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f,
-    //     0.5f,  -0.5f, -0.5f, 0.5f,  -0.5f, 0.5f, 0.5f,  0.5f, -0.5f, 0.5f,  0.5f, 0.5f,
-    // };
-    // unsigned int lightCubeIndices[] = {0, 1, 2, 1, 2, 3, 0, 1, 4, 1, 4, 5, 0, 2, 4, 2, 4, 6,
-    //                                    7, 6, 5, 6, 5, 4, 7, 5, 3, 5, 3, 1, 7, 6, 3, 6, 3, 2};
-
-    // // Add Light Data
-    // glGenVertexArrays(1, &this->lightVAO);
-    // glBindVertexArray(this->lightVAO);
-    // glGenBuffers(1, &this->lightVBO);
-    // glGenBuffers(1, &this->lightEBO);
-    // glBindBuffer(GL_ARRAY_BUFFER, this->lightVBO);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(lightCubeVertices), lightCubeVertices, GL_STATIC_DRAW);
-    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-    // glEnableVertexAttribArray(0);
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->lightEBO);
-    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(lightCubeIndices), lightCubeIndices, GL_STATIC_DRAW);
-    // glBindBuffer(GL_ARRAY_BUFFER, 0);
-    // glBindVertexArray(0);
-}
+void DawnEngine::add_data() {}
 
 void DawnEngine::createShaderPrograms() {
     this->gameObjectShader = new DawnShaderProgram("../shaders/tri.vs", "../shaders/tri.fs");

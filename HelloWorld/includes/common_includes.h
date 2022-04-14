@@ -12,6 +12,9 @@
 #include <unordered_map>
 #include <cmath>
 #include <vector>
+#include <set>
+#include <map>
+#include <typeinfo>
 #include <string>
 #include <fstream>
 #include <sstream>

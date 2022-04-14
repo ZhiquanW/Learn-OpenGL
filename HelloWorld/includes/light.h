@@ -1,5 +1,6 @@
 #pragma once
 #include "common_includes.h"
+#include "shader_uniform_variable.h"
 namespace dawn {
 class Light {
   protected:
@@ -33,6 +34,7 @@ class PointLight : public Light {
     PointLight(glm::vec3 position, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular);
     glm::vec3 getPosition() const;
     void setPosition(glm::vec3 position);
+    std::vector<std::shared_ptr<ShaderUniformVariableBase>> getUniforms(const std::string &name) const;
 };
 
 class DirectionalLight : public Light {

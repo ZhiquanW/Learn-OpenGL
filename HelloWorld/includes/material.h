@@ -1,5 +1,6 @@
 #pragma once
 #include "common_includes.h"
+#include "shader_uniform_variable.h"
 namespace dawn {
 class Material {
   protected:
@@ -19,5 +20,6 @@ class Material {
     void setSpecular(glm::vec3 value);
     float getShininess() const;
     void setShinibess(float value);
+    std::vector<std::shared_ptr<ShaderUniformVariableBase>> getUniforms(const std::string &name) const;
 };
 } // namespace dawn

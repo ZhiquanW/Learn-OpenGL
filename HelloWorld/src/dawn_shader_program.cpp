@@ -69,6 +69,37 @@ void DawnShaderProgram::setMatrix4fv(const std::string &name, glm::mat4 value) c
 void DawnShaderProgram::setVec3fv(const std::string &name, glm::vec3 value) const {
     glUniform3fv(glGetUniformLocation(this->id, name.c_str()), 1, glm::value_ptr(value));
 }
+void DawnShaderProgram::setUniform(const std::string &name, bool value) {
+    glUniform1i(glGetUniformLocation(this->id, name.c_str()), (int)value);
+}
+void DawnShaderProgram::setUniform(const std::string &name, int value) {
+    glUniform1i(glGetUniformLocation(this->id, name.c_str()), value);
+}
+void DawnShaderProgram::setUniform(const std::string &name, glm::vec3 value) {
+    glUniform3fv(glGetUniformLocation(this->id, name.c_str()), 1, glm::value_ptr(value));
+}
+void DawnShaderProgram::setUniform(const std::string &name, glm::mat4 value) {
+    glUniformMatrix4fv(glGetUniformLocation(this->id, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
+}
+
+void DawnShaderProgram::setUniforms(std::vector<std::shared_ptr<ShaderUniformVariableBase>> uniforms) {
+    for (auto u_sp : uniforms) {
+        ShaderUniformVariableBase *u_ptr = u_sp.get();
+        if (u_ptr->getTypeHash() == typeid(int).hash_code()) {
+            this->setInt(u_ptr->getName(), dynamic_cast<ShaderUniformVariable<int> *>(u_ptr)->getData());
+        } else if (u_ptr->getTypeHash() == typeid(bool).hash_code()) {
+            this->setBool(u_ptr->getName(), dynamic_cast<ShaderUniformVariable<bool> *>(u_ptr)->getData());
+        } else if (u_ptr->getTypeHash() == typeid(float).hash_code()) {
+            this->setFloat(u_ptr->getName(), dynamic_cast<ShaderUniformVariable<float> *>(u_ptr)->getData());
+        } else if (u_ptr->getTypeHash() == typeid(glm::vec3).hash_code()) {
+            this->setVec3fv(u_ptr->getName(), dynamic_cast<ShaderUniformVariable<glm::vec3> *>(u_ptr)->getData());
+        } else if (u_ptr->getTypeHash() == typeid(glm::mat4).hash_code()) {
+            this->setMatrix4fv(u_ptr->getName(), dynamic_cast<ShaderUniformVariable<glm::mat4> *>(u_ptr)->getData());
+        } else {
+            throw std::runtime_error("unknow shader uniform variable type");
+        }
+    }
+}
 void DawnShaderProgram::checkCompileErrors(unsigned int shader, std::string type) {
     int success;
     char infoLog[1024];

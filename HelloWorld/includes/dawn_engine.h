@@ -20,6 +20,12 @@ class DawnEngine {
     float timeValue;
     GLfloat deltaTime;
     GLfloat lastTime;
+    const uint32_t MAX_DIR_LIGHT_NUM = 64;
+    const uint32_t MAX_POINT_LIGHT_NUM = 64;
+    const uint32_t MAX_FLASH_LIGHT_NUM = 64;
+    uint32_t dirLightNum = 0;
+    uint32_t pointLightNum = 0;
+    uint32_t flashLightNum = 0;
     // customized data
 
     unsigned int cubeVAO, cubeVBO, cubeEBO;
@@ -36,9 +42,9 @@ class DawnEngine {
     void addDefaultCube();
 
   protected:
-    void awake();
-    void start();
-    void update();
+    virtual void awake() = 0;
+    virtual void start() = 0;
+    virtual void update() = 0;
     void addGameObject(bool isEntity);
     void addGameObject(bool isEntity, glm::vec3 position);
     void setupLights();
@@ -47,10 +53,9 @@ class DawnEngine {
     DawnEngine(uint32_t win_width, uint32_t win_height, const std::string name);
     ~DawnEngine();
     void launch();
-    void addGameObject();
     void add_data();
-    void addLight(DirectionalLight light);
-    void addLight(PointLight light);
+    void addLight(const std::shared_ptr<DirectionalLight> light);
+    void addLight(const std::shared_ptr<PointLight> light);
     void createShaderPrograms();
     void loadTextures(const char *, const char *);
 };

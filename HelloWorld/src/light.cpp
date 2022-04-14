@@ -19,6 +19,14 @@ PointLight::PointLight(glm::vec3 position, glm::vec3 ambient, glm::vec3 diffuse,
     : Light(ambient, diffuse, specular), position(position) {}
 glm::vec3 PointLight::getPosition() const { return this->position; }
 void PointLight::setPosition(glm::vec3 position) { this->position = position; }
+std::vector<std::shared_ptr<ShaderUniformVariableBase>> PointLight::getUniforms(const std::string &name) const {
+    std::vector<std::shared_ptr<ShaderUniformVariableBase>> uniforms;
+    uniforms.emplace_back(std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".position", this->position));
+    uniforms.emplace_back(std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".ambient", this->ambient));
+    uniforms.emplace_back(std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".diffuse", this->diffuse));
+    uniforms.emplace_back(std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".specular", this->specular));
+    return uniforms;
+}
 
 // direction light
 DirectionalLight::DirectionalLight() : Light(), direction(glm::vec3(0.0f, -1.0f, 0.0f)) {}

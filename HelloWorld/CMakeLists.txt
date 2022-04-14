@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
+set (CMAKE_CXX_STANDARD 17)
 project(main)
 include_directories(${CMAKE_SOURCE_DIR}/includes ${CMAKE_SOURCE_DIR}/dependency/)
 link_directories(${CMAKE_SOURCE_DIR}/dependency/GLFW)

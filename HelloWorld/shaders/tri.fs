@@ -1,4 +1,7 @@
 #version 330 core 
+#define MAX_POINT_LIGHT_NUM 64
+#define MAX_DIR_LIGHT_NUM 64
+#define MAX_FLASH_LIGHT_NUM 64
 
 struct Material {
     vec3 ambient;
@@ -24,7 +27,10 @@ in vec3 frag_pos;
 
 uniform Material material;
 uniform PointLight p_light;
-
+uniform PointLight pointLights[MAX_POINT_LIGHT_NUM];
+uniform int dir_lights_num;
+uniform int point_lights_num;
+uniform int flash_lights_num;
 uniform vec3 cam_pos ;
 out vec4 out_color; 
 
