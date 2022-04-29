@@ -11,7 +11,6 @@ class DawnEngine {
     RenderWindow *renderWindow;
     Camera mainCamera;
     std::vector<std::shared_ptr<GameObject>> gameObjects;
-    std::vector<std::shared_ptr<Light>> lights;
 
     DawnShaderProgram *gameObjectShader;
     DawnShaderProgram *lightShader;
@@ -45,8 +44,8 @@ class DawnEngine {
     virtual void awake() = 0;
     virtual void start() = 0;
     virtual void update() = 0;
-    void addGameObject(bool isEntity);
-    void addGameObject(bool isEntity, glm::vec3 position);
+    void addGameObject(const std::shared_ptr<GameObject> gameObjPtr);
+    // void addGameObject(bool isEntity, glm::vec3 position);
     void setupLights();
 
   public:

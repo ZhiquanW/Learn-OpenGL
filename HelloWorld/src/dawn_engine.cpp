@@ -11,8 +11,8 @@ DawnEngine::DawnEngine(uint32_t win_width, uint32_t win_height, const std::strin
     glViewport(0, 0, this->renderWindow->get_win_width(), this->renderWindow->get_win_height());
     glEnable(GL_DEPTH_TEST);
     this->createShaderPrograms();
-    this->addDefaultCube();
-    this->addDefaultLight();
+    // this->addDefaultCube();
+    // this->addDefaultLight();
     // customized data
     // this->cubeMaterial =
     //     Material(glm::vec3(1.0f, 0.5f, 0.31f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.5f, 0.5f, 0.5f), 32.0f);
@@ -32,12 +32,14 @@ void DawnEngine::addDefaultLight() {
 
 void DawnEngine::addDefaultCube() { this->gameObjects.emplace_back(GameObject::createPrimitive(CubePrimitiveType)); }
 
-void DawnEngine::addGameObject(bool isEntity) {}
+// void DawnEngine::addGameObject(bool isEntity) {}
+
+void DawnEngine::addGameObject(const std::shared_ptr<GameObject> gameObjPtr) { this->gameObjects.emplace_back(gameObjPtr); }
 
 void DawnEngine::launch() {
     this->awake();
     this->start();
-    glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClearDepth(1.0);
     while (!this->renderWindow->should_close()) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -76,7 +78,10 @@ void DawnEngine::render() {
     this->gameObjectShader->setMatrix4fv("view", view);
     this->gameObjectShader->setMatrix4fv("projection", projection);
     this->gameObjectShader->setUniform("cam_pos", camPos);
-    this->gameObjectShader->setUniforms(dynamic_cast<PointLight *>(this->lights.begin()->get())->getUniforms("p_light"));
+    if (this->lights.size() > 0) {
+
+        this->gameObjectShader->setUniforms(dynamic_cast<PointLight *>(this->lights.begin()->get())->getUniforms("p_light"));
+    }
     for (auto gObj : this->gameObjects) {
         VisualShapeModule *visualShape = gObj->getModule<VisualShapeModule>();
         if (visualShape) {
@@ -86,17 +91,11 @@ void DawnEngine::render() {
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
     }
-    // this->testShader->activate();
-    // glBindVertexArray(this->VAO);
-    // glDrawArrays(GL_TRIANGLES, 0, 3);
-
     // render light
     this->lightShader->activate();
     // for (auto light : this->lights) {
     //     light->
     // }
-    // this->lights.glBindVertexArray(this->lightVAO);
-    // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 }
 void DawnEngine::add_data() {}
 

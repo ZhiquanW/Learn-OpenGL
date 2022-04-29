@@ -64,4 +64,10 @@ class TransformModule : public Module {
     glm::mat4 getRotationMat4() const;
     glm::mat4 getModelMat4() const;
 };
+
+class LightModule : public Module {
+
+  protected:
+  public:
+}
 } // namespace dawn
