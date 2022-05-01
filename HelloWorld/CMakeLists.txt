@@ -83,4 +83,8 @@ target_link_libraries(${PROJECT_NAME} glfw)
 # ${Boost_INCLUDE_DIR})
 # target_include_directories(graphics_lib SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/Dep/glm)
 # set_target_properties(graphics_lib PROPERTIES     POSITION_INDEPENDENT_CODE ON)
-# target_link_libraries(graphics_lib PUBLIC ${Boost_LIBRARIES}${OPENGL_gl_LIBRARY}glfwOpenMP::OpenMP_CXX)
+# target_link_libraries(graphics_lib PUBLIC 
+# ${Boost_LIBRARIES}
+# ${OPENGL_gl_LIBRARY}
+# glfw
+# OpenMP::OpenMP_CXX)

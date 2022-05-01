@@ -9,5 +9,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/src SOURCE_DIR)
 # exe
 add_executable(${PROJECT_NAME} ${SOURCE_DIR})
 # lib
-target_link_libraries(${PROJECT_NAME} glfw deps_shared_lib)
+target_link_libraries(${PROJECT_NAME} deps_shared_lib)
+# set_property(TARGET curl PROPERTY IMPORTED_LOCATION "${CURL_LIBRARY}")
 
+# message(${glfw})
