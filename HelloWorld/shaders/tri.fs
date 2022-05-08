@@ -36,18 +36,26 @@ out vec4 out_color;
 
 void main() { 
     // bool enable_p_light = true;
-    vec3 light_dir = normalize(p_light.position-frag_pos);
+    vec3 pposition = vec3(1,1,1);
+    vec3 pambient = vec3(1,1,1);
+    vec3 pdiffuse = vec3(1,1,1);
+    vec3 pspecular = vec3(1,1,1);
+    vec3 mambient = vec3(1,1,1);
+    vec3 mdiffuse = vec3(1,1,1);
+    vec3 mspecular = vec3(1,1,1);
+    float mshininess = 1.0;
+    vec3 light_dir = normalize(pposition-frag_pos);
     // ambient
-    vec3 ambient =  material.ambient * p_light.ambient;
+    vec3 ambient =  mambient * pambient;
     // diffuse
     vec3 norm = normalize(frag_normal);
     float diff = max(dot(norm, light_dir), 0.0);
-    vec3 diffuse =diff*  material.diffuse * p_light.diffuse;
+    vec3 diffuse =diff*  mdiffuse * pdiffuse;
     // specular
     vec3 view_dir = normalize(cam_pos - frag_pos);
     vec3 reflect_dir = reflect(-light_dir, norm);  
-    float spec = pow(max(dot(view_dir, reflect_dir), 0.0), material.shininess);
-    vec3 specular = spec * material.specular * p_light.specular;
+    float spec = pow(max(dot(view_dir, reflect_dir), 0.0), mshininess);
+    vec3 specular = spec * mspecular * pspecular;
 
     vec3 shader_color = ambient + diffuse + specular;
     out_color =vec4(ambient+diffuse+specular ,1.0f);

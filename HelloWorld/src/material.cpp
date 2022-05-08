@@ -1,6 +1,6 @@
 #include "material.h"
 
-namespace dawn {
+namespace dawn_engine {
 Material::Material()
     : ambient(glm::vec3(1.0f, 0.0f, 0.0f)), diffuse(glm::vec3(0.0f, 1.0f, 0.0f)), specular(glm::vec3(0.0f, 0.0f, 1.0f)),
       shininess(64.0f) {}
@@ -24,4 +24,4 @@ std::vector<std::shared_ptr<ShaderUniformVariableBase>> Material::getUniforms(co
     uniforms.emplace_back(std::make_shared<ShaderUniformVariable<float>>(name + ".shininess", this->shininess));
     return uniforms;
 }
-} // namespace dawn
+} // namespace dawn_engine

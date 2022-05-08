@@ -1,6 +1,6 @@
 #include "camera.h"
 
-namespace dawn {
+namespace dawn_engine {
 
 Camera::Camera(glm::vec3 position, float yaw, float pitch)
     : position(position), front(DEFAULT_FRONT), movementSpeed(DEFAULT_SPEED), fov(DEFAULT_FOV), yaw(yaw), pitch(pitch),
@@ -61,4 +61,4 @@ void Camera::processMouseScroll(float yOffset) {
     this->fov = std::max(1.0f, this->fov);
     this->fov = std::min(80.0f, this->fov);
 }
-} // namespace dawn
+} // namespace dawn_engine

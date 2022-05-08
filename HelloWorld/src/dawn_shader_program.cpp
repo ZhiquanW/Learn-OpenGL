@@ -1,5 +1,5 @@
 #include "dawn_shader_program.h"
-namespace dawn {
+namespace dawn_engine {
 DawnShaderProgram::DawnShaderProgram(const char *vertexPath, const char *fragmentPath) {
     // 1. retrieve the vertex/fragment source code from filePath
     std::string vertexCode;
@@ -126,4 +126,4 @@ void DawnShaderProgram::checkCompileErrors(unsigned int shader, std::string type
     }
 }
 
-} // namespace dawn
+} // namespace dawn_engine

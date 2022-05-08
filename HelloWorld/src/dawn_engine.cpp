@@ -1,9 +1,12 @@
 #include "dawn_engine.h"
-namespace dawn {
+
+namespace dawn_engine {
+
 DawnEngine::DawnEngine(uint32_t win_width, uint32_t win_height, const std::string name)
     : deltaTime(1.0f / 60.0f), lastTime(0.0f) {
     this->renderWindow = new RenderWindow(win_width, win_height, name.c_str());
     this->mainCamera = Camera();
+    this->gameObjectPtrs = {};
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         throw std::runtime_error("failed to initialize glad");
         return;
@@ -25,16 +28,16 @@ DawnEngine::~DawnEngine() {
     delete this->renderWindow;
 }
 
-void DawnEngine::addDefaultLight() {
-    std::shared_ptr<PointLight> pLight(new PointLight(glm::vec3(1.0f), glm::vec3(0.9f), glm::vec3(0.9f), glm::vec3(0.9f)));
-    this->addLight(pLight);
-}
+// void DawnEngine::addDefaultLight() {
+//     std::shared_ptr<PointLight> pLight(new PointLight(glm::vec3(1.0f), glm::vec3(0.9f), glm::vec3(0.9f), glm::vec3(0.9f)));
+//     this->addLight(pLight);
+// }
 
-void DawnEngine::addDefaultCube() { this->gameObjects.emplace_back(GameObject::createPrimitive(CubePrimitiveType)); }
+// void DawnEngine::addDefaultCube() { this->gameObjects.emplace_back(GameObject::createPrimitive(CubePrimitiveType)); }
 
 // void DawnEngine::addGameObject(bool isEntity) {}
 
-void DawnEngine::addGameObject(const std::shared_ptr<GameObject> gameObjPtr) { this->gameObjects.emplace_back(gameObjPtr); }
+// void DawnEngine::addGameObject(const std::shared_ptr<GameObject> gameObjPtr) { this->gameObjects.emplace_back(gameObjPtr); }
 
 void DawnEngine::launch() {
     this->awake();
@@ -53,19 +56,18 @@ void DawnEngine::launch() {
     }
 }
 
-void DawnEngine::setupLights() {}
-
+void DawnEngine::addGameObject(std::shared_ptr<GameObject> gObjPtr) { this->gameObjectPtrs.emplace_back(gObjPtr); }
 void DawnEngine::addLight(const std::shared_ptr<DirectionalLight> light) {
-    if (this->dirLightNum < this->MAX_DIR_LIGHT_NUM) {
-        this->lights.emplace_back(light);
-        this->dirLightNum += 1;
-    }
+    // if (this->dirLightNum < this->MAX_DIR_LIGHT_NUM) {
+    //     this->lights.emplace_back(light);
+    //     this->dirLightNum += 1;
+    // }
 }
 void DawnEngine::addLight(const std::shared_ptr<PointLight> light) {
-    if (this->pointLightNum < this->MAX_POINT_LIGHT_NUM) {
-        this->lights.emplace_back(light);
-        this->pointLightNum += 1;
-    }
+    // if (this->pointLightNum < this->MAX_POINT_LIGHT_NUM) {
+    //     this->lights.emplace_back(light);
+    //     this->pointLightNum += 1;
+    // }
 }
 void DawnEngine::render() {
     glm::mat4 modelMat = glm::mat4(1.0f);
@@ -75,19 +77,19 @@ void DawnEngine::render() {
         (float)this->renderWindow->get_win_width() / (float)this->renderWindow->get_win_height(), 0.001f, 100.0f);
     glm::vec3 camPos = this->mainCamera.getPos();
     this->gameObjectShader->activate();
-    this->gameObjectShader->setMatrix4fv("view", view);
-    this->gameObjectShader->setMatrix4fv("projection", projection);
+    this->gameObjectShader->setUniform("cam_view", view);
+    this->gameObjectShader->setUniform("cam_proj", projection);
     this->gameObjectShader->setUniform("cam_pos", camPos);
-    if (this->lights.size() > 0) {
+    // if (this->lights.size() > 0) {
 
-        this->gameObjectShader->setUniforms(dynamic_cast<PointLight *>(this->lights.begin()->get())->getUniforms("p_light"));
-    }
-    for (auto gObj : this->gameObjects) {
-        VisualShapeModule *visualShape = gObj->getModule<VisualShapeModule>();
-        if (visualShape) {
-            this->gameObjectShader->setMatrix4fv("model_mat", gObj->getModule<TransformModule>()->getModelMat4());
-            this->gameObjectShader->setUniforms(visualShape->getMaterial().getUniforms("material"));
-            visualShape->setRenderTarget();
+    //     this->gameObjectShader->setUniforms(dynamic_cast<PointLight *>(this->lights.begin()->get())->getUniforms("p_light"));
+    // }
+    for (auto gObj : DawnEngine::gameObjectPtrs) {
+        MeshModule *mesh_m = gObj.get()->getModule<MeshModule>();
+        if (mesh_m) {
+            this->gameObjectShader->setUniform("model_mat", gObj.get()->getModule<TransformModule>()->getModelMat4());
+            this->gameObjectShader->setUniforms(mesh_m->getMaterial().getUniforms("material"));
+            mesh_m->setAsRenderTarget();
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
     }
@@ -150,4 +152,4 @@ void DawnEngine::loadTextures(const char *text_path_0, const char *text_path_1) 
     }
     stbi_image_free(data);
 }
-} // namespace dawn
+} // namespace dawn_engine

@@ -1,6 +1,6 @@
 #include "light.h"
 
-namespace dawn {
+namespace dawn_engine {
 Light::Light() : ambient(glm::vec3(1.0f)), diffuse(glm::vec3(1.0f)), specular(glm::vec3(1.0f)) {}
 Light::Light(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular)
     : ambient(ambient), diffuse(diffuse), specular(specular) {}
@@ -37,4 +37,4 @@ DirectionalLight::DirectionalLight(glm::vec3 direction, glm::vec3 ambient, glm::
 glm::vec3 DirectionalLight::getDirection() const { return this->direction; }
 void DirectionalLight::setDirection(glm::vec3 direction) { this->direction = direction; }
 
-} // namespace dawn
+} // namespace dawn_engine
