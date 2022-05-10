@@ -10,14 +10,15 @@ class GameObject;
 class BaseModule {
 
   protected:
-    static const std::size_t type;
-    std::shared_ptr<GameObject> gameObjectPtr;
+    GameObject *ownerPtr;
 
   public:
+    static const std::size_t type;
     friend class GameObject;
     BaseModule();
-    virtual ~BaseModule(){};
-    virtual std::shared_ptr<GameObject> getAttachedGameObjet() const;
+    virtual ~BaseModule() = 0;
+    GameObject *getAttachedGameObject() const;
+    void setAttachedGameObject(GameObject *ownerPtr);
     static const std::size_t getHashModuleName(const char *moduleType);
 };
 

@@ -28,6 +28,14 @@ void HelloWorldApp::start() {
     // this->addGameObject(dawn_engine::GameObject::createPrimitive(dawn_engine::CubePrimitiveType));
     auto tmpObj = dawn_engine::GameObject::createPrimitive(dawn_engine::CubePrimitiveType);
     this->addGameObject(tmpObj);
+    auto tmpLight = dawn_engine::GameObject::createLight(dawn_engine::LightType::DirectionalLightType);
+    tmpLight->getModule<dawn_engine::DirectionalLightModule>()->setDirection(glm::vec3(1.0, 0, 0));
+    this->addGameObject(tmpLight);
+    tmpLight = dawn_engine::GameObject::createLight(dawn_engine::LightType::DirectionalLightType);
+    this->addGameObject(tmpLight);
+
+    // tmpLight->getModule<dawn_engine::DirectionalLightModule>()->setAmbient(glm::vec3(1.0f, 0.0f, 0.0));
+    // tmpLight->getModule<dawn_engine::DirectionalLightModule>()->setDiffuse(glm::vec3(1.0f, 0.0f, 0.0));
 }
 void HelloWorldApp::update() {}
 } // namespace hello

@@ -26,18 +26,28 @@ in vec3 frag_normal;
 in vec3 frag_pos;  
 
 uniform Material material;
-uniform PointLight p_light;
-uniform PointLight pointLights[MAX_POINT_LIGHT_NUM];
+uniform PointLight point_lights[MAX_POINT_LIGHT_NUM];
+uniform DirectionalLight directional_lights[MAX_DIR_LIGHT_NUM];
 uniform int dir_lights_num;
 uniform int point_lights_num;
 uniform int flash_lights_num;
 uniform vec3 cam_pos ;
 out vec4 out_color; 
 
+vec3 compute_directional_light(DirectionalLight dir_light,vec3 normal,vec3 view_dir){
+    vec3 light_dir = normalize(-dir_light.direction);
+    vec3 ambient = dir_light.ambient * material.ambient;
+    vec3 diffuse = dir_light.diffuse *material.diffuse *  max(dot(normal,light_dir),0.0);
+    vec3 reflect_dir = reflect(-light_dir,normal);
+    vec3 specular = dir_light.specular * material.specular * pow(max(dot(view_dir,reflect_dir),0.0),material.shininess);
+    return ambient + diffuse + specular;
+}
 void main() { 
     // bool enable_p_light = true;
     vec3 pposition = vec3(1,1,1);
-    vec3 pambient = vec3(1,1,1);
+    vec3 pambient = directional_lights[0].ambient;
+    // vec3 pambient = vec3(1,0,0);
+
     vec3 pdiffuse = vec3(1,1,1);
     vec3 pspecular = vec3(1,1,1);
     vec3 mambient = vec3(1,1,1);
@@ -57,7 +67,11 @@ void main() {
     float spec = pow(max(dot(view_dir, reflect_dir), 0.0), mshininess);
     vec3 specular = spec * mspecular * pspecular;
 
-    vec3 shader_color = ambient + diffuse + specular;
-    out_color =vec4(ambient+diffuse+specular ,1.0f);
+    vec3 shader_color = vec3(0.0);
+    for (int i = 0;i < dir_lights_num;++ i){
+        shader_color += compute_directional_light(directional_lights[i],norm,view_dir);
+    }
+    // out_color =vec4(directional_lights[0].ambient ,1.0f);
+    out_color =vec4(shader_color ,1.0f);
     // out_color =vec4(1.0f,1.0f,1.0f,1.0f);
 };

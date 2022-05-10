@@ -16,15 +16,13 @@ class TransformModule : public BaseModule {
     void setPosition(glm::vec3 position);
     void setRotation(glm::vec3 rotation);
     void setScale(glm::vec3 rotation);
+    glm::vec3 getPosition() const;
+    glm::vec3 getRotation() const;
+    glm::vec3 getScale() const;
     glm::mat4 getTranslationMat4() const;
     glm::mat4 getScaleMat4() const;
     glm::mat4 getRotationMat4() const;
     glm::mat4 getModelMat4() const;
 };
 
-class LightModule : public BaseModule {
-
-  protected:
-  public:
-};
 } // namespace dawn_engine

@@ -5,9 +5,12 @@ namespace dawn_engine {
 const std::size_t MeshModule::type = BaseModule::getHashModuleName(quote(MeshModule));
 MeshModule::MeshModule() {}
 
-MeshModule::MeshModule(std::vector<float> vertexData) : vertexData(vertexData), material(Material()) { this->initGLData(); }
+MeshModule::MeshModule(std::vector<float> vertexData) : BaseModule(), vertexData(vertexData), material(Material()) {
+    this->initGLData();
+}
 
-MeshModule::MeshModule(std::vector<float> vertexData, Material material) : vertexData(vertexData), material(material) {
+MeshModule::MeshModule(std::vector<float> vertexData, Material material)
+    : BaseModule(), vertexData(vertexData), material(material) {
     this->initGLData();
 }
 

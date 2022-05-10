@@ -19,12 +19,12 @@ GameObject::~GameObject() { nextGameObjectID -= 1; }
 
 uint32_t GameObject::getModuleNum() const {
     uint32_t module_num = 0;
-    for (std::pair<std::size_t, std::vector<std::shared_ptr<BaseModule>>> element : this->moduleDict) {
+    for (std::pair<std::size_t, std::vector<BaseModule *>> element : this->moduleDict) {
         module_num += element.second.size();
     }
     return module_num;
 }
-std::shared_ptr<GameObject> GameObject::createPrimitive(PrimitiveType pType) {
+GameObject *GameObject::createPrimitive(PrimitiveType pType) {
     switch (pType) {
     case CubePrimitiveType: {
         float vertices[] = {-0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.5f,  -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f,
@@ -51,8 +51,10 @@ std::shared_ptr<GameObject> GameObject::createPrimitive(PrimitiveType pType) {
                             0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
                             -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f};
 
-        std::shared_ptr<GameObject> cubePrimitive(new GameObject(true));
+        GameObject *cubePrimitive(new GameObject(true));
         cubePrimitive->addModule<MeshModule>(std::vector<float>(vertices, vertices + 216));
+        // std::cout << bool(cubePrimitive->getModule<MeshModule>() == nullptr) << std::endl;
+
         return cubePrimitive;
         break;
     }
@@ -62,15 +64,18 @@ std::shared_ptr<GameObject> GameObject::createPrimitive(PrimitiveType pType) {
     }
     return nullptr;
 }
-std::shared_ptr<GameObject> GameObject::createLight(LightType lType) {
+GameObject *GameObject::createLight(LightType lType) {
     switch (lType) {
-    case DirectionalLightType:
-        /* code */
+    case DirectionalLightType: {
+        GameObject *lightObj(new GameObject(true));
+        lightObj->addModule<DirectionalLightModule>(glm::vec3(-1, -1.0, -1.0f));
+        return lightObj;
         break;
-
+    }
     default:
         break;
     }
+    return nullptr;
 }
 
 } // namespace dawn_engine

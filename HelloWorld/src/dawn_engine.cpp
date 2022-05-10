@@ -56,19 +56,8 @@ void DawnEngine::launch() {
     }
 }
 
-void DawnEngine::addGameObject(std::shared_ptr<GameObject> gObjPtr) { this->gameObjectPtrs.emplace_back(gObjPtr); }
-void DawnEngine::addLight(const std::shared_ptr<DirectionalLight> light) {
-    // if (this->dirLightNum < this->MAX_DIR_LIGHT_NUM) {
-    //     this->lights.emplace_back(light);
-    //     this->dirLightNum += 1;
-    // }
-}
-void DawnEngine::addLight(const std::shared_ptr<PointLight> light) {
-    // if (this->pointLightNum < this->MAX_POINT_LIGHT_NUM) {
-    //     this->lights.emplace_back(light);
-    //     this->pointLightNum += 1;
-    // }
-}
+void DawnEngine::addGameObject(GameObject *gObjPtr) { this->gameObjectPtrs.emplace_back(gObjPtr); }
+
 void DawnEngine::render() {
     glm::mat4 modelMat = glm::mat4(1.0f);
     glm::mat4 view = this->mainCamera.getViewMatrix();
@@ -80,14 +69,29 @@ void DawnEngine::render() {
     this->gameObjectShader->setUniform("cam_view", view);
     this->gameObjectShader->setUniform("cam_proj", projection);
     this->gameObjectShader->setUniform("cam_pos", camPos);
-    // if (this->lights.size() > 0) {
+    // set light information in shader program
+    uint32_t dir_light_num = 0;
+    for (auto gObj : this->gameObjectPtrs) {
+        DirectionalLightModule *dirLightM = gObj->getModule<DirectionalLightModule>();
+        if (dirLightM != nullptr) {
+            this->gameObjectShader->setUniforms(dirLightM->getUniforms(dir_light_num));
+            dir_light_num++;
+            // std::cout << gObj << std::endl;
+            auto *tm = dirLightM->getAttachedGameObject()->getModule<DirectionalLightModule>();
+            glm::vec3 pos = dirLightM->getAttachedGameObject()->getModule<TransformModule>()->getPosition();
+            // std::cout << "A" << std::endl;
+            continue;
+        }
+        PointLightModule *pointLightM = gObj->getModule<PointLightModule>();
+        if (pointLightM != nullptr) {
+        }
+    }
+    this->gameObjectShader->setUniform("dir_lights_num", int(dir_light_num));
+    for (auto gObj : this->gameObjectPtrs) {
 
-    //     this->gameObjectShader->setUniforms(dynamic_cast<PointLight *>(this->lights.begin()->get())->getUniforms("p_light"));
-    // }
-    for (auto gObj : DawnEngine::gameObjectPtrs) {
-        MeshModule *mesh_m = gObj.get()->getModule<MeshModule>();
+        MeshModule *mesh_m = gObj->getModule<MeshModule>();
         if (mesh_m) {
-            this->gameObjectShader->setUniform("model_mat", gObj.get()->getModule<TransformModule>()->getModelMat4());
+            this->gameObjectShader->setUniform("model_mat", gObj->getModule<TransformModule>()->getModelMat4());
             this->gameObjectShader->setUniforms(mesh_m->getMaterial().getUniforms("material"));
             mesh_m->setAsRenderTarget();
             glDrawArrays(GL_TRIANGLES, 0, 36);

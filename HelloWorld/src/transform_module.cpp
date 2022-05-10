@@ -3,15 +3,19 @@ namespace dawn_engine {
 //  Transform Module
 const std::size_t TransformModule::type = BaseModule::getHashModuleName(quote(TransformModule));
 
-TransformModule::TransformModule() : position(glm::vec3(0.0f)), rotation(glm::vec3(0.0f)), scale(glm::vec3(1.0f)) {}
+TransformModule::TransformModule()
+    : BaseModule(), position(glm::vec3(0.0f)), rotation(glm::vec3(0.0f)), scale(glm::vec3(1.0f)) {}
 TransformModule::TransformModule(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
-    : position(position), rotation(rotation), scale(scale) {}
+    : BaseModule(), position(position), rotation(rotation), scale(scale) {}
 
 TransformModule::~TransformModule() {}
 
 void TransformModule::setPosition(glm::vec3 position) { this->position = position; }
 void TransformModule::setRotation(glm::vec3 rotation) { this->rotation = rotation; }
 void TransformModule::setScale(glm::vec3 scale) { this->scale = scale; }
+glm::vec3 TransformModule::getPosition() const { return this->position; }
+glm::vec3 TransformModule::getRotation() const { return this->rotation; }
+glm::vec3 TransformModule::getScale() const { return this->scale; }
 glm::mat4 TransformModule::getTranslationMat4() const {
     glm::mat4 transMat = glm::mat4(1.0f);
     return glm::translate(transMat, this->position);

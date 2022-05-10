@@ -35,12 +35,18 @@ ${IMGUI_SRC_DIR_LOCAL}/*.cpp
 ${IMGUI_PROJECT_ROOT_LOCAL}/backends/imgui_impl_glfw.cpp
 ${IMGUI_PROJECT_ROOT_LOCAL}/backends/imgui_impl_opengl3.cpp)
 
+# ================ imgui ================
+set(FMT_PROJECT_ROOT_LOCAL ${CMAKE_CURRENT_SOURCE_DIR}/fmt)
+set(FMT_INCLUDE_DIR_LOCAL ${FMT_PROJECT_ROOT_LOCAL}/include)
+# set(FMT_SRC_DIR_LOCAL ${FMT_PROJECT_ROOT_LOCAL}/src)
+add_subdirectory(${FMT_PROJECT_ROOT_LOCAL})
 # ================ summarize variables ================
 set(DEPS_INCLUDE_DIRS_LOCAL
 ${GLFW_INCLUDE_DIR_LOCAL}
 ${GLAD_INCLUDE_DIR_LOCAL} 
 ${GLM_INCLUDE_DIR_LOCAL}
-${IMGUI_INCLUDE_DIR_LOCAL})
+${IMGUI_INCLUDE_DIR_LOCAL}
+${FMT_INCLUDE_DIR_LOCAL})
 
 set(DEPS_SRC_FILES_LOCAL
 ${GLAD_SRC_FILES_LOCAL}
@@ -50,4 +56,4 @@ add_library(deps_shared_lib SHARED
 ${DEPS_SRC_FILES_LOCAL})
 
 target_include_directories(deps_shared_lib PUBLIC  ${DEPS_INCLUDE_DIRS_LOCAL})
-target_link_libraries(deps_shared_lib PUBLIC glfw)
+target_link_libraries(deps_shared_lib PUBLIC glfw fmt::fmt)

@@ -19,4 +19,5 @@
 #include <fstream>
 #include <sstream>
 #include "stb_image.h"
+#include <fmt/core.h>
 #define quote(x) #x
