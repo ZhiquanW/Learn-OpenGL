@@ -36,9 +36,7 @@ template <class ModuleType, typename... Args> void GameObject::addModule(Args &&
         this->moduleDict.insert({ModuleType::type, std::vector<BaseModule *>()});
     }
     ModuleType *module_ptr = new ModuleType(std::forward<Args>(params)...);
-    std::cout << this << " before " << module_ptr->ownerPtr << std::endl;
     module_ptr->setAttachedGameObject(this);
-    std::cout << this << " after " << module_ptr->ownerPtr << std::endl;
     this->moduleDict.at(ModuleType::type).emplace_back(module_ptr);
 
     // std::cout << "A" << module_ptr->getAttachedGameObject()->isEntity << std::endl;

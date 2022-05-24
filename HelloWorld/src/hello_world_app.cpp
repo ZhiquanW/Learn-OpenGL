@@ -1,6 +1,6 @@
 #include "hello_world_app.h"
 #include <memory>
-namespace hello {
+namespace helloworld {
 
 HelloWorldApp::HelloWorldApp(uint width, uint height) : DawnEngine(width, height, "hello world") {
     // renderEngine = std::make_shared<dawn_engine::DawnEngine>(width, height, "hello world");
@@ -31,11 +31,12 @@ void HelloWorldApp::start() {
     auto tmpLight = dawn_engine::GameObject::createLight(dawn_engine::LightType::DirectionalLightType);
     tmpLight->getModule<dawn_engine::DirectionalLightModule>()->setDirection(glm::vec3(1.0, 0, 0));
     this->addGameObject(tmpLight);
-    tmpLight = dawn_engine::GameObject::createLight(dawn_engine::LightType::DirectionalLightType);
-    this->addGameObject(tmpLight);
+    auto tmpPLight = dawn_engine::GameObject::createLight(dawn_engine::LightType::PointLightType);
+    tmpPLight->getModule<dawn_engine::TransformModule>()->setPosition(glm::vec3(0, 0, 1));
+    this->addGameObject(tmpPLight);
 
     // tmpLight->getModule<dawn_engine::DirectionalLightModule>()->setAmbient(glm::vec3(1.0f, 0.0f, 0.0));
     // tmpLight->getModule<dawn_engine::DirectionalLightModule>()->setDiffuse(glm::vec3(1.0f, 0.0f, 0.0));
 }
 void HelloWorldApp::update() {}
-} // namespace hello
+} // namespace helloworld

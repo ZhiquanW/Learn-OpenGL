@@ -72,6 +72,12 @@ GameObject *GameObject::createLight(LightType lType) {
         return lightObj;
         break;
     }
+    case PointLightType: {
+        GameObject *lightObj(new GameObject(true));
+        lightObj->addModule<PointLightModule>(glm::vec3(0.2f, 0.5, 0.5f), 1.0, 0.1, 0.08);
+        return lightObj;
+        break;
+    }
     default:
         break;
     }

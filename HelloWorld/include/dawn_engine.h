@@ -7,10 +7,12 @@
 #include "material.h"
 #include "light_module.h"
 #include "game_object.h"
+#include "dawn_ui_manager.h"
 namespace dawn_engine {
 class DawnEngine {
   private:
     RenderWindow *renderWindow;
+    DawnUIManager *uiManager;
     Camera mainCamera;
     DawnShaderProgram *gameObjectShader;
     DawnShaderProgram *lightShader;

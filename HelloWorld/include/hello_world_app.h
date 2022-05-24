@@ -1,8 +1,7 @@
 #pragma once
 
 #include "dawn_engine.h"
-
-namespace hello {
+namespace helloworld {
 class HelloWorldApp : public dawn_engine::DawnEngine {
   private:
     void addDefaultLight();
@@ -14,4 +13,4 @@ class HelloWorldApp : public dawn_engine::DawnEngine {
     void start();
     void update();
 };
-} // namespace hello
+} // namespace helloworld

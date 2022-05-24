@@ -1,3 +1,4 @@
+#pragma once
 #include "base_module.h"
 namespace dawn_engine {
 class TransformModule : public BaseModule {

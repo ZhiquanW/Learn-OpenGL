@@ -20,4 +20,7 @@
 #include <sstream>
 #include "stb_image.h"
 #include <fmt/core.h>
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 #define quote(x) #x

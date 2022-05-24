@@ -25,6 +25,7 @@ class RenderWindow {
     bool should_close();
     void swap_buffers();
     void process_inputs(Camera *camera, GLfloat deltaTime);
+    GLFWwindow *getWindowPtr() const;
 };
 
 } // namespace dawn_engine

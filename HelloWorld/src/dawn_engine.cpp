@@ -5,6 +5,7 @@ namespace dawn_engine {
 DawnEngine::DawnEngine(uint32_t win_width, uint32_t win_height, const std::string name)
     : deltaTime(1.0f / 60.0f), lastTime(0.0f) {
     this->renderWindow = new RenderWindow(win_width, win_height, name.c_str());
+    this->uiManager = new DawnUIManager(this->renderWindow->getWindowPtr());
     this->mainCamera = Camera();
     this->gameObjectPtrs = {};
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -50,8 +51,20 @@ void DawnEngine::launch() {
         this->deltaTime = currentTime - this->lastTime;
         this->lastTime = currentTime;
         this->renderWindow->process_inputs(&this->mainCamera, this->deltaTime);
+        // Start the Dear ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        ImGui::Begin("Hello, world!");
+        ImGui::Text("This is some useful text.");
+        bool demo_win = true;
+        ImGui::ShowDemoWindow(&demo_win);
+        ImGui::End();
+        ImGui::Render();
         this->update();
         this->render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         this->renderWindow->swap_buffers();
     }
 }
@@ -70,25 +83,23 @@ void DawnEngine::render() {
     this->gameObjectShader->setUniform("cam_proj", projection);
     this->gameObjectShader->setUniform("cam_pos", camPos);
     // set light information in shader program
-    uint32_t dir_light_num = 0;
+    uint32_t dirLightNum = 0;
+    uint32_t pointLightNum = 0;
     for (auto gObj : this->gameObjectPtrs) {
         DirectionalLightModule *dirLightM = gObj->getModule<DirectionalLightModule>();
         if (dirLightM != nullptr) {
-            this->gameObjectShader->setUniforms(dirLightM->getUniforms(dir_light_num));
-            dir_light_num++;
-            // std::cout << gObj << std::endl;
-            auto *tm = dirLightM->getAttachedGameObject()->getModule<DirectionalLightModule>();
-            glm::vec3 pos = dirLightM->getAttachedGameObject()->getModule<TransformModule>()->getPosition();
-            // std::cout << "A" << std::endl;
-            continue;
+            this->gameObjectShader->setUniforms(dirLightM->getUniforms(dirLightNum));
+            dirLightNum++;
         }
         PointLightModule *pointLightM = gObj->getModule<PointLightModule>();
         if (pointLightM != nullptr) {
+            this->gameObjectShader->setUniforms(pointLightM->getUniforms(pointLightNum));
+            pointLightNum++;
         }
     }
-    this->gameObjectShader->setUniform("dir_lights_num", int(dir_light_num));
+    this->gameObjectShader->setUniform("dir_lights_num", int(dirLightNum));
+    this->gameObjectShader->setUniform("point_lights_num", int(pointLightNum));
     for (auto gObj : this->gameObjectPtrs) {
-
         MeshModule *mesh_m = gObj->getModule<MeshModule>();
         if (mesh_m) {
             this->gameObjectShader->setUniform("model_mat", gObj->getModule<TransformModule>()->getModelMat4());

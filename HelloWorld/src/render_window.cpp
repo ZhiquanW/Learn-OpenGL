@@ -16,7 +16,6 @@ RenderWindow::RenderWindow(uint32_t w, uint32_t h, std::string name)
         return;
     }
     glfwMakeContextCurrent(this->glfwWindow);
-    glfwSetInputMode(this->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 RenderWindow::~RenderWindow() {
     glfwDestroyWindow(this->glfwWindow);
@@ -24,6 +23,7 @@ RenderWindow::~RenderWindow() {
 }
 uint32_t RenderWindow::get_win_width() { return this->width; }
 uint32_t RenderWindow::get_win_height() { return this->height; }
+GLFWwindow *RenderWindow::getWindowPtr() const { return this->glfwWindow; }
 bool RenderWindow::should_close() { return glfwWindowShouldClose(this->glfwWindow); }
 
 void RenderWindow::swap_buffers() { glfwSwapBuffers(this->glfwWindow); }
@@ -45,10 +45,14 @@ void RenderWindow::mouseCallbacks(Camera *camera) {
     this->last_mouse_pos = glm::vec2(xPos, yPos);
     this->zoomModeEnabled = glfwGetMouseButton(this->glfwWindow, GLFW_MOUSE_BUTTON_RIGHT);
     if (this->zoomModeEnabled) {
-        camera->processMouseScroll(yOffset);
-        yOffset = 0.0f;
+        glfwSetInputMode(this->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+        // camera->processMouseScroll(yOffset);
+        // yOffset = 0.0f;
+        camera->ProcessMouseMovement(xOffset, yOffset);
+    } else {
+        glfwSetInputMode(this->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
-    camera->ProcessMouseMovement(xOffset, yOffset);
 }
 
 void RenderWindow::keyoardCallbacks(Camera *camera, GLfloat deltaTime) {
