@@ -366,7 +366,9 @@ at the end of the credits.
 //    very big.
 
 #ifndef STBI_NO_STDIO
+
 #include <stdio.h>
+
 #endif // STBI_NO_STDIO
 
 #define STBI_VERSION 1
@@ -381,6 +383,7 @@ enum {
 };
 
 #include <stdlib.h>
+
 typedef unsigned char stbi_uc;
 typedef unsigned short stbi_us;
 
@@ -408,9 +411,9 @@ extern "C" {
 typedef struct {
     int (*read)(void *user, char *data,
                 int size); // fill 'data' with 'size' bytes.  return number of
-                           // bytes actually read
+    // bytes actually read
     void (*skip)(void *user, int n); // skip the next 'n' bytes, or 'unget' the
-                                     // last -n bytes if negative
+    // last -n bytes if negative
     int (*eof)(void *user); // returns nonzero if we are at end of file/data
 } stbi_io_callbacks;
 

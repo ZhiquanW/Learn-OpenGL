@@ -1,71 +1,161 @@
 #pragma once
+
 #include "base_module.h"
 
 #include "common_includes.h"
 #include "shader_uniform_variable.h"
 #include "transform_module.h"
 #include "game_object.h"
+
 namespace dawn_engine {
-class LightModule : public BaseModule {
+    class LightModule : public BaseModule {
 
-  private:
-  protected:
-    glm::vec3 ambient;
-    glm::vec3 diffuse;
-    glm::vec3 specular;
+    private:
+    protected:
+    public:
+        static const std::size_t type;
 
-  public:
-    static const std::size_t type;
-    LightModule();
-    LightModule(glm::vec3 color);
-    LightModule(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular);
-    virtual ~LightModule() = 0;
+        glm::vec3 ambient;
+        glm::vec3 diffuse;
+        glm::vec3 specular;
 
-    glm::vec3 getAmbient() const;
-    void setAmbient(glm::vec3 value);
-    glm::vec3 getDiffuse() const;
-    void setDiffuse(glm::vec3 value);
-    glm::vec3 getSpecular() const;
-    void setSpecular(glm::vec3 value);
-    float getShininess() const;
-    void setShinibess(float value);
-    virtual std::vector<std::shared_ptr<ShaderUniformVariableBase>> getUniforms(const std::string &name) const;
-};
+        LightModule();
 
-class DirectionalLightModule : public LightModule {
+        explicit LightModule(glm::vec3 color);
 
-  private:
-    glm::vec3 direction;
+        LightModule(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular);
 
-  protected:
-  public:
-    static const std::size_t type;
-    DirectionalLightModule();
-    DirectionalLightModule(glm::vec3 dir);
-    DirectionalLightModule(glm::vec3 dir, glm::vec3 color);
-    DirectionalLightModule(glm::vec3 dir, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular);
-    ~DirectionalLightModule();
-    std::vector<std::shared_ptr<ShaderUniformVariableBase>> getUniforms(const uint32_t idx) const;
-    glm::vec3 getDirection() const;
-    void setDirection(const glm::vec3 &dir);
-};
+        ~LightModule() override;
 
-class PointLightModule : public LightModule {
+        [[nodiscard]] glm::vec3 getAmbient() const;
 
-  private:
-  protected:
-    float constant;
-    float linear;
-    float quadratic;
+        glm::vec3 &getAmbientMeta();
 
-  public:
-    static const std::size_t type;
-    PointLightModule();
-    PointLightModule(glm::vec3 color, float constant, float linear, float quadratic);
-    PointLightModule(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, float constant, float linear, float quadratic);
-    float getConstant() const;
-    float getLinear() const;
-    float getQuadratic() const;
-    std::vector<std::shared_ptr<ShaderUniformVariableBase>> getUniforms(const uint32_t idx) const;
-};
+        [[nodiscard]] glm::vec3 getDiffuse() const;
+
+        glm::vec3 &getDiffuseMeta();
+
+        [[nodiscard]] glm::vec3 getSpecular() const;
+
+        glm::vec3 &getSpecularMeta();
+
+        [[nodiscard]] virtual std::vector<std::shared_ptr<ShaderUniformVariableBase>>
+        getUniforms(const std::string &name) const;
+    };
+
+    class DirectionalLightModule : public LightModule {
+
+    private:
+
+    protected:
+    public:
+        glm::vec3 direction;
+
+        static const std::size_t type;
+
+        DirectionalLightModule();
+
+        explicit DirectionalLightModule(glm::vec3 dir);
+
+        DirectionalLightModule(glm::vec3 dir, glm::vec3 color);
+
+        DirectionalLightModule(glm::vec3 dir, glm::vec3 ambient, glm::vec3 diffuse,
+                               glm::vec3 specular);
+
+        ~DirectionalLightModule() override;
+
+
+        [[maybe_unused]] [[nodiscard]] virtual std::vector<std::shared_ptr<ShaderUniformVariableBase>>
+        getUniforms(uint32_t idx) const;
+
+        [[maybe_unused]] [[nodiscard]] glm::vec3 getDirection() const;
+
+        glm::vec3 &getDirectionMeta();
+
+        void setDirection(const glm::vec3 &dir);
+    };
+
+    class PointLightModule : public LightModule {
+
+    private:
+    protected:
+    public:
+        static const std::size_t type;
+
+        float constant;
+
+        float linear;
+
+        float quadratic;
+
+        PointLightModule();
+
+        PointLightModule(glm::vec3 color, float constant, float linear, float quadratic);
+
+        PointLightModule(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular,
+                         float constant, float linear,
+                         float quadratic);
+
+        [[maybe_unused]] [[nodiscard]] virtual std::vector<std::shared_ptr<ShaderUniformVariableBase>>
+        getUniforms(uint32_t idx) const;
+
+        float getConstant() const;
+
+        float &getConstantMeta();
+
+        void setConstant(const float &c);
+
+        float getLinear() const;
+
+        float &getLinearMeta();
+
+        void setLinear(const float &l);
+
+        float getQuadratic() const;
+
+        float &getQuadraticMeta();
+
+        void setQuadratic(const float &q);
+    };
+
+    class SpotLightModule : public PointLightModule {
+    private:
+    protected:
+
+    public:
+        glm::vec3 direction;
+        float innerRange;//in degree
+        float outerRange;
+        static const std::size_t type;
+
+        SpotLightModule();
+
+        SpotLightModule(glm::vec3 dir, float innerRange, float outerRange);
+
+        SpotLightModule(glm::vec3 dir, float innerRange, float outerRange, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular);
+
+        [[maybe_unused]] [[nodiscard]] glm::vec3 getDirection() const;
+
+        glm::vec3 &getDirectionMeta();
+
+        void setDirection(const glm::vec3 &dir);
+
+        float getOuterRange() const;
+
+        float &getOuterRangeMeta();
+
+        void setOuterRange(const float &range);
+
+        [[maybe_unused]] [[nodiscard]] float getInnerRange() const;
+
+        [[maybe_unused]] [[nodiscard]] float &getInnerRangeMeta();
+
+        [[maybe_unused]]  void setInnerRange(const float &range);
+
+
+        [[maybe_unused]] [[nodiscard]] std::vector<std::shared_ptr<ShaderUniformVariableBase>>
+        getUniforms(uint32_t idx) const override;
+
+
+    };
 } // namespace dawn_engine

@@ -3,11 +3,14 @@
 #include "hello_world_app.h"
 #include <typeinfo>
 #include "imgui.h"
+#include "helloworld_ui_system.h"
+
 void testCodes() {
     dawn_engine::GameObject cubeObject{true};
     // tmpObject.addModule(dawn_engine::TransformModuleType);
     // std::cout << glm::to_string(tmpObject.getModule<dawn_engine::TransformModule>().getRotationMat4());
-    std::cout << glm::to_string(cubeObject.getModule<dawn_engine::TransformModule>()->getScaleMat4()) << std::endl;
+    std::cout << glm::to_string(
+            cubeObject.getModule<dawn_engine::TransformModule>()->getScaleMat4()) << std::endl;
     // auto a = tmpObject.getModule<dawn_engine::VisualShapeModule>();
 
     // std::cout << type(a) << std::endl;
@@ -21,24 +24,28 @@ void testCodes() {
 // }
 
 void helloapp() {
+    dawn_engine::DawnUISystem *b = new dawn_engine::DawnUISystem(430);
     helloworld::HelloWorldApp app(1600, 1600);
     app.launch();
 }
 
 class Animal {
-  public:
+public:
     virtual void eat() { std::cout << "I'm eating generic food.\n"; }
 };
 
 class Cat : public Animal {
-  public:
+public:
     void eat() { std::cout << "I'm eating a rat.\n"; }
 };
+
 void print_eat(Animal *a) { a->eat(); }
+
 void exp() {
     Animal *animal = new Animal;
     Cat *cat = new Cat;
 }
+
 int main() {
     // exp();
     helloapp();

@@ -42,70 +42,77 @@ namespace rtti {
 // Component
 // base class
 //***************
-class Component {
-  public:
-    static const std::size_t Type;
-    virtual bool IsClassType(const std::size_t classType) const { return classType == Type; }
+    class Component {
+    public:
+        static const std::size_t Type;
 
-  public:
-    virtual ~Component() = default;
-    Component(std::string &&initialValue) : value(initialValue) {}
+        virtual bool IsClassType(const std::size_t classType) const { return classType == Type; }
 
-  public:
-    std::string value = "uninitialized";
-};
+    public:
+        virtual ~Component() = default;
+
+        Component(std::string &&initialValue) : value(initialValue) {}
+
+    public:
+        std::string value = "uninitialized";
+    };
 
 //***************
 // Collider
 //***************
-class Collider : public Component {
+    class Collider : public Component {
 
     CLASS_DECLARATION(Collider)
 
-  public:
-    Collider(std::string &&initialValue) : Component(std::move(initialValue)) {}
-};
+    public:
+        Collider(std::string &&initialValue) : Component(std::move(initialValue)) {}
+    };
 
 //***************
 // BoxCollider
 //***************
-class BoxCollider : public Collider {
+    class BoxCollider : public Collider {
 
     CLASS_DECLARATION(BoxCollider)
 
-  public:
-    BoxCollider(std::string &&initialValue) : Collider(std::move(initialValue)) {}
-};
+    public:
+        BoxCollider(std::string &&initialValue) : Collider(std::move(initialValue)) {}
+    };
 
 //***************
 // RenderImage
 //***************
-class RenderImage : public Component {
+    class RenderImage : public Component {
 
     CLASS_DECLARATION(RenderImage)
 
-  public:
-    RenderImage(std::string &&initialValue) : Component(std::move(initialValue)) {}
-};
+    public:
+        RenderImage(std::string &&initialValue) : Component(std::move(initialValue)) {}
+    };
 
 //***************
 // GameObject
 //***************
-class GameObject {
-  public:
-    std::vector<std::unique_ptr<Component>> components;
+    class GameObject {
+    public:
+        std::vector<std::unique_ptr<Component>> components;
 
-  public:
-    template <class ComponentType, typename... Args> void AddComponent(Args &&...params);
+    public:
+        template<class ComponentType, typename... Args>
+        void AddComponent(Args &&...params);
 
-    template <class ComponentType> ComponentType &GetComponent();
+        template<class ComponentType>
+        ComponentType &GetComponent();
 
-    template <class ComponentType> bool RemoveComponent();
+        template<class ComponentType>
+        bool RemoveComponent();
 
-    template <class ComponentType> std::vector<ComponentType *> GetComponents();
+        template<class ComponentType>
+        std::vector<ComponentType *> GetComponents();
 
-    template <class ComponentType> int RemoveComponents();
-};
+        template<class ComponentType>
+        int RemoveComponents();
+    };
 
 //***************
 // GameObject::AddComponent
@@ -114,9 +121,10 @@ class GameObject {
 // EG: deduced initializer lists, decl-only static const int members, 0|NULL instead of nullptr, overloaded fn names, and
 // bitfields
 //***************
-template <class ComponentType, typename... Args> void GameObject::AddComponent(Args &&...params) {
-    components.emplace_back(std::make_unique<ComponentType>(std::forward<Args>(params)...));
-}
+    template<class ComponentType, typename... Args>
+    void GameObject::AddComponent(Args &&...params) {
+        components.emplace_back(std::make_unique<ComponentType>(std::forward<Args>(params)...));
+    }
 
 //***************
 // GameObject::GetComponent
@@ -125,35 +133,37 @@ template <class ComponentType, typename... Args> void GameObject::AddComponent(A
 // EG: if the template type is Component, and components[0] type is BoxCollider
 // then components[0] will be returned because it derives from Component
 //***************
-template <class ComponentType> ComponentType &GameObject::GetComponent() {
-    for (auto &&component : components) {
-        if (component->IsClassType(ComponentType::Type))
-            return *static_cast<ComponentType *>(component.get());
-    }
+    template<class ComponentType>
+    ComponentType &GameObject::GetComponent() {
+        for (auto &&component: components) {
+            if (component->IsClassType(ComponentType::Type))
+                return *static_cast<ComponentType *>(component.get());
+        }
 
-    return *std::unique_ptr<ComponentType>(nullptr);
-}
+        return *std::unique_ptr<ComponentType>(nullptr);
+    }
 
 //***************
 // GameObject::RemoveComponent
 // returns true on successful removal
 // returns false if components is empty, or no such component exists
 //***************
-template <class ComponentType> bool GameObject::RemoveComponent() {
-    if (components.empty())
-        return false;
+    template<class ComponentType>
+    bool GameObject::RemoveComponent() {
+        if (components.empty())
+            return false;
 
-    auto &index = std::find_if(components.begin(), components.end(), [classType = ComponentType::Type](auto &component) {
-        return component->IsClassType(classType);
-    });
+        auto &index = std::find_if(components.begin(), components.end(), [classType = ComponentType::Type](auto &component) {
+            return component->IsClassType(classType);
+        });
 
-    bool success = index != components.end();
+        bool success = index != components.end();
 
-    if (success)
-        components.erase(index);
+        if (success)
+            components.erase(index);
 
-    return success;
-}
+        return success;
+    }
 
 //***************
 // GameObject::GetComponents
@@ -164,43 +174,45 @@ template <class ComponentType> bool GameObject::RemoveComponent() {
 // GameObject has
 // TODO: define a GetComponentAt<ComponentType, int>() that can directly grab up to the the n-th component of the requested type
 //***************
-template <class ComponentType> std::vector<ComponentType *> GameObject::GetComponents() {
-    std::vector<ComponentType *> componentsOfType;
+    template<class ComponentType>
+    std::vector<ComponentType *> GameObject::GetComponents() {
+        std::vector<ComponentType *> componentsOfType;
 
-    for (auto &&component : components) {
-        if (component->IsClassType(ComponentType::Type))
-            componentsOfType.emplace_back(static_cast<ComponentType *>(component.get()));
+        for (auto &&component: components) {
+            if (component->IsClassType(ComponentType::Type))
+                componentsOfType.emplace_back(static_cast<ComponentType *>(component.get()));
+        }
+
+        return componentsOfType;
     }
-
-    return componentsOfType;
-}
 
 //***************
 // GameObject::RemoveComponents
 // returns the number of successful removals, or 0 if none are removed
 //***************
-template <class ComponentType> int GameObject::RemoveComponents() {
-    if (components.empty())
-        return 0;
+    template<class ComponentType>
+    int GameObject::RemoveComponents() {
+        if (components.empty())
+            return 0;
 
-    int numRemoved = 0;
-    bool success = false;
+        int numRemoved = 0;
+        bool success = false;
 
-    do {
-        auto &index = std::find_if(components.begin(), components.end(), [classType = ComponentType::Type](auto &component) {
-            return component->IsClassType(classType);
-        });
+        do {
+            auto &index = std::find_if(components.begin(), components.end(), [classType = ComponentType::Type](auto &component) {
+                return component->IsClassType(classType);
+            });
 
-        success = index != components.end();
+            success = index != components.end();
 
-        if (success) {
-            components.erase(index);
-            ++numRemoved;
-        }
-    } while (success);
+            if (success) {
+                components.erase(index);
+                ++numRemoved;
+            }
+        } while (success);
 
-    return numRemoved;
-}
+        return numRemoved;
+    }
 
 } // namespace rtti
 #endif /* TEST_CLASSES_H */
