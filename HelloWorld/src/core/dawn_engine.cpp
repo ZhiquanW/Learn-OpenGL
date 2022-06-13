@@ -1,10 +1,11 @@
 #include "dawn_engine.h"
+#include <fstream>
+#include <sstream>
 
 namespace dawn_engine {
 
     DawnEngine::DawnEngine(uint32_t win_width, uint32_t win_height, const std::string &name)
             : deltaTime(1.0f / 60.0f), lastTime(0.0f), uiSystem(nullptr) {
-
         this->renderWindow = new RenderWindow(win_width, win_height, name);
         this->mainCamera = Camera();
         this->gameObjectPtrs = {};
@@ -16,6 +17,10 @@ namespace dawn_engine {
                    (GLsizei) this->renderWindow->getWinHeight());
         glEnable(GL_DEPTH_TEST);
         this->createShaderPrograms();
+
+
+        // test part
+        // end test part
     }
 
 
@@ -107,17 +112,26 @@ namespace dawn_engine {
         this->gameObjectShader->setUniform("dir_lights_num", int(dirLightNum));
         this->gameObjectShader->setUniform("point_lights_num", int(pointLightNum));
         this->gameObjectShader->setUniform("spot_lights_num", int(spotLightNum));
+//        this->modelShader->activate();
+//        this->modelShader->setUniform("projection", projection);
+//        this->modelShader->setUniform("view", view);
+//        this->modelShader->setUniform("model", modelMat);
         for (auto gObj: this->gameObjectPtrs) {
             auto *mesh_m = gObj->getModule<MeshModule>();
-            if (mesh_m && mesh_m->getActivation()) {
-                this->gameObjectShader->setUniform("model_mat",
-                                                   gObj->getModule<TransformModule>()->getModelMat4());
-                this->gameObjectShader->setUniforms(
-                        mesh_m->getMaterial().getUniforms("material"));
-                mesh_m->setAsRenderTarget();
-                glDrawArrays(GL_TRIANGLES, 0, 36);
+            if (mesh_m and mesh_m->getActivation()) {
+                this->gameObjectShader->setUniform("model_mat", gObj->getModule<TransformModule>()->getModelMat4());
+                mesh_m->render(this->gameObjectShader);
             }
+//            if (mesh_m && mesh_m->getActivation()) {
+//                this->gameObjectShader->setUniform("model_mat",
+//                                                   gObj->getModule<TransformModule>()->getModelMat4());
+//                this->gameObjectShader->setUniforms(
+//                        mesh_m->getMaterial().getUniforms("material"));
+//                mesh_m->setAsRenderTarget();
+//                glDrawArrays(GL_TRIANGLES, 0, 36);
+//            }
         }
+//
         // render light
         this->lightShader->activate();
     }
@@ -125,10 +139,11 @@ namespace dawn_engine {
     void DawnEngine::add_data() {}
 
     void DawnEngine::createShaderPrograms() {
-        this->gameObjectShader = new DawnShaderProgram("../shaders/tri.vert",
-                                                       "../shaders/tri.frag");
-        this->lightShader = new DawnShaderProgram("../shaders/light.vs", "../shaders/light.fs");
-        this->testShader = new DawnShaderProgram("../shaders/test.vs", "../shaders/test.fs");
+        this->gameObjectShader = new OpenGLShaderProgram("../shaders/tri.vert",
+                                                         "../shaders/tri.frag");
+        this->lightShader = new OpenGLShaderProgram("../shaders/light.vs", "../shaders/light.fs");
+        this->testShader = new OpenGLShaderProgram("../shaders/test.vs", "../shaders/test.fs");
+        this->modelShader = new OpenGLShaderProgram("../shaders/model.vert", "../shaders/model.frag");
     }
 
     void DawnEngine::loadTextures(const char *text_path_0, const char *text_path_1) {
@@ -187,5 +202,9 @@ namespace dawn_engine {
 
     std::vector<GameObject *> DawnEngine::getGameObjectPtrs() const {
         return this->gameObjectPtrs;
+    }
+
+    void DawnEngine::loadModel(const std::string &modelPath) {
+
     }
 } // namespace dawn_engine

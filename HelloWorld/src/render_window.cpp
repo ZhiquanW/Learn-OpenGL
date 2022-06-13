@@ -13,6 +13,10 @@ namespace dawn_engine {
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         this->glfwWindow = glfwCreateWindow((int) this->width, (int) this->height,
                                             this->name.c_str(), nullptr, nullptr);
+        int ww, hh;
+        glfwGetFramebufferSize(this->glfwWindow, &ww, &hh);
+        std::cout << ww << " " << hh << std::endl;
+
         if (this->glfwWindow == nullptr) {
             throw std::runtime_error("failed to create GLFW window");
 //        glfwTerminate();

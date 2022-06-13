@@ -1,7 +1,7 @@
 #pragma once
 
-#include "common_includes.h"
-#include "material.h"
+#include "../../include/common_includes.h"
+#include "../../include/material.h"
 
 namespace dawn_engine {
 

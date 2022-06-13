@@ -2,15 +2,17 @@
 #ifndef DAWN_ENGINE_H
 #define DAWN_ENGINE_H
 
-#include "common_includes.h"
-#include "render_window.h"
-#include "dawn_shader_program.h"
-#include "camera.h"
-#include "material.h"
-#include "light_module.h"
-#include "game_object.h"
+//#include "include/common_includes.h"
+//#include "include/render_window.h"
+//#include "include/opengl_shader_program.h"
+//#include "include/camera.h"
+//#include "include/material.h"
+//#include "include/game_object.h"
+#include "include/render_window.h"
 #include "dawn_ui_system.h"
-
+#include "dawn_model.h"
+#include "modules/light_module.h"
+//#include "modules/transform_module.h.h"
 
 namespace dawn_engine {
     class DawnEngine {
@@ -18,16 +20,18 @@ namespace dawn_engine {
         RenderWindow *renderWindow;
         DawnUISystem *uiSystem;
         Camera mainCamera;
-        DawnShaderProgram *gameObjectShader;
-        DawnShaderProgram *lightShader;
-        DawnShaderProgram *testShader;
+        std::unordered_map<std::string, DawnModel> modelMap = {};
+        OpenGLShaderProgram *gameObjectShader;
+        OpenGLShaderProgram *lightShader;
+        OpenGLShaderProgram *testShader;
+        OpenGLShaderProgram *modelShader;
         unsigned int VAO, VBO;
         float timeValue;
         GLfloat deltaTime;
         GLfloat lastTime;
-        const uint32_t MAX_DIR_LIGHT_NUM = 64;
-        const uint32_t MAX_POINT_LIGHT_NUM = 64;
-        const uint32_t MAX_SPOT_LIGHT_NUM = 64;
+        const uint32_t MAX_DIR_LIGHT_NUM = 16;
+        const uint32_t MAX_SPOT_LIGHT_NUM = 16;
+        const uint32_t MAX_POINT_LIGHT_NUM = 16;
         // customized data
 
         unsigned int cubeVAO, cubeVBO, cubeEBO;
@@ -87,6 +91,8 @@ namespace dawn_engine {
         void loadTextures(const char *, const char *);
 
         std::vector<GameObject *> getGameObjectPtrs() const;
+
+        void loadModel(const std::string &modelPath);
     };
 
 } // namespace dawn_engine

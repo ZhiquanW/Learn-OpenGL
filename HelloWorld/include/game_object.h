@@ -1,18 +1,18 @@
 #pragma once
 
 #include "common_includes.h"
-#include "mesh_module.h"
-#include "transform_module.h"
-#include "dawn_engine.h"
-#include "light_module.h"
+#include "modules/transform_module.h"
+#include "modules/mesh_module.h"
+#include "core/dawn_engine.h"
+#include "modules/light_module.h"
 
 namespace dawn_engine {
     class GameObject {
     protected:
         static uint32_t nextGameObjectID;
-        std::string name;
+        bool isEntity = true;
+        std::string name = "new game object";
         uint32_t id;
-        bool isEntity;
         std::unordered_map<std::size_t, std::vector<BaseModule *>> moduleDict;
 
         void initGameObject();

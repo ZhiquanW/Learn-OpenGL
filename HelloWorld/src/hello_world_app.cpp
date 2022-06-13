@@ -1,6 +1,6 @@
 #include "hello_world_app.h"
 #include <memory>
-#include "dawn_ui_system.h"
+#include "core/dawn_ui_system.h"
 #include "helloworld_ui_system.h"
 
 namespace helloworld {
@@ -26,7 +26,10 @@ namespace helloworld {
 //        // this->addGameObject(->gameObjects.emplace_back(GameObject::createPrimitive(CubePrimitiveType));
 //    }
 
-    void HelloWorldApp::awake() {}
+    void HelloWorldApp::awake() {
+
+
+    }
 
     void HelloWorldApp::start() {
 
@@ -34,8 +37,15 @@ namespace helloworld {
         //     new dawn_engine::PointLight(glm::vec3(1.0f), glm::vec3(0.9f), glm::vec3(0.9f), glm::vec3(0.9f)));
         // this->addLight(pLight);
         // this->addGameObject(dawn_engine::GameObject::createPrimitive(dawn_engine::CubePrimitiveType));
+        // load resource
+        dawn_engine::DawnModel backpackModel = dawn_engine::DawnModel("../assets/backpack/backpack.obj");
+        auto modelObj = new dawn_engine::GameObject();
+        modelObj->addModule<dawn_engine::MeshModule>(backpackModel.getMeshes());
+        this->addGameObject(modelObj);
+        // add game object
+
         auto tmpObj = dawn_engine::GameObject::createPrimitive(dawn_engine::CubePrimitiveType);
-        this->addGameObject(tmpObj);
+//        this->addGameObject(tmpObj);
         tmpObj = dawn_engine::GameObject::createPrimitive(dawn_engine::CubePrimitiveType);
         tmpObj->getModule<dawn_engine::TransformModule>()->setPosition(
                 glm::vec3(2.0, 2.0, 2.0));
@@ -44,11 +54,11 @@ namespace helloworld {
                 dawn_engine::LightType::DirectionalLightType);
         tmpLight->getModule<dawn_engine::DirectionalLightModule>()->setDirection(
                 glm::vec3(1.0, 0, 0));
-//    this->addGameObject(tmpLight);
+        this->addGameObject(tmpLight);
         auto tmpPLight = dawn_engine::GameObject::createLight(
                 dawn_engine::LightType::PointLightType);
         tmpPLight->getModule<dawn_engine::TransformModule>()->setPosition(glm::vec3(0, 0, 1));
-//        this->addGameObject(tmpPLight);
+        this->addGameObject(tmpPLight);
         auto tmpSLight = dawn_engine::GameObject::createLight(
                 dawn_engine::LightType::SpotLightType);
         tmpSLight->getModule<dawn_engine::TransformModule>()->setPosition(
@@ -57,8 +67,8 @@ namespace helloworld {
                 glm::vec3(0.0, 0, -1));
         this->addGameObject(tmpSLight);
 
-        // tmpLight->getModule<dawn_engine::DirectionalLightModule>()->setAmbient(glm::vec3(1.0f, 0.0f, 0.0));
-        // tmpLight->getModule<dawn_engine::DirectionalLightModule>()->setDiffuse(glm::vec3(1.0f, 0.0f, 0.0));
+        // tmpLight->getModule<dawn_engine::DirectionalLightModule>()->setAmbientColor(glm::vec3(1.0f, 0.0f, 0.0));
+        // tmpLight->getModule<dawn_engine::DirectionalLightModule>()->setDiffuseColor(glm::vec3(1.0f, 0.0f, 0.0));
     }
 
     void HelloWorldApp::update() {

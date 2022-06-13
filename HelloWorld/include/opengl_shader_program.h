@@ -4,16 +4,16 @@
 #include "shader_uniform_variable.h"
 
 namespace dawn_engine {
-    class DawnShaderProgram {
+    class OpenGLShaderProgram {
     private:
         unsigned int id;
 
         void checkCompileErrors(unsigned int, std::string);
 
     public:
-        DawnShaderProgram(const char *vertexPath, const char *fragmentPath);
+        OpenGLShaderProgram(const char *vertexPath, const char *fragmentPath);
 
-        ~DawnShaderProgram();
+        ~OpenGLShaderProgram() = default;
 
         void activate();
 

@@ -1,4 +1,5 @@
 #pragma once
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -8,10 +9,12 @@
 #include <glm/gtx/string_cast.hpp>
 #include <stdexcept>
 #include <iostream>
+#include <algorithm>
 #include <memory>
 #include <unordered_map>
 #include <cmath>
 #include <vector>
+#include <deque>
 #include <set>
 #include <map>
 #include <typeinfo>
@@ -23,4 +26,8 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 #define quote(x) #x

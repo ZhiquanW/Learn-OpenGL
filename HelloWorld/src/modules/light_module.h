@@ -2,10 +2,10 @@
 
 #include "base_module.h"
 
-#include "common_includes.h"
-#include "shader_uniform_variable.h"
+#include "../../include/common_includes.h"
+#include "../../include/shader_uniform_variable.h"
 #include "transform_module.h"
-#include "game_object.h"
+#include "../../include/game_object.h"
 
 namespace dawn_engine {
     class LightModule : public BaseModule {
@@ -39,7 +39,7 @@ namespace dawn_engine {
 
         glm::vec3 &getSpecularMeta();
 
-        [[nodiscard]] virtual std::vector<std::shared_ptr<ShaderUniformVariableBase>>
+        [[nodiscard]] virtual std::vector <std::shared_ptr<ShaderUniformVariableBase>>
         getUniforms(const std::string &name) const;
     };
 
@@ -65,7 +65,7 @@ namespace dawn_engine {
         ~DirectionalLightModule() override;
 
 
-        [[maybe_unused]] [[nodiscard]] virtual std::vector<std::shared_ptr<ShaderUniformVariableBase>>
+        [[maybe_unused]] [[nodiscard]] virtual std::vector <std::shared_ptr<ShaderUniformVariableBase>>
         getUniforms(uint32_t idx) const;
 
         [[maybe_unused]] [[nodiscard]] glm::vec3 getDirection() const;
@@ -96,7 +96,7 @@ namespace dawn_engine {
                          float constant, float linear,
                          float quadratic);
 
-        [[maybe_unused]] [[nodiscard]] virtual std::vector<std::shared_ptr<ShaderUniformVariableBase>>
+        [[maybe_unused]] [[nodiscard]] virtual std::vector <std::shared_ptr<ShaderUniformVariableBase>>
         getUniforms(uint32_t idx) const;
 
         float getConstant() const;
@@ -153,7 +153,7 @@ namespace dawn_engine {
         [[maybe_unused]]  void setInnerRange(const float &range);
 
 
-        [[maybe_unused]] [[nodiscard]] std::vector<std::shared_ptr<ShaderUniformVariableBase>>
+        [[maybe_unused]] [[nodiscard]] std::vector <std::shared_ptr<ShaderUniformVariableBase>>
         getUniforms(uint32_t idx) const override;
 
 

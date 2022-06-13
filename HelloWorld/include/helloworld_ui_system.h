@@ -5,9 +5,9 @@
 #ifndef HELLOWORLD_HELLOWORLD_UI_SYSTEM_H
 #define HELLOWORLD_HELLOWORLD_UI_SYSTEM_H
 
-#include "dawn_ui_system.h"
+#include "core/dawn_ui_system.h"
 #include "render_window.h"
-#include "dawn_engine.h"
+#include "core/dawn_engine.h"
 
 namespace helloworld {
 

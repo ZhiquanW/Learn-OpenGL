@@ -71,7 +71,6 @@ namespace helloworld {
 
     void HelloWorldUISystem::updateTransformModuleMonitor(dawn_engine::TransformModule *const transformModule) const {
         if (ImGui::CollapsingHeader("Transform")) {
-
             ImGui::DragFloat3("position", &transformModule->getPositionMeta()[0], this->defaultDragSpeed, this->defaultMinValue, this->defaultMaxValue);
             ImGui::DragFloat3("rotation", &transformModule->getRotationMeta()[0], this->defaultDragSpeed, this->defaultMinValue, this->defaultMaxValue);
             ImGui::DragFloat3("scale", &transformModule->getScaleMeta()[0], this->defaultDragSpeed, this->defaultMinValue, this->defaultMaxValue);
@@ -80,11 +79,37 @@ namespace helloworld {
     }
 
     void HelloWorldUISystem::updateMeshModuleMonitor(dawn_engine::MeshModule *meshModule) const {
-        if (ImGui::CollapsingHeader("Mesh Module")) {
-            ImGui::Checkbox("activation", &meshModule->getActivationMeta());
-            ImGui::ColorEdit3("ambient", &meshModule->getMaterialMeta().getAmbientMeta()[0]);
-            ImGui::ColorEdit3("diffuse", &meshModule->getMaterialMeta().getDiffuseMeta()[0]);
-            ImGui::ColorEdit3("specular", &meshModule->getMaterialMeta().getDiffuseMeta()[0]);
+        if (ImGui::CollapsingHeader("mesh module"), true) {
+            ImGui::Checkbox("module activation", &meshModule->getActivationMeta());
+            ImGui::Text("mesh num: %zu", meshModule->getMeshes().size());
+            std::string label = fmt::format("mesh activation##{}", 0);
+            int meshNum = (int) meshModule->getMeshes().size();
+            for (int meshIdx = 0; meshIdx < meshNum; ++meshIdx) {
+                dawn_engine::DawnMesh &tmpMesh = meshModule->getMeshesMeta()[meshIdx];
+                bool enabledLightingMaps = tmpMesh.enableLightingMap();
+                std::string treeNodeLabel = fmt::format("mesh node: {}", meshIdx);
+                if (ImGui::TreeNode(treeNodeLabel.c_str())) {
+                    ImGui::Text("vertex num: %d", meshModule->getMeshesMeta()[meshIdx].verticesNum());
+                    std::string materialType = "pure color";
+                    if (enabledLightingMaps) {
+                        materialType = "lighting map";
+                    }
+                    std::string materialModeStr = "material mode: " + materialType;
+                    ImGui::Text("%s", materialModeStr.c_str());
+                    std::string CheckboxLabel = fmt::format("mesh activation##{}", meshIdx);
+                    ImGui::Checkbox(CheckboxLabel.c_str(), &meshModule->getActivationsMeta()[meshIdx]);
+                    ImGui::ColorEdit3("ambient", &tmpMesh.getMaterialMeta().getAmbientColorMeta()[0]);
+                    if (!enabledLightingMaps) {
+                        ImGui::ColorEdit3("diffuse", &tmpMesh.getMaterialMeta().getDiffuseColorMeta()[0]);
+                        ImGui::ColorEdit3("specular", &tmpMesh.getMaterialMeta().getSpecularColorMeta()[0]);
+                    }
+                    ImGui::DragFloat("shininess", &tmpMesh.getMaterialMeta().getShininessMeta(), this->defaultDragSpeed, 0.0f, this->defaultMaxValue);
+                    ImGui::TreePop();
+                }
+            }
+
+//            ImGui::ColorEdit3("diffuse", &meshModule->getMaterialMeta().getDiffuseMeta()[0]);
+//            ImGui::ColorEdit3("specular", &meshModule->getMaterialMeta().getDiffuseMeta()[0]);
         }
     }
 
@@ -100,9 +125,9 @@ namespace helloworld {
             ImGui::Checkbox("activation", &pointLightModule->getActivationMeta());
             this->embedBaseLightMonitor(pointLightModule);
             ImGui::Separator();
-            ImGui::DragFloat("constant", &pointLightModule->constant, this->defaultDragSpeed, this->defaultMinValue, this->defaultMaxValue);
-            ImGui::DragFloat("linear", &pointLightModule->linear, this->defaultDragSpeed, this->defaultMinValue, this->defaultMaxValue);
-            ImGui::DragFloat("quadratic", &pointLightModule->quadratic, this->defaultDragSpeed, this->defaultMinValue, this->defaultMaxValue);
+            ImGui::DragFloat("constant", &pointLightModule->constant, this->defaultDragSpeed, 0.0f, this->defaultMaxValue);
+            ImGui::DragFloat("linear", &pointLightModule->linear, this->defaultDragSpeed, 0.0f, this->defaultMaxValue);
+            ImGui::DragFloat("quadratic", &pointLightModule->quadratic, this->defaultDragSpeed, 0.0f, this->defaultMaxValue);
         }
     }
 

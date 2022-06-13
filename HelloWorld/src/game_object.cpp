@@ -5,28 +5,25 @@
 namespace dawn_engine {
     uint32_t GameObject::nextGameObjectID = 0;
 
-    GameObject::GameObject() : isEntity(false),
-                               name("New GameObject") { this->initGameObject(); }
-
-    GameObject::GameObject(bool isEntity) : isEntity(isEntity), name("New GameObject") {
+    GameObject::GameObject() : id(nextGameObjectID) {
         this->initGameObject();
-        if (this->isEntity) {
-            this->addModule<TransformModule>();
-        }
+    }
+
+    GameObject::GameObject(bool isEntity) : id(nextGameObjectID), isEntity(isEntity) {
+        this->initGameObject();
     }
 
     GameObject::GameObject(std::string name, bool isEntity) : name(std::move(name)),
                                                               isEntity(isEntity) {
         this->initGameObject();
-        if (this->isEntity) {
-            this->addModule<TransformModule>();
-        }
     }
 
     void GameObject::initGameObject() {
-        this->id = nextGameObjectID;
         nextGameObjectID += 1;
         this->moduleDict = {};
+        if (this->isEntity) {
+            this->addModule<TransformModule>();
+        }
     }
 
     GameObject::~GameObject() = default;
@@ -40,53 +37,141 @@ namespace dawn_engine {
     }
 
     GameObject *GameObject::createPrimitive(PrimitiveType pType) {
+        struct TVertex {
+            glm::vec3 position{};
+            glm::vec3 normal{};
+            glm::vec2 texCoords{};
+        };
         switch (pType) {
             case CubePrimitiveType: {
-                float vertices[] = {-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.5f, -0.5f, -0.5f,
-                                    0.0f, 0.0f, -1.0f,
-                                    0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.5f, 0.5f, -0.5f,
-                                    0.0f, 0.0f, -1.0f,
-                                    -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, -0.5f, -0.5f, -0.5f,
-                                    0.0f, 0.0f, -1.0f,
+                std::vector<float> positionRaw = {-0.5f, -0.5f, -0.5f,
+                                                  0.5f, -0.5f, -0.5f,
+                                                  0.5f, 0.5f, -0.5f,
+                                                  0.5f, 0.5f, -0.5f,
+                                                  -0.5f, 0.5f, -0.5f,
+                                                  -0.5f, -0.5f, -0.5f,
 
-                                    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.5f, -0.5f, 0.5f,
-                                    0.0f, 0.0f, 1.0f,
-                                    0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.5f, 0.5f, 0.5f, 0.0f,
-                                    0.0f, 1.0f,
-                                    -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, -0.5f, -0.5f, 0.5f,
-                                    0.0f, 0.0f, 1.0f,
+                                                  -0.5f, -0.5f, 0.5f,
+                                                  0.5f, -0.5f, 0.5f,
+                                                  0.5f, 0.5f, 0.5f,
+                                                  0.5f, 0.5f, 0.5f,
+                                                  -0.5f, 0.5f, 0.5f,
+                                                  -0.5f, -0.5f, 0.5f,
 
-                                    -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, -0.5f, 0.5f, -0.5f,
-                                    -1.0f, 0.0f, 0.0f,
-                                    -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, -0.5f, -0.5f, -0.5f,
-                                    -1.0f, 0.0f, 0.0f,
-                                    -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f, -0.5f, 0.5f, 0.5f,
-                                    -1.0f, 0.0f, 0.0f,
+                                                  -0.5f, 0.5f, 0.5f,
+                                                  -0.5f, 0.5f, -0.5f,
+                                                  -0.5f, -0.5f, -0.5f,
+                                                  -0.5f, -0.5f, -0.5f,
+                                                  -0.5f, -0.5f, 0.5f,
+                                                  -0.5f, 0.5f, 0.5f,
 
-                                    0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f, -0.5f, 1.0f,
-                                    0.0f, 0.0f,
-                                    0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.5f, -0.5f, -0.5f,
-                                    1.0f, 0.0f, 0.0f,
-                                    0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f, 1.0f,
-                                    0.0f, 0.0f,
 
-                                    -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.5f, -0.5f, -0.5f,
-                                    0.0f, -1.0f, 0.0f,
-                                    0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 0.5f, -0.5f, 0.5f,
-                                    0.0f, -1.0f, 0.0f,
-                                    -0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, -0.5f, -0.5f, -0.5f,
-                                    0.0f, -1.0f, 0.0f,
+                                                  0.5f, 0.5f, 0.5f,
+                                                  0.5f, 0.5f, -0.5f,
+                                                  0.5f, -0.5f, -0.5f,
+                                                  0.5f, -0.5f, -0.5f,
+                                                  0.5f, -0.5f, 0.5f,
+                                                  0.5f, 0.5f, 0.5f,
 
-                                    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.5f, 0.5f, -0.5f,
-                                    0.0f, 1.0f, 0.0f,
-                                    0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.5f, 0.5f, 0.5f, 0.0f,
-                                    1.0f, 0.0f,
-                                    -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, -0.5f, 0.5f, -0.5f,
-                                    0.0f, 1.0f, 0.0f};
+                                                  -0.5f, -0.5f, -0.5f,
+                                                  0.5f, -0.5f, -0.5f,
+                                                  0.5f, -0.5f, 0.5f,
+                                                  0.5f, -0.5f, 0.5f,
+                                                  -0.5f, -0.5f, 0.5f,
+                                                  -0.5f, -0.5f, -0.5f,
 
+                                                  -0.5f, 0.5f, -0.5f,
+                                                  0.5f, 0.5f, -0.5f,
+                                                  0.5f, 0.5f, 0.5f,
+                                                  0.5f, 0.5f, 0.5f,
+                                                  -0.5f, 0.5f, 0.5f,
+                                                  -0.5f, 0.5f, -0.5f};
+                std::vector<float> normalRaw = {0.0f, 0.0f, -1.0f,
+                                                0.0f, 0.0f, -1.0f,
+                                                0.0f, 0.0f, -1.0f,
+                                                0.0f, 0.0f, -1.0f,
+                                                0.0f, 0.0f, -1.0f,
+                                                0.0f, 0.0f, -1.0f,
+                                                0.0f, 0.0f, 1.0f,
+                                                0.0f, 0.0f, 1.0f,
+                                                0.0f, 0.0f, 1.0f,
+                                                0.0f, 0.0f, 1.0f,
+                                                0.0f, 0.0f, 1.0f,
+                                                0.0f, 0.0f, 1.0f,
+                                                -1.0f, 0.0f, 0.0f,
+                                                -1.0f, 0.0f, 0.0f,
+                                                -1.0f, 0.0f, 0.0f,
+                                                -1.0f, 0.0f, 0.0f,
+                                                -1.0f, 0.0f, 0.0f,
+                                                -1.0f, 0.0f, 0.0f,
+                                                1.0f, 0.0f, 0.0f,
+                                                1.0f, 0.0f, 0.0f,
+                                                1.0f, 0.0f, 0.0f,
+                                                1.0f, 0.0f, 0.0f,
+                                                1.0f, 0.0f, 0.0f,
+                                                1.0f, 0.0f, 0.0f,
+                                                0.0f, -1.0f, 0.0f,
+                                                0.0f, -1.0f, 0.0f,
+                                                0.0f, -1.0f, 0.0f,
+                                                0.0f, -1.0f, 0.0f,
+                                                0.0f, -1.0f, 0.0f,
+                                                0.0f, -1.0f, 0.0f,
+                                                0.0f, 1.0f, 0.0f,
+                                                0.0f, 1.0f, 0.0f,
+                                                0.0f, 1.0f, 0.0f,
+                                                0.0f, 1.0f, 0.0f,
+                                                0.0f, 1.0f, 0.0f,
+                                                0.0f, 1.0f, 0.0f};
+                std::vector<float> texCoordsRaw = {0.0f, 0.0f,
+                                                   1.0f, 0.0f,
+                                                   1.0f, 1.0f,
+                                                   1.0f, 1.0f,
+                                                   0.0f, 1.0f,
+                                                   0.0f, 0.0f,
+                                                   0.0f, 0.0f,
+                                                   1.0f, 0.0f,
+                                                   1.0f, 1.0f,
+                                                   1.0f, 1.0f,
+                                                   0.0f, 1.0f,
+                                                   0.0f, 0.0f,
+                                                   1.0f, 0.0f,
+                                                   1.0f, 1.0f,
+                                                   0.0f, 1.0f,
+                                                   0.0f, 1.0f,
+                                                   0.0f, 0.0f,
+                                                   1.0f, 0.0f,
+                                                   1.0f, 0.0f,
+                                                   1.0f, 1.0f,
+                                                   0.0f, 1.0f,
+                                                   0.0f, 1.0f,
+                                                   0.0f, 0.0f,
+                                                   1.0f, 0.0f,
+                                                   0.0f, 1.0f,
+                                                   1.0f, 1.0f,
+                                                   1.0f, 0.0f,
+                                                   1.0f, 0.0f,
+                                                   0.0f, 0.0f,
+                                                   0.0f, 1.0f,
+                                                   0.0f, 1.0f,
+                                                   1.0f, 1.0f,
+                                                   1.0f, 0.0f,
+                                                   1.0f, 0.0f,
+                                                   0.0f, 0.0f,
+                                                   0.0f, 1.0f};
+                int num_vertices = 36;  // 6 faces * 6 vertex on each face (2 triangles on each face)
+                std::vector<Vertex> vertices;
+                for (int i = 0; i < num_vertices; ++i) {
+                    Vertex tmpV = {};
+                    tmpV.position = glm::vec3(positionRaw[i * 3], positionRaw[i * 3 + 1], positionRaw[i * 3 + 2]);
+                    tmpV.normal = glm::vec3(normalRaw[i * 3], normalRaw[i * 3 + 1], normalRaw[i * 3 + 2]);
+                    tmpV.texCoords = glm::vec2(texCoordsRaw[i * 2], texCoordsRaw[i * 2 + 1]);
+                    vertices.push_back(tmpV);
+                }
+                std::vector<unsigned int> indices = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                                                     16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35};
+                DawnMesh mesh = DawnMesh(vertices, indices, DawnMaterial());
                 auto *cubePrimitive(new GameObject("New Cube Primitive", true));
-                cubePrimitive->addModule<MeshModule>(
-                        std::vector<float>(vertices, vertices + 216));
+                cubePrimitive->addModule<MeshModule>((std::vector<DawnMesh>) {mesh});
                 return cubePrimitive;
                 break;
             }
