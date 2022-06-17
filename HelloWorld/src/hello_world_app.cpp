@@ -39,6 +39,7 @@ namespace helloworld {
         // this->addGameObject(dawn_engine::GameObject::createPrimitive(dawn_engine::CubePrimitiveType));
         // load resource
         dawn_engine::DawnModel backpackModel = dawn_engine::DawnModel("../assets/backpack/backpack.obj");
+        std::cout << "model loaded" << std::endl;
         auto modelObj = new dawn_engine::GameObject();
         modelObj->addModule<dawn_engine::MeshModule>(backpackModel.getMeshes());
         this->addGameObject(modelObj);

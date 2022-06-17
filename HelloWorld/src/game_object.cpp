@@ -13,7 +13,7 @@ namespace dawn_engine {
         this->initGameObject();
     }
 
-    GameObject::GameObject(std::string name, bool isEntity) : name(std::move(name)),
+    GameObject::GameObject(std::string name, bool isEntity) : id(nextGameObjectID), name(std::move(name)),
                                                               isEntity(isEntity) {
         this->initGameObject();
     }
@@ -26,7 +26,14 @@ namespace dawn_engine {
         }
     }
 
-    GameObject::~GameObject() = default;
+    GameObject::~GameObject() {
+        for (auto dictPair: this->moduleDict) {
+            for (auto module: dictPair.second) {
+                delete module;
+            }
+        }
+
+    };
 
     uint32_t GameObject::getModuleNum() const {
         uint32_t module_num = 0;
@@ -50,36 +57,30 @@ namespace dawn_engine {
                                                   0.5f, 0.5f, -0.5f,
                                                   -0.5f, 0.5f, -0.5f,
                                                   -0.5f, -0.5f, -0.5f,
-
                                                   -0.5f, -0.5f, 0.5f,
                                                   0.5f, -0.5f, 0.5f,
                                                   0.5f, 0.5f, 0.5f,
                                                   0.5f, 0.5f, 0.5f,
                                                   -0.5f, 0.5f, 0.5f,
                                                   -0.5f, -0.5f, 0.5f,
-
                                                   -0.5f, 0.5f, 0.5f,
                                                   -0.5f, 0.5f, -0.5f,
                                                   -0.5f, -0.5f, -0.5f,
                                                   -0.5f, -0.5f, -0.5f,
                                                   -0.5f, -0.5f, 0.5f,
                                                   -0.5f, 0.5f, 0.5f,
-
-
                                                   0.5f, 0.5f, 0.5f,
                                                   0.5f, 0.5f, -0.5f,
                                                   0.5f, -0.5f, -0.5f,
                                                   0.5f, -0.5f, -0.5f,
                                                   0.5f, -0.5f, 0.5f,
                                                   0.5f, 0.5f, 0.5f,
-
                                                   -0.5f, -0.5f, -0.5f,
                                                   0.5f, -0.5f, -0.5f,
                                                   0.5f, -0.5f, 0.5f,
                                                   0.5f, -0.5f, 0.5f,
                                                   -0.5f, -0.5f, 0.5f,
                                                   -0.5f, -0.5f, -0.5f,
-
                                                   -0.5f, 0.5f, -0.5f,
                                                   0.5f, 0.5f, -0.5f,
                                                   0.5f, 0.5f, 0.5f,

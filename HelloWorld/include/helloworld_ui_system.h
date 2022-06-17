@@ -14,9 +14,15 @@ namespace helloworld {
     class HelloWorldUISystem : public dawn_engine::DawnUISystem {
     private:
         std::vector<int> gameObjectTrackerSelectionTable;
+        std::string selectedShaderStr = "";
+
         float defaultMinValue = -FLT_MAX;
         float defaultMaxValue = FLT_MAX;
         float defaultDragSpeed = 0.01f;
+
+        void updateGlobalSettingsPanel(dawn_engine::DawnEngine *enginePtr);
+
+        void initGlobalSettingsPanel(dawn_engine::DawnEngine *enginePtr);
 
         void initGameObjectTracker(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs);
 
@@ -27,7 +33,6 @@ namespace helloworld {
         void updateGameObjectMonitors(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs);
 
         void embedModuleMonitor(dawn_engine::BaseModule *targetModule) const;
-
 
         void updateTransformModuleMonitor(dawn_engine::TransformModule *transformModule) const;
 

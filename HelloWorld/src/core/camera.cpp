@@ -4,7 +4,7 @@ namespace dawn_engine {
 
     Camera::Camera(glm::vec3 position, double yaw, double pitch) : position(position),
                                                                    front(DEFAULT_FRONT),
-                                                                   movementSpeed(DEFAULT_SPEED),
+                                                                   moveSpeed(DEFAULT_SPEED),
                                                                    fov(DEFAULT_FOV), yaw(yaw),
                                                                    pitch(pitch),
                                                                    mouseSensitivity(
@@ -22,7 +22,7 @@ namespace dawn_engine {
         this->up = glm::normalize(glm::cross(this->right, this->front));
     }
 
-    glm::mat4 Camera::getViewMatrix() {
+    glm::mat4 Camera::getViewMatrix() const {
         return glm::lookAt(this->position, this->position + this->front, this->up);
     }
 
@@ -31,7 +31,7 @@ namespace dawn_engine {
     glm::vec3 Camera::getPos() const { return this->position; }
 
     void Camera::processKeyboard(CameraMovement direction, float deltaTime) {
-        float distance = (float) this->movementSpeed * deltaTime;
+        float distance = (float) this->moveSpeed * deltaTime;
 
         if (direction == FORWARD) {
             this->position += this->front * distance;
@@ -56,8 +56,8 @@ namespace dawn_engine {
         // make sure that when pitch is out of bounds, screen doesn't get
         // flipped
         if (constrainPitch) {
-            pitch = std::min(this->pitch, 89.0);
-            pitch = std::max(this->pitch, -89.0);
+            pitch = std::min(this->pitch, 89.0f);
+            pitch = std::max(this->pitch, -89.0f);
         }
 
         // update Front, Right and Up Vectors using the updated Euler angles
@@ -68,7 +68,39 @@ namespace dawn_engine {
 
     void Camera::processMouseScroll(double yOffset) {
         this->fov -= (float) yOffset * this->mouseSensitivity;
-        this->fov = std::max(1.0, this->fov);
-        this->fov = std::min(80.0, this->fov);
+        this->fov = std::max(1.0f, this->fov);
+        this->fov = std::min(80.0f, this->fov);
+    }
+
+    glm::mat4 Camera::getPerspectiveMatrix(float winWidth, float winHeight) const {
+        return glm::perspective((float) glm::radians(this->fov), winWidth / winHeight, this->zNear, this->zFar);
+    }
+
+    float Camera::getZNear() const {
+        return this->zNear;
+    }
+
+    float Camera::getZFar() const {
+        return this->zFar;
+    }
+
+    float &Camera::getZNearMeta() {
+        return this->zNear;
+    }
+
+    float &Camera::getZFarMeta() {
+        return this->zFar;
+    }
+
+    float &Camera::getMoveSpeedMeta() {
+        return this->moveSpeed;
+    }
+
+    float &Camera::getMouseSensitivityMeta() {
+        return this->mouseSensitivity;
+    }
+
+    float &Camera::getFovMeta() {
+        return this->fov;
     }
 } // namespace dawn_engine

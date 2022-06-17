@@ -28,6 +28,7 @@ namespace dawn_engine {
     }
 
     glm::mat4 TransformModule::getModelMat4() const {
+        glm::mat4 modelMat = glm::mat4(1.0f);
         return this->getTranslationMat4() * this->getRotationMat4() * this->getScaleMat4();
     }
 

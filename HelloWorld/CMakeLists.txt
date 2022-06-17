@@ -7,12 +7,14 @@ set(PROJECT_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/deps)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/core)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/modules)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/utils)
 # include
 include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${MODULES_DIR}
         ${CORE_DIR}
+        ${UTILS_DIR}
 )
 # src
 file(GLOB_RECURSE

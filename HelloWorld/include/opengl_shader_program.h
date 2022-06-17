@@ -6,16 +6,28 @@
 namespace dawn_engine {
     class OpenGLShaderProgram {
     private:
-        unsigned int id;
+        std::string name = "NewShaderProgram";
+        const char *vertexPath;
+        const char *fragmentPath;
+        unsigned int id = -1;
 
         void checkCompileErrors(unsigned int, std::string);
 
+        int createShaderProgram();
+
     public:
+        OpenGLShaderProgram(const char *name, const char *vertexPath, const char *fragmentPath);
+
         OpenGLShaderProgram(const char *vertexPath, const char *fragmentPath);
 
-        ~OpenGLShaderProgram() = default;
 
-        void activate();
+        ~OpenGLShaderProgram();
+
+        void activate() const;
+
+        void reload();
+
+        [[nodiscard]] std::string getName() const;
 
         void setBool(const std::string &name, bool value) const;
 
@@ -27,13 +39,15 @@ namespace dawn_engine {
 
         void setVec3fv(const std::string &name, glm::vec3 value) const;
 
-        void setUniform(const std::string &, glm::vec3 value);
+        void setUniform(const std::string &, glm::vec3 value) const;
 
-        void setUniform(const std::string &, bool value);
+        void setUniform(const std::string &, bool value) const;
 
-        void setUniform(const std::string &, int value);
+        void setUniform(const std::string &, int value) const;
 
-        void setUniform(const std::string &, glm::mat4 value);
+        void setUniform(const std::string &, float value) const;
+
+        void setUniform(const std::string &, glm::mat4 value) const;
 
         void setUniforms(const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &) const;
     };

@@ -2,17 +2,12 @@
 #ifndef DAWN_ENGINE_H
 #define DAWN_ENGINE_H
 
-//#include "include/common_includes.h"
-//#include "include/render_window.h"
-//#include "include/opengl_shader_program.h"
-//#include "include/camera.h"
-//#include "include/material.h"
-//#include "include/game_object.h"
+#include "include/game_object.h"
 #include "include/render_window.h"
-#include "dawn_ui_system.h"
-#include "dawn_model.h"
-#include "modules/light_module.h"
-//#include "modules/transform_module.h.h"
+#include "core/dawn_ui_system.h"
+#include "core/dawn_model.h"
+#include "modules/transform_module.h"
+#include "utils/glsl_utils.h"
 
 namespace dawn_engine {
     class DawnEngine {
@@ -20,30 +15,14 @@ namespace dawn_engine {
         RenderWindow *renderWindow;
         DawnUISystem *uiSystem;
         Camera mainCamera;
+        bool enableDepthRendering = false;
         std::unordered_map<std::string, DawnModel> modelMap = {};
-        OpenGLShaderProgram *gameObjectShader;
-        OpenGLShaderProgram *lightShader;
-        OpenGLShaderProgram *testShader;
-        OpenGLShaderProgram *modelShader;
-        unsigned int VAO, VBO;
-        float timeValue;
+        std::unordered_map<std::string, OpenGLShaderProgram *> shaderProgramMap = {};
+        OpenGLShaderProgram *activeShader;
         GLfloat deltaTime;
         GLfloat lastTime;
-        const uint32_t MAX_DIR_LIGHT_NUM = 16;
-        const uint32_t MAX_SPOT_LIGHT_NUM = 16;
-        const uint32_t MAX_POINT_LIGHT_NUM = 16;
+
         // customized data
-
-        unsigned int cubeVAO, cubeVBO, cubeEBO;
-        unsigned int lightVAO, lightVBO, lightEBO;
-        unsigned int texture0;
-        unsigned int texture1;
-        glm::vec3 lightColor;
-        glm::vec3 objectColor;
-        glm::vec3 ambientColor;
-
-        // void addDefaultLight();
-        // void addDefaultCube();
         void render();
 
 
@@ -58,19 +37,9 @@ namespace dawn_engine {
 
         virtual void update() = 0;
 
+        virtual void uniformUpdate();
 
-        // void addGameObject(const std::shared_ptr<GameObject> gameObjPtr);
         void addGameObject(GameObject *gObjPtr);
-
-        GameObject *createGameObject();
-
-        GameObject *createGameObject(bool isEntity);
-
-        GameObject *createGameObject(bool isEntity, glm::vec3 position);
-
-        GameObject *createLight(LightType lType);
-
-        GameObject *setupLights();
 
     public:
 
@@ -83,16 +52,29 @@ namespace dawn_engine {
 
         void launch();
 
-
         void add_data();
 
-        void createShaderPrograms();
+        void initShaderPrograms();
 
-        void loadTextures(const char *, const char *);
+        void setUniformInShaderPrograms(std::vector<std::string> shaderProgramNames, const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms);
+
+//        void loadTextures(const char *, const char *);
 
         std::vector<GameObject *> getGameObjectPtrs() const;
 
         void loadModel(const std::string &modelPath);
+
+        bool enabledDepthRendering() const;
+
+        bool &getDepthRenderingSwitchMeta();
+
+        std::unordered_map<std::string, OpenGLShaderProgram *> &getShaderProgramMapMeta();
+
+        void setActiveShaderProgram(const char *name);
+
+        [[maybe_unused]] OpenGLShaderProgram *getActiveShaderProgram();
+
+        Camera &getMainCameraMeta();
     };
 
 } // namespace dawn_engine

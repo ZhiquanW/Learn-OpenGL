@@ -32,7 +32,6 @@ namespace dawn_engine {
 
         unsigned int glVAO{}, glVBO{}, glEBO{};
 
-        void initGLData();
 
     protected:
         std::vector<Vertex> vertices;
@@ -45,6 +44,10 @@ namespace dawn_engine {
         DawnMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, const DawnMaterial &material);
 
         ~DawnMesh();
+
+        void initGLData();
+
+        void deleteGLData();
 
         void render(OpenGLShaderProgram *shaderProgram) const;
 

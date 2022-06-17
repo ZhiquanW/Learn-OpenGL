@@ -12,11 +12,50 @@ namespace helloworld {
     void HelloWorldUISystem::start(dawn_engine::DawnEngine *enginePtr) {
         this->initGameObjectTracker(enginePtr->getGameObjectPtrs());
         this->initGameObjectMonitors(enginePtr->getGameObjectPtrs());
+        this->initGlobalSettingsPanel(enginePtr);
     }
 
     void HelloWorldUISystem::update(dawn_engine::DawnEngine *enginePtr) {
+        this->updateGlobalSettingsPanel(enginePtr);
         this->updateGameObjectTracker(enginePtr->getGameObjectPtrs());
         this->updateGameObjectMonitors(enginePtr->getGameObjectPtrs());
+    }
+
+    void HelloWorldUISystem::initGlobalSettingsPanel(dawn_engine::DawnEngine *enginePtr) {
+        this->selectedShaderStr = enginePtr->getActiveShaderProgram()->getName();
+    }
+
+    void HelloWorldUISystem::updateGlobalSettingsPanel(dawn_engine::DawnEngine *enginePtr) {
+        ImGui::Begin("Global Settings");
+        // shader program selection
+        if (ImGui::CollapsingHeader("Shaders", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::Button("reload")) {
+                enginePtr->getActiveShaderProgram()->reload();
+            }
+            ImGui::SameLine();
+            if (ImGui::BeginCombo("Shader Selector", this->selectedShaderStr.c_str())) {
+                for (const auto &mapPair: enginePtr->getShaderProgramMapMeta()) {
+                    bool isSelected = selectedShaderStr.c_str() == mapPair.first.c_str();
+                    if (ImGui::Selectable(mapPair.first.c_str(), isSelected)) {
+                        selectedShaderStr = mapPair.first;
+                        enginePtr->setActiveShaderProgram(mapPair.first.c_str());
+                    }
+                }
+                ImGui::EndCombo();
+            }
+
+        }
+        // main camera properties
+        if (ImGui::CollapsingHeader("Main Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
+            dawn_engine::Camera &camMeta = enginePtr->getMainCameraMeta();
+            ImGui::DragFloat("move speed", &camMeta.getMoveSpeedMeta(), this->defaultDragSpeed, 0.0f, this->defaultMaxValue);
+            ImGui::DragFloat("sensitivity", &camMeta.getMouseSensitivityMeta(), this->defaultDragSpeed, 0.0f, 1.0f);
+            ImGui::DragFloat("field of view", &camMeta.getFovMeta(), this->defaultDragSpeed, 0.0f, this->defaultMaxValue);
+            ImGui::DragFloat("zNear", &enginePtr->getMainCameraMeta().getZNearMeta(), this->defaultDragSpeed, 0.001f, enginePtr->getMainCameraMeta().getZFar());
+            ImGui::DragFloat("zFar", &enginePtr->getMainCameraMeta().getZFarMeta(), this->defaultDragSpeed, enginePtr->getMainCameraMeta().getZNearMeta(), this->defaultMaxValue);
+        }
+        ImGui::End();
+
     }
 
     void HelloWorldUISystem::initGameObjectTracker(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs) {
@@ -33,13 +72,13 @@ namespace helloworld {
             if (ImGui::Selectable(indexed_name.c_str(),
                                   (bool) this->gameObjectTrackerSelectionTable[selection_idx],
                                   ImGuiSelectableFlags_AllowDoubleClick)) {
-                if (ImGui::IsMouseDoubleClicked(0)) {
-                }
+//                if (ImGui::IsMouseDoubleClicked(0)) {
+//                }
                 if (!ImGui::GetIO().KeyCtrl) { // Clear gameObjectTrackerSelectionTable when CTRL is not held
                     memset(this->gameObjectTrackerSelectionTable.data(), 0,
                            sizeof(int) * this->gameObjectTrackerSelectionTable.size());
-                    for (auto v: this->gameObjectTrackerSelectionTable) {
-                    }
+//                    for (auto v: this->gameObjectTrackerSelectionTable) {
+//                    }
                 }
                 this->gameObjectTrackerSelectionTable[selection_idx] ^= 1;
             }
@@ -57,7 +96,6 @@ namespace helloworld {
             if (this->gameObjectTrackerSelectionTable[i]) {
                 std::string indexed_name = fmt::format("{}: {}", i, gameObjectPtrs[i]->getName().c_str());
                 ImGui::Begin(indexed_name.c_str());
-
                 for (const auto &modulesPair: gameObjectPtrs[i]->getModules()) {
                     for (const auto &modulePtr: modulesPair.second) {
                         this->embedModuleMonitor(modulePtr);
@@ -70,7 +108,7 @@ namespace helloworld {
 
 
     void HelloWorldUISystem::updateTransformModuleMonitor(dawn_engine::TransformModule *const transformModule) const {
-        if (ImGui::CollapsingHeader("Transform")) {
+        if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::DragFloat3("position", &transformModule->getPositionMeta()[0], this->defaultDragSpeed, this->defaultMinValue, this->defaultMaxValue);
             ImGui::DragFloat3("rotation", &transformModule->getRotationMeta()[0], this->defaultDragSpeed, this->defaultMinValue, this->defaultMaxValue);
             ImGui::DragFloat3("scale", &transformModule->getScaleMeta()[0], this->defaultDragSpeed, this->defaultMinValue, this->defaultMaxValue);
@@ -79,7 +117,7 @@ namespace helloworld {
     }
 
     void HelloWorldUISystem::updateMeshModuleMonitor(dawn_engine::MeshModule *meshModule) const {
-        if (ImGui::CollapsingHeader("mesh module"), true) {
+        if (ImGui::CollapsingHeader("mesh module", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Checkbox("module activation", &meshModule->getActivationMeta());
             ImGui::Text("mesh num: %zu", meshModule->getMeshes().size());
             std::string label = fmt::format("mesh activation##{}", 0);
@@ -121,7 +159,7 @@ namespace helloworld {
     }
 
     void HelloWorldUISystem::updatePointLightModuleMonitor(dawn_engine::PointLightModule *const pointLightModule) const {
-        if (ImGui::CollapsingHeader("Point Light")) {
+        if (ImGui::CollapsingHeader("Point Light", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Checkbox("activation", &pointLightModule->getActivationMeta());
             this->embedBaseLightMonitor(pointLightModule);
             ImGui::Separator();
@@ -133,7 +171,7 @@ namespace helloworld {
 
 
     void HelloWorldUISystem::updateDirectionLightModuleMonitor(dawn_engine::DirectionalLightModule *const directionalLightModule) const {
-        if (ImGui::CollapsingHeader("Directional Light")) {
+        if (ImGui::CollapsingHeader("Directional Light", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Checkbox("activation", &directionalLightModule->getActivationMeta());
             this->embedBaseLightMonitor(directionalLightModule);
             ImGui::Separator();
@@ -142,7 +180,7 @@ namespace helloworld {
     }
 
     void HelloWorldUISystem::updateSpotLightModuleMonitor(dawn_engine::SpotLightModule *const spotLightModule) const {
-        if (ImGui::CollapsingHeader("Spot Light")) {
+        if (ImGui::CollapsingHeader("Spot Light", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Checkbox("activation", &spotLightModule->getActivationMeta());
             this->embedBaseLightMonitor(spotLightModule);
             ImGui::Separator();

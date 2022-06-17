@@ -19,7 +19,7 @@ namespace dawn_engine {
 
         MeshModule(std::vector<DawnMesh> meshes);
 
-        ~MeshModule();
+        ~MeshModule() override;
 
         void setAsRenderTarget() const;
 

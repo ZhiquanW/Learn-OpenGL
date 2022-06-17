@@ -12,12 +12,12 @@ namespace dawn_engine {
 
     private:
     protected:
-    public:
-        static const std::size_t type;
-
         glm::vec3 ambient;
         glm::vec3 diffuse;
         glm::vec3 specular;
+    public:
+        static const std::size_t type;
+
 
         LightModule();
 
@@ -39,7 +39,7 @@ namespace dawn_engine {
 
         glm::vec3 &getSpecularMeta();
 
-        [[nodiscard]] virtual std::vector <std::shared_ptr<ShaderUniformVariableBase>>
+        [[nodiscard]] virtual std::vector<std::shared_ptr<ShaderUniformVariableBase>>
         getUniforms(const std::string &name) const;
     };
 
@@ -65,7 +65,7 @@ namespace dawn_engine {
         ~DirectionalLightModule() override;
 
 
-        [[maybe_unused]] [[nodiscard]] virtual std::vector <std::shared_ptr<ShaderUniformVariableBase>>
+        [[maybe_unused]] [[nodiscard]] virtual std::vector<std::shared_ptr<ShaderUniformVariableBase>>
         getUniforms(uint32_t idx) const;
 
         [[maybe_unused]] [[nodiscard]] glm::vec3 getDirection() const;
@@ -96,7 +96,7 @@ namespace dawn_engine {
                          float constant, float linear,
                          float quadratic);
 
-        [[maybe_unused]] [[nodiscard]] virtual std::vector <std::shared_ptr<ShaderUniformVariableBase>>
+        [[maybe_unused]] [[nodiscard]] virtual std::vector<std::shared_ptr<ShaderUniformVariableBase>>
         getUniforms(uint32_t idx) const;
 
         float getConstant() const;
@@ -153,7 +153,7 @@ namespace dawn_engine {
         [[maybe_unused]]  void setInnerRange(const float &range);
 
 
-        [[maybe_unused]] [[nodiscard]] std::vector <std::shared_ptr<ShaderUniformVariableBase>>
+        [[maybe_unused]] [[nodiscard]] std::vector<std::shared_ptr<ShaderUniformVariableBase>>
         getUniforms(uint32_t idx) const override;
 
 

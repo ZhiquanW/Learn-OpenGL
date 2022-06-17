@@ -15,8 +15,6 @@ namespace dawn_engine {
                                             this->name.c_str(), nullptr, nullptr);
         int ww, hh;
         glfwGetFramebufferSize(this->glfwWindow, &ww, &hh);
-        std::cout << ww << " " << hh << std::endl;
-
         if (this->glfwWindow == nullptr) {
             throw std::runtime_error("failed to create GLFW window");
 //        glfwTerminate();

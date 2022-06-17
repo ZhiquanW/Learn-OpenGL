@@ -92,6 +92,13 @@ vec3 compute_spot_light(SpotLight spot_light,vec3 normal,vec3 view_dir,vec3 m_di
     vec3 specular =   spot_light.specular * m_specular * pow(max(dot(view_dir,reflect_dir),0.0),material.shininess);
     return attenuation*(ambient + intensity*(diffuse + specular));
 }
+float near = 0.001f;
+float far = 100.0f;
+float linearize_depth(float depth) 
+{
+    float z = depth * 2.0 - 1.0; // back to NDC 
+    return (2.0 * near * far) / (far + near - z * (far - near))/far;	
+}
 void main() { 
     vec3 view_dir = normalize(cam_pos - frag_pos);
     vec3 material_diffuse = vec3(0.0,0.0,0.0);
@@ -116,6 +123,8 @@ void main() {
     // out_color =vec4(directional_lights[0].ambient ,1.0f);
     // out_color =vec4(fract(frag_tex_coord*10),1.0f ,1.0f);
     out_color =vec4(shader_color ,1.0f);
+    // out_color =vec4(0.0f);
+    // out_color =vec4( vec~3(linearize_depth(gl_FragCoord.z)),1.0f);
     // out_color = texture(material.diffuse_texture_0, frag_tex_coord);
 
 };

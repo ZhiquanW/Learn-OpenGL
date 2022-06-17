@@ -1,6 +1,6 @@
 #include "dawn_engine.h"
-#include <fstream>
 #include <sstream>
+#include <fstream>
 
 namespace dawn_engine {
 
@@ -16,34 +16,22 @@ namespace dawn_engine {
         glViewport(0, 0, (GLsizei) this->renderWindow->getWinWidth(),
                    (GLsizei) this->renderWindow->getWinHeight());
         glEnable(GL_DEPTH_TEST);
-        this->createShaderPrograms();
+        glDepthFunc(GL_LESS);
+        glEnable(GL_STENCIL_TEST);
+        glStencilFunc(GL_ALWAYS, 1, 0xff);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+        glStencilMask(0x00);
 
-
-        // test part
-        // end test part
+        this->initShaderPrograms();
     }
 
 
     DawnEngine::~DawnEngine() {
-        glDeleteVertexArrays(1, &this->cubeVAO);
-        glDeleteBuffers(1, &this->cubeVBO);
-        glDeleteBuffers(1, &this->cubeEBO);
         delete this->renderWindow;
         if (!this->uiSystem) {
             delete this->uiSystem;
         }
     }
-
-// void DawnEngine::addDefaultLight() {
-//     std::shared_ptr<PointLight> pLight(new PointLight(glm::vec3(1.0f), glm::vec3(0.9f), glm::vec3(0.9f), glm::vec3(0.9f)));
-//     this->addLight(pLight);
-// }
-
-// void DawnEngine::addDefaultCube() { this->gameObjects.emplace_back(GameObject::createPrimitive(CubePrimitiveType)); }
-
-// void DawnEngine::addGameObject(bool isEntity) {}
-
-// void DawnEngine::addGameObject(const std::shared_ptr<GameObject> gameObjPtr) { this->gameObjects.emplace_back(gameObjPtr); }
 
     void DawnEngine::launch() {
         this->awake();
@@ -52,15 +40,17 @@ namespace dawn_engine {
             this->uiSystem->start(this);
         }
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        glClearDepth(1.0);
+        glClearDepth(1.0f);
+        glClearStencil(0.0f);
         while (!this->renderWindow->should_close()) {
-            glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
             auto currentTime = static_cast<GLfloat>(glfwGetTime());
             this->deltaTime = currentTime - this->lastTime;
             this->lastTime = currentTime;
             // Start the Dear ImGui frame
             this->renderWindow->process_inputs(&this->mainCamera, this->deltaTime);
+            this->uniformUpdate();
             this->update();
             this->render();
             if (uiSystem != nullptr) {
@@ -76,123 +66,69 @@ namespace dawn_engine {
         this->gameObjectPtrs.emplace_back(gObjPtr);
     }
 
-    void DawnEngine::render() {
-        glm::mat4 modelMat = glm::mat4(1.0f);
-        glm::mat4 view = this->mainCamera.getViewMatrix();
-        glm::mat4 projection = glm::perspective(
-                glm::radians(this->mainCamera.getFov()),
-                (float) this->renderWindow->getWinWidth() /
-                (float) this->renderWindow->getWinHeight(), 0.001f, 100.0f);
-        glm::vec3 camPos = this->mainCamera.getPos();
-        this->gameObjectShader->activate();
-        this->gameObjectShader->setUniform("cam_view", view);
-        this->gameObjectShader->setUniform("cam_proj", projection);
-        this->gameObjectShader->setUniform("cam_pos", camPos);
-        // set light information in shader program
+    void DawnEngine::uniformUpdate() {
+        // update camera uniforms
+        this->setUniformInShaderPrograms({"default", "depth"}, extractUniforms("main_camera", mainCamera, this->renderWindow->getWinWidth(), this->renderWindow->getWinHeight()));
+        // update light uniforms
         uint32_t dirLightNum = 0;
         uint32_t pointLightNum = 0;
         uint32_t spotLightNum = 0;
         for (auto gObj: this->gameObjectPtrs) {
             auto *dirLightM = gObj->getModule<DirectionalLightModule>();
             if (dirLightM != nullptr && dirLightM->getActivation()) {
-                this->gameObjectShader->setUniforms(dirLightM->getUniforms(dirLightNum));
-                dirLightNum++;
+                this->setUniformInShaderPrograms({"default", "depth"}, extractUniforms(fmt::format("directional_lights[{}]", dirLightNum++), dirLightM));
             }
             auto *pointLightM = gObj->getModule<PointLightModule>();
             if (pointLightM != nullptr && pointLightM->getActivation()) {
-                this->gameObjectShader->setUniforms(pointLightM->getUniforms(pointLightNum));
-                pointLightNum++;
+                this->setUniformInShaderPrograms({"default", "depth"}, extractUniforms(fmt::format("point_lights[{}]", pointLightNum++), pointLightM));
             }
             auto *spotLightM = gObj->getModule<SpotLightModule>();
             if (spotLightM != nullptr && spotLightM->getActivation()) {
-                this->gameObjectShader->setUniforms(spotLightM->getUniforms((spotLightNum)));
-                spotLightNum++;
+                this->setUniformInShaderPrograms({"default", "depth"}, extractUniforms(fmt::format("spot_lights[{}]", spotLightNum++), spotLightM));
             }
         }
-        this->gameObjectShader->setUniform("dir_lights_num", int(dirLightNum));
-        this->gameObjectShader->setUniform("point_lights_num", int(pointLightNum));
-        this->gameObjectShader->setUniform("spot_lights_num", int(spotLightNum));
-//        this->modelShader->activate();
-//        this->modelShader->setUniform("projection", projection);
-//        this->modelShader->setUniform("view", view);
-//        this->modelShader->setUniform("model", modelMat);
+        this->setUniformInShaderPrograms({"default", "depth"}, {std::make_shared<ShaderUniformVariable<int>>("dir_lights_num", int(dirLightNum)),
+                                                                std::make_shared<ShaderUniformVariable<int>>("point_lights_num", int(pointLightNum)),
+                                                                std::make_shared<ShaderUniformVariable<int>>("spot_lights_num", int(spotLightNum))});
+    }
+
+
+    void DawnEngine::render() {
         for (auto gObj: this->gameObjectPtrs) {
             auto *mesh_m = gObj->getModule<MeshModule>();
             if (mesh_m and mesh_m->getActivation()) {
-                this->gameObjectShader->setUniform("model_mat", gObj->getModule<TransformModule>()->getModelMat4());
-                mesh_m->render(this->gameObjectShader);
+                glStencilFunc(GL_ALWAYS, 1, 0xFF);
+                glStencilMask(0xFF);
+                mesh_m->render(this->shaderProgramMap["default"]);
+                glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+                glStencilMask(0x00);
+                glDisable(GL_DEPTH_TEST);
+                auto originalScale = gObj->getModule<TransformModule>()->getScale();
+                gObj->getModule<TransformModule>()->setScale(1.1f * originalScale);
+                mesh_m->render(this->shaderProgramMap["depth"]);
+                gObj->getModule<TransformModule>()->setScale(originalScale);
+                glStencilMask(0xFF);
+                glStencilFunc(GL_ALWAYS, 0, 0xFF);
+                glEnable(GL_DEPTH_TEST);
             }
-//            if (mesh_m && mesh_m->getActivation()) {
-//                this->gameObjectShader->setUniform("model_mat",
-//                                                   gObj->getModule<TransformModule>()->getModelMat4());
-//                this->gameObjectShader->setUniforms(
-//                        mesh_m->getMaterial().getUniforms("material"));
-//                mesh_m->setAsRenderTarget();
-//                glDrawArrays(GL_TRIANGLES, 0, 36);
-//            }
         }
-//
-        // render light
-        this->lightShader->activate();
     }
 
-    void DawnEngine::add_data() {}
+    void DawnEngine::initShaderPrograms() {
+        shaderProgramMap.insert({"default", new OpenGLShaderProgram("default", "../shaders/default_rendering.vert",
+                                                                    "../shaders/default_rendering.frag")});
+        shaderProgramMap.insert({"depth", new OpenGLShaderProgram("depth", "../shaders/default_rendering.vert",
+                                                                  "../shaders/depth_buffer_rendering.frag")});
+//        shaderProgramMap.insert({"model", new OpenGLShaderProgram("model", "../shaders/model.vert", "../shaders/model.frag")});
 
-    void DawnEngine::createShaderPrograms() {
-        this->gameObjectShader = new OpenGLShaderProgram("../shaders/tri.vert",
-                                                         "../shaders/tri.frag");
-        this->lightShader = new OpenGLShaderProgram("../shaders/light.vs", "../shaders/light.fs");
-        this->testShader = new OpenGLShaderProgram("../shaders/test.vs", "../shaders/test.fs");
-        this->modelShader = new OpenGLShaderProgram("../shaders/model.vert", "../shaders/model.frag");
+        this->activeShader = shaderProgramMap["default"];
+//        this->gameObjectShader = new OpenGLShaderProgram("../shaders/default_rendering.vert",
+//                                                         "../shaders/default_rendering.frag");
+//        this->lightShader = new OpenGLShaderProgram("../shaders/light.vs", "../shaders/light.fs");
+//        this->testShader = new OpenGLShaderProgram("../shaders/test.vs", "../shaders/test.fs");
+//        this->modelShader = new OpenGLShaderProgram("../shaders/model.vert", "../shaders/model.frag");
     }
 
-    void DawnEngine::loadTextures(const char *text_path_0, const char *text_path_1) {
-
-        glGenTextures(1, &this->texture0);
-        // activate the texture unit first before binding texture
-        glBindTexture(GL_TEXTURE_2D, this->texture0);
-        // set the texture wrapping/filtering options (on the currently bound
-        // texture object)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        // load and generate the texture
-        int width, height, nrChannels;
-        stbi_set_flip_vertically_on_load(true);
-
-        unsigned char *data = stbi_load(text_path_0, &width, &height, &nrChannels, 0);
-        if (data) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE,
-                         data);
-            glGenerateMipmap(GL_TEXTURE_2D);
-        } else {
-            std::cout << "Failed to load texture" << std::endl;
-        }
-        stbi_image_free(data);
-
-        glGenTextures(1, &this->texture1);
-        // activate the texture unit first before binding texture
-        glBindTexture(GL_TEXTURE_2D, this->texture1);
-        // set the texture wrapping/filtering options (on the currently bound
-        // texture object)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        // load and generate the texture
-        // stbi_set_flip_vertically_on_load(true);
-
-        data = stbi_load(text_path_1, &width, &height, &nrChannels, 0);
-        if (data) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE,
-                         data);
-            glGenerateMipmap(GL_TEXTURE_2D);
-        } else {
-            std::cout << "Failed to load texture" << std::endl;
-        }
-        stbi_image_free(data);
-    }
 
     void DawnEngine::mountUISystem(DawnUISystem *uiSystem) {
         this->uiSystem = uiSystem;
@@ -205,6 +141,44 @@ namespace dawn_engine {
     }
 
     void DawnEngine::loadModel(const std::string &modelPath) {
+
+    }
+
+    bool DawnEngine::enabledDepthRendering() const {
+        return this->enableDepthRendering;
+    }
+
+    bool &DawnEngine::getDepthRenderingSwitchMeta() {
+        return this->enableDepthRendering;
+    }
+
+    std::unordered_map<std::string, OpenGLShaderProgram *> &DawnEngine::getShaderProgramMapMeta() {
+        return this->shaderProgramMap;
+    }
+
+    void DawnEngine::setActiveShaderProgram(const char *name) {
+        this->activeShader = this->shaderProgramMap.at(name);
+
+    }
+
+    [[maybe_unused]] OpenGLShaderProgram *DawnEngine::getActiveShaderProgram() {
+        return this->activeShader;
+
+
+    }
+
+    Camera &DawnEngine::getMainCameraMeta() {
+        return this->mainCamera;
+    }
+
+    void DawnEngine::setUniformInShaderPrograms(std::vector<std::string> shaderProgramNames, const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms) {
+        for (const auto &name: shaderProgramNames) {
+            auto shaderProgramPtr = this->shaderProgramMap.at(name);
+            if (shaderProgramPtr != nullptr) {
+                shaderProgramPtr->activate();
+                shaderProgramPtr->setUniforms(uniforms);
+            }
+        }
 
     }
 } // namespace dawn_engine

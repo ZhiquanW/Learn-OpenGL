@@ -1,8 +1,24 @@
 #include "opengl_shader_program.h"
 
 namespace dawn_engine {
-    OpenGLShaderProgram::OpenGLShaderProgram(const char *vertexPath, const char *fragmentPath) {
+    OpenGLShaderProgram::OpenGLShaderProgram(const char *vertexPath, const char *fragmentPath) : vertexPath(vertexPath), fragmentPath(fragmentPath) {
         // 1. retrieve the vertex/fragment source code from filePath
+        this->id = this->createShaderProgram();
+        vertexPath = vertexPath;
+        fragmentPath = fragmentPath;
+    }
+
+    OpenGLShaderProgram::OpenGLShaderProgram(const char *name, const char *vertexPath, const char *fragmentPath) : name(name), vertexPath(vertexPath),
+                                                                                                                   fragmentPath(fragmentPath) {
+        this->id = this->createShaderProgram();
+    }
+
+    OpenGLShaderProgram::~OpenGLShaderProgram() {
+        glDeleteProgram(this->id);
+    }
+
+
+    int OpenGLShaderProgram::createShaderProgram() {
         std::string vertexCode;
         std::string fragmentCode;
         std::ifstream vShaderFile;
@@ -12,8 +28,8 @@ namespace dawn_engine {
         fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
         try {
             // open files
-            vShaderFile.open(vertexPath);
-            fShaderFile.open(fragmentPath);
+            vShaderFile.open(this->vertexPath);
+            fShaderFile.open(this->fragmentPath);
             std::stringstream vShaderStream, fShaderStream;
             // read file's buffer contents into streams
             vShaderStream << vShaderFile.rdbuf();
@@ -42,18 +58,24 @@ namespace dawn_engine {
         glCompileShader(fragment);
         checkCompileErrors(fragment, "FRAGMENT");
         // shader Program
-        this->id = glCreateProgram();
-        glAttachShader(this->id, vertex);
-        glAttachShader(this->id, fragment);
-        glLinkProgram(this->id);
-        checkCompileErrors(this->id, "PROGRAM");
+        int shaderID = glCreateProgram();
+        glAttachShader(shaderID, vertex);
+        glAttachShader(shaderID, fragment);
+        glLinkProgram(shaderID);
+        checkCompileErrors(shaderID, "PROGRAM");
         // delete the shaders as they're linked into our program now and no longer
         // necessary
         glDeleteShader(vertex);
         glDeleteShader(fragment);
+        return shaderID;
     }
 
-    void OpenGLShaderProgram::activate() { glUseProgram(this->id); }
+
+    void OpenGLShaderProgram::reload() {
+        this->id = createShaderProgram();
+    }
+
+    void OpenGLShaderProgram::activate() const { glUseProgram(this->id); }
 
     void OpenGLShaderProgram::setBool(const std::string &name, bool value) const {
         glUniform1i(glGetUniformLocation(this->id, name.c_str()), (int) value);
@@ -76,19 +98,25 @@ namespace dawn_engine {
         glUniform3fv(glGetUniformLocation(this->id, name.c_str()), 1, glm::value_ptr(value));
     }
 
-    void OpenGLShaderProgram::setUniform(const std::string &name, bool value) {
+    void OpenGLShaderProgram::setUniform(const std::string &name, bool value) const {
         glUniform1i(glGetUniformLocation(this->id, name.c_str()), (int) value);
     }
 
-    void OpenGLShaderProgram::setUniform(const std::string &name, int value) {
+    void OpenGLShaderProgram::setUniform(const std::string &name, int value) const {
         glUniform1i(glGetUniformLocation(this->id, name.c_str()), value);
+
     }
 
-    void OpenGLShaderProgram::setUniform(const std::string &name, glm::vec3 value) {
+    void OpenGLShaderProgram::setUniform(const std::string &name, float value) const {
+        glUniform1f(glGetUniformLocation(this->id, name.c_str()), value);
+    }
+
+    void OpenGLShaderProgram::setUniform(const std::string &name, glm::vec3 value) const {
         glUniform3fv(glGetUniformLocation(this->id, name.c_str()), 1, glm::value_ptr(value));
     }
 
-    void OpenGLShaderProgram::setUniform(const std::string &name, glm::mat4 value) {
+
+    void OpenGLShaderProgram::setUniform(const std::string &name, glm::mat4 value) const {
         glUniformMatrix4fv(glGetUniformLocation(this->id, name.c_str()), 1, GL_FALSE,
                            glm::value_ptr(value));
     }
@@ -98,20 +126,25 @@ namespace dawn_engine {
         for (const auto &u_sp: uniforms) {
             ShaderUniformVariableBase *u_ptr = u_sp.get();
             if (u_ptr->getTypeHash() == typeid(int).hash_code()) {
-                this->setInt(u_ptr->getName(),
-                             dynamic_cast<ShaderUniformVariable<int> *>(u_ptr)->getData());
+                this->setUniform(u_ptr->getName(), dynamic_cast<ShaderUniformVariable<int> *>(u_ptr)->getData());
+//                this->setInt(u_ptr->getName(),
+//                             dynamic_cast<ShaderUniformVariable<int> *>(u_ptr)->getData());
             } else if (u_ptr->getTypeHash() == typeid(bool).hash_code()) {
-                this->setBool(u_ptr->getName(),
-                              dynamic_cast<ShaderUniformVariable<bool> *>(u_ptr)->getData());
+                this->setUniform(u_ptr->getName(), dynamic_cast<ShaderUniformVariable<bool> *>(u_ptr)->getData());
+//                this->setBool(u_ptr->getName(),
+//                              dynamic_cast<ShaderUniformVariable<bool> *>(u_ptr)->getData());
             } else if (u_ptr->getTypeHash() == typeid(float).hash_code()) {
-                this->setFloat(u_ptr->getName(),
-                               dynamic_cast<ShaderUniformVariable<float> *>(u_ptr)->getData());
+                this->setUniform(u_ptr->getName(), dynamic_cast<ShaderUniformVariable<float> *>(u_ptr)->getData());
+                //                this->setFloat(u_ptr->getName(),
+//                               dynamic_cast<ShaderUniformVariable<float> *>(u_ptr)->getData());
             } else if (u_ptr->getTypeHash() == typeid(glm::vec3).hash_code()) {
-                this->setVec3fv(u_ptr->getName(),
-                                dynamic_cast<ShaderUniformVariable<glm::vec3> *>(u_ptr)->getData());
+                this->setUniform(u_ptr->getName(), dynamic_cast<ShaderUniformVariable<glm::vec3> *>(u_ptr)->getData());
+//                this->setVec3fv(u_ptr->getName(),
+//                                dynamic_cast<ShaderUniformVariable<glm::vec3> *>(u_ptr)->getData());
             } else if (u_ptr->getTypeHash() == typeid(glm::mat4).hash_code()) {
-                this->setMatrix4fv(u_ptr->getName(),
-                                   dynamic_cast<ShaderUniformVariable<glm::mat4> *>(u_ptr)->getData());
+                this->setUniform(u_ptr->getName(), dynamic_cast<ShaderUniformVariable<glm::mat4> *>(u_ptr)->getData());
+//                this->setMatrix4fv(u_ptr->getName(),
+//                                   dynamic_cast<ShaderUniformVariable<glm::mat4> *>(u_ptr)->getData());
             } else {
                 throw std::runtime_error("unknown shader uniform variable type");
             }
@@ -142,6 +175,10 @@ namespace dawn_engine {
                           << std::endl;
             }
         }
+    }
+
+    std::string OpenGLShaderProgram::getName() const {
+        return this->name;
     }
 
 

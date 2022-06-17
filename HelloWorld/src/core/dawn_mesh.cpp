@@ -42,11 +42,12 @@ namespace dawn_engine {
         this->vertices = vertices;
         this->indices = indices;
         this->material = material;
-        this->initGLData();
     }
 
 
-    DawnMesh::~DawnMesh() = default;
+    DawnMesh::~DawnMesh() {
+
+    }
 
     void DawnMesh::initGLData() {
         glGenVertexArrays(1, &this->glVAO);
@@ -81,6 +82,11 @@ namespace dawn_engine {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
+    void DawnMesh::deleteGLData() {
+        glDeleteVertexArrays(1, &this->glVAO);
+        glDeleteBuffers(1, &this->glVBO);
+        glDeleteBuffers(1, &this->glEBO);
+    }
 
     void DawnMesh::render(OpenGLShaderProgram *shaderProgram) const {
         shaderProgram->setUniforms(this->material.getUniforms());

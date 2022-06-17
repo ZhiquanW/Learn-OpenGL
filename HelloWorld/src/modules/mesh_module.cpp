@@ -1,5 +1,6 @@
 #include "mesh_module.h"
-
+#include "transform_module.h"
+#include "game_object.h"
 #include <utility>
 
 namespace dawn_engine {
@@ -12,19 +13,19 @@ namespace dawn_engine {
     MeshModule::MeshModule(std::vector<DawnMesh> meshes) : BaseModule(), meshes(std::move(meshes)) {
         this->activations.resize(this->meshes.size());
         std::fill(this->activations.begin(), this->activations.end(), true);
+        for (auto &mesh: this->meshes) {
+            mesh.initGLData();
+        }
     }
 
     void MeshModule::render(OpenGLShaderProgram *shaderProgram) const {
+        shaderProgram->activate();
         for (unsigned int meshIdx; meshIdx < this->meshes.size(); ++meshIdx) {
             if (this->activations[meshIdx]) {
-                (this->meshes[meshIdx]).render(shaderProgram);
+                shaderProgram->setUniform("model_mat", this->getAttachedGameObject()->getModule<TransformModule>()->getModelMat4());
+                this->meshes[meshIdx].render(shaderProgram);
             }
         }
-//        for (auto mesh: this->meshes) {
-//            mesh.render(shaderProgram);
-//
-//        }
-
     }
 
     std::vector<DawnMesh> MeshModule::getMeshes() const {
@@ -58,7 +59,12 @@ namespace dawn_engine {
 //        this->initGLData();
 //    }
 
-    MeshModule::~MeshModule() = default;
+    MeshModule::~MeshModule() {
+        for (auto mesh: this->meshes) {
+            mesh.deleteGLData();
+        }
+
+    };
 
 //    void MeshModule::initGLData() {
 //        glGenVertexArrays(1, &this->glVAO);

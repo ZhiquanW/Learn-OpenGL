@@ -3,7 +3,7 @@
 #include "common_includes.h"
 #include "modules/transform_module.h"
 #include "modules/mesh_module.h"
-#include "core/dawn_engine.h"
+//#include "core/dawn_engine.h"
 #include "modules/light_module.h"
 
 namespace dawn_engine {

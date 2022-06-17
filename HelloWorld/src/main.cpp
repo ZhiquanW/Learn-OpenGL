@@ -17,7 +17,7 @@ void testCodes() {
 }
 // void run() {
 //     dawn_engine::DawnEngine render_engine = dawn_engine::DawnEngine(1600, 1600, "hello world");
-//     render_engine.createShaderPrograms();
+//     render_engine.initShaderPrograms();
 //     render_engine.loadTextures("../assets/test4.jpg", "../assets/test3.jpg");
 //     render_engine.add_data();
 //     render_engine.launch();
