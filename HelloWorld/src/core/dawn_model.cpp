@@ -51,9 +51,9 @@ namespace dawn_engine {
             vertex.position.y = mesh->mVertices[i].y;
             vertex.position.z = mesh->mVertices[i].z;
             // store normal vector
-            vertex.normal.x = mesh->mVertices[i].x;
-            vertex.normal.y = mesh->mVertices[i].y;
-            vertex.normal.z = mesh->mVertices[i].z;
+            vertex.normal.x = mesh->mNormals[i].x;
+            vertex.normal.y = mesh->mNormals[i].y;
+            vertex.normal.z = mesh->mNormals[i].z;
             if (mesh->mTextureCoords[0]) {
                 // store texture coordinate
                 vertex.texCoords.x = mesh->mTextureCoords[0][i].x;
@@ -86,12 +86,14 @@ namespace dawn_engine {
         // store material
         std::vector<int> diffuseMaps = {};
         std::vector<int> specularMaps = {};
+        std::vector<int> normalMaps = {};
         if (mesh->mMaterialIndex >= 0) {
             aiMaterial *meshMaterial = scene->mMaterials[mesh->mMaterialIndex];
             diffuseMaps = this->loadMaterialTextures(meshMaterial, aiTextureType_DIFFUSE);
             specularMaps = this->loadMaterialTextures(meshMaterial, aiTextureType_SPECULAR);
+            normalMaps = this->loadMaterialTextures(meshMaterial, aiTextureType_HEIGHT);
         }
-        DawnMaterial material = {diffuseMaps, specularMaps};
+        DawnMaterial material = {diffuseMaps, specularMaps, normalMaps};
         return {vertices, indices, material};
     }
 

@@ -20,7 +20,7 @@ namespace dawn_engine {
 
     void MeshModule::render(OpenGLShaderProgram *shaderProgram) const {
         shaderProgram->activate();
-        for (unsigned int meshIdx; meshIdx < this->meshes.size(); ++meshIdx) {
+        for (unsigned int meshIdx = 0; meshIdx < this->meshes.size(); ++meshIdx) {
             if (this->activations[meshIdx]) {
                 shaderProgram->setUniform("model_mat", this->getAttachedGameObject()->getModule<TransformModule>()->getModelMat4());
                 this->meshes[meshIdx].render(shaderProgram);

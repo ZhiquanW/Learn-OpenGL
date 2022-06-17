@@ -18,6 +18,7 @@ namespace dawn_engine {
 
         void keyboardCallbacks(Camera *camera, GLfloat deltaTime);
 
+
     public:
         RenderWindow(uint32_t w, uint32_t h, std::string);
 

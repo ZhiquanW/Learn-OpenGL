@@ -3,6 +3,10 @@
 #include <utility>
 
 namespace dawn_engine {
+    void windowReshapeCallbacks(GLFWwindow *window, int w, int h) {
+        glViewport(0, 0, w, h);
+    }
+
     RenderWindow::RenderWindow(uint32_t w, uint32_t h, std::string name)
             : width{w}, height{h}, name{std::move(name)}, last_mouse_pos(glm::vec2(0.0f, 0.0f)),
               mousePosInitialized(false),
@@ -21,6 +25,7 @@ namespace dawn_engine {
 //        return;
         }
         glfwMakeContextCurrent(this->glfwWindow);
+        glfwSetFramebufferSizeCallback(this->glfwWindow, windowReshapeCallbacks);
     }
 
     RenderWindow::~RenderWindow() {
@@ -39,6 +44,10 @@ namespace dawn_engine {
     void RenderWindow::swap_buffers() { glfwSwapBuffers(this->glfwWindow); }
 
     void RenderWindow::process_inputs(Camera *camera, GLfloat deltaTime) {
+        int w, h;
+        glfwGetFramebufferSize(this->glfwWindow, &w, &h);
+        this->width = w;
+        this->height = h;
         this->mouseCallbacks(camera);
         this->keyboardCallbacks(camera, deltaTime);
     }
@@ -80,5 +89,6 @@ namespace dawn_engine {
         // this->mouseRightButtonDown =
         //     glfwGetKey(this->glfwWindow, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
     }
+
 
 } // namespace dawn_engine

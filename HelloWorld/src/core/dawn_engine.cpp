@@ -17,10 +17,8 @@ namespace dawn_engine {
                    (GLsizei) this->renderWindow->getWinHeight());
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
-        glEnable(GL_STENCIL_TEST);
-        glStencilFunc(GL_ALWAYS, 1, 0xff);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-        glStencilMask(0x00);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         this->initShaderPrograms();
     }
@@ -41,10 +39,9 @@ namespace dawn_engine {
         }
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClearDepth(1.0f);
-        glClearStencil(0.0f);
         while (!this->renderWindow->should_close()) {
-            glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+            glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             auto currentTime = static_cast<GLfloat>(glfwGetTime());
             this->deltaTime = currentTime - this->lastTime;
             this->lastTime = currentTime;
@@ -94,24 +91,40 @@ namespace dawn_engine {
 
 
     void DawnEngine::render() {
+        struct renderMesh {
+            DawnMesh mesh;
+            glm::mat4 modelMat;
+        };
+        std::map<float, renderMesh> transparentRenderMap = {};
         for (auto gObj: this->gameObjectPtrs) {
-            auto *mesh_m = gObj->getModule<MeshModule>();
-            if (mesh_m and mesh_m->getActivation()) {
-                glStencilFunc(GL_ALWAYS, 1, 0xFF);
-                glStencilMask(0xFF);
-                mesh_m->render(this->shaderProgramMap["default"]);
-                glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-                glStencilMask(0x00);
-                glDisable(GL_DEPTH_TEST);
-                auto originalScale = gObj->getModule<TransformModule>()->getScale();
-                gObj->getModule<TransformModule>()->setScale(1.1f * originalScale);
-                mesh_m->render(this->shaderProgramMap["depth"]);
-                gObj->getModule<TransformModule>()->setScale(originalScale);
-                glStencilMask(0xFF);
-                glStencilFunc(GL_ALWAYS, 0, 0xFF);
-                glEnable(GL_DEPTH_TEST);
+            auto *meshM = gObj->getModule<MeshModule>();
+            auto modelMat = gObj->getModule<TransformModule>()->getModelMat4();
+            auto pos = gObj->getModule<TransformModule>()->getPosition();
+            float zDis = glm::length(this->mainCamera.getPos() - pos);
+            this->activeShader->activate();
+            if (meshM and meshM->getActivation()) {
+                for (const auto &mesh: meshM->getMeshesMeta()) {
+                    if (mesh.getMaterial().getOpaque()) {
+                        // render opaque object
+                        this->activeShader->setUniform("model_mat", gObj->getModule<TransformModule>()->getModelMat4());
+                        mesh.render(this->activeShader);
+                    } else {
+                        // insert transparent object for sorting
+                        transparentRenderMap.insert({zDis, {mesh, modelMat}});
+                    }
+                }
             }
         }
+        for (auto it = transparentRenderMap.rbegin(); it != transparentRenderMap.rend(); ++it) {
+            this->activeShader->setUniform("model_mat", it->second.modelMat);
+            it->second.mesh.render(this->activeShader);
+        }
+//        for (auto gObj: this->gameObjectPtrs) {
+//            auto *mesh_m = gObj->getModule<MeshModule>();
+//            if (mesh_m and mesh_m->getActivation()) {
+//                mesh_m->render(this->activeShader);
+//            }
+//        }
     }
 
     void DawnEngine::initShaderPrograms() {

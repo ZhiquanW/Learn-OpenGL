@@ -12,9 +12,11 @@
 namespace helloworld {
 
     class HelloWorldUISystem : public dawn_engine::DawnUISystem {
+        const std::vector<std::string> meshOpaqueOptions = {"Opaque", "Transparency"};
     private:
         std::vector<int> gameObjectTrackerSelectionTable;
-        std::string selectedShaderStr = "";
+        std::string selectedShaderStr;
+        std::string selectedTransparencyTypeStr;
 
         float defaultMinValue = -FLT_MAX;
         float defaultMaxValue = FLT_MAX;
@@ -32,11 +34,11 @@ namespace helloworld {
 
         void updateGameObjectMonitors(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs);
 
-        void embedModuleMonitor(dawn_engine::BaseModule *targetModule) const;
+        void embedModuleMonitor(dawn_engine::BaseModule *targetModule);
 
         void updateTransformModuleMonitor(dawn_engine::TransformModule *transformModule) const;
 
-        void updateMeshModuleMonitor(dawn_engine::MeshModule *meshModule) const;
+        void updateMeshModuleMonitor(dawn_engine::MeshModule *meshModule);
 
         void embedBaseLightMonitor(dawn_engine::LightModule *lightModule) const;
 

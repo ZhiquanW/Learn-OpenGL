@@ -17,9 +17,12 @@ namespace dawn_engine {
         glm::vec3 ambientColor = glm::vec3(0.0f);
         glm::vec3 diffuseColor = glm::vec3(1.0f);
         glm::vec3 specularColor = glm::vec3(1.0f);
-        float shininess = 1.0f;
+        float shininess = 3.0f;
+        bool opaque = true;
+        float transparency = 0.0f;
         std::vector<int> diffuseTexIDs = {};
         std::vector<int> specularTexIDs = {};
+        std::vector<int> normalTexIDs = {};
 
     public:
         DawnMaterial() = default;
@@ -29,10 +32,24 @@ namespace dawn_engine {
 
         DawnMaterial(std::vector<int> diffuse, std::vector<int> specular);
 
+        DawnMaterial(std::vector<int> diffuse, std::vector<int> specular, std::vector<int> normal);
+
         DawnMaterial(glm::vec3 ambient, std::vector<int> diffuse, std::vector<int> specular, float shininess);
 
 
         ~DawnMaterial() = default;
+
+        void setOpaque(bool opaque);
+
+        bool getOpaque() const;
+
+        bool &getOpaqueMeta();
+
+        void setTransparency(float alpha);
+
+        [[nodiscard]] float getTransparency() const;
+
+        [[maybe_unused]] float &getTransparencyMeta();
 
         [[nodiscard]] glm::vec3 getAmbientColor() const;
 

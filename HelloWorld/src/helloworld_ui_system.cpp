@@ -116,7 +116,7 @@ namespace helloworld {
 
     }
 
-    void HelloWorldUISystem::updateMeshModuleMonitor(dawn_engine::MeshModule *meshModule) const {
+    void HelloWorldUISystem::updateMeshModuleMonitor(dawn_engine::MeshModule *meshModule) {
         if (ImGui::CollapsingHeader("mesh module", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Checkbox("module activation", &meshModule->getActivationMeta());
             ImGui::Text("mesh num: %zu", meshModule->getMeshes().size());
@@ -136,6 +136,20 @@ namespace helloworld {
                     ImGui::Text("%s", materialModeStr.c_str());
                     std::string CheckboxLabel = fmt::format("mesh activation##{}", meshIdx);
                     ImGui::Checkbox(CheckboxLabel.c_str(), &meshModule->getActivationsMeta()[meshIdx]);
+                    selectedTransparencyTypeStr = meshOpaqueOptions[int(!tmpMesh.getMaterialMeta().getOpaque())];
+                    if (ImGui::BeginCombo("Transparency Type", selectedTransparencyTypeStr.c_str())) {
+                        for (int i = 0; i < 2; ++i) {
+                            bool isSelected = selectedTransparencyTypeStr.c_str() == meshOpaqueOptions[i].c_str();
+                            if (ImGui::Selectable(meshOpaqueOptions[i].c_str(), isSelected)) {
+                                selectedTransparencyTypeStr = meshOpaqueOptions[i];
+                                tmpMesh.getMaterialMeta().setOpaque(!bool(i));
+                            }
+                        }
+                        ImGui::EndCombo();
+                    }
+                    if (!tmpMesh.getMaterialMeta().getOpaque()) {
+                        ImGui::DragFloat("transparency", &tmpMesh.getMaterialMeta().getTransparencyMeta(), this->defaultDragSpeed, 0.0f, 1.0f);
+                    }
                     ImGui::ColorEdit3("ambient", &tmpMesh.getMaterialMeta().getAmbientColorMeta()[0]);
                     if (!enabledLightingMaps) {
                         ImGui::ColorEdit3("diffuse", &tmpMesh.getMaterialMeta().getDiffuseColorMeta()[0]);
@@ -193,7 +207,7 @@ namespace helloworld {
         }
     }
 
-    void HelloWorldUISystem::embedModuleMonitor(dawn_engine::BaseModule *const targetModule) const {
+    void HelloWorldUISystem::embedModuleMonitor(dawn_engine::BaseModule *const targetModule) {
 
         if (dynamic_cast<dawn_engine::TransformModule *>(targetModule) != nullptr) {
             this->updateTransformModuleMonitor(dynamic_cast<dawn_engine::TransformModule *>(targetModule));

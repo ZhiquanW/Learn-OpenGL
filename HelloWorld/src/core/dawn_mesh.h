@@ -18,12 +18,6 @@ namespace dawn_engine {
         glm::vec3 biTangent{};
         int mBoneIDs[MAX_BONE_INFLUENCE] = {};
         float mWeights[MAX_BONE_INFLUENCE] = {};
-
-//        Vertex(float x, float y, float z, float normalX, float normalY, float normalZ, float texX, float texY) {
-//
-//        }
-
-
     };
 
 
