@@ -141,8 +141,7 @@ void main() {
     //     alpha = 1.0f;
     // }
     out_color =vec4(shader_color,alpha);
-    // out_color =vec4(0.0f);
+    // out_color =vec4(1.0f);
     // out_color =vec4( vec~3(linearize_depth(gl_FragCoord.z)),1.0f);
     // out_color = texture(material.diffuse_texture_0, frag_tex_coord);
-
-};
+}

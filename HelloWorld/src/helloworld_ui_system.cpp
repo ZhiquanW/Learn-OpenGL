@@ -116,18 +116,18 @@ namespace helloworld {
 
     }
 
-    void HelloWorldUISystem::updateMeshModuleMonitor(dawn_engine::MeshModule *meshModule) {
+    void HelloWorldUISystem::updateMeshModuleMonitor(dawn_engine::RendererModule *meshModule) {
         if (ImGui::CollapsingHeader("mesh module", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Checkbox("module activation", &meshModule->getActivationMeta());
             ImGui::Text("mesh num: %zu", meshModule->getMeshes().size());
             std::string label = fmt::format("mesh activation##{}", 0);
             int meshNum = (int) meshModule->getMeshes().size();
             for (int meshIdx = 0; meshIdx < meshNum; ++meshIdx) {
-                dawn_engine::DawnMesh &tmpMesh = meshModule->getMeshesMeta()[meshIdx];
+                dawn_engine::DawnMesh &tmpMesh = meshModule->getMeshesRef()[meshIdx];
                 bool enabledLightingMaps = tmpMesh.enableLightingMap();
                 std::string treeNodeLabel = fmt::format("mesh node: {}", meshIdx);
                 if (ImGui::TreeNode(treeNodeLabel.c_str())) {
-                    ImGui::Text("vertex num: %d", meshModule->getMeshesMeta()[meshIdx].verticesNum());
+                    ImGui::Text("vertex num: %d", meshModule->getMeshesRef()[meshIdx].GetVerticesNum());
                     std::string materialType = "pure color";
                     if (enabledLightingMaps) {
                         materialType = "lighting map";
@@ -135,33 +135,33 @@ namespace helloworld {
                     std::string materialModeStr = "material mode: " + materialType;
                     ImGui::Text("%s", materialModeStr.c_str());
                     std::string CheckboxLabel = fmt::format("mesh activation##{}", meshIdx);
-                    ImGui::Checkbox(CheckboxLabel.c_str(), &meshModule->getActivationsMeta()[meshIdx]);
-                    selectedTransparencyTypeStr = meshOpaqueOptions[int(!tmpMesh.getMaterialMeta().getOpaque())];
+                    ImGui::Checkbox(CheckboxLabel.c_str(), &meshModule->getActivationsRef()[meshIdx]);
+                    selectedTransparencyTypeStr = meshOpaqueOptions[int(!tmpMesh.GetMaterialRef().GetOpaque())];
                     if (ImGui::BeginCombo("Transparency Type", selectedTransparencyTypeStr.c_str())) {
                         for (int i = 0; i < 2; ++i) {
                             bool isSelected = selectedTransparencyTypeStr.c_str() == meshOpaqueOptions[i].c_str();
                             if (ImGui::Selectable(meshOpaqueOptions[i].c_str(), isSelected)) {
                                 selectedTransparencyTypeStr = meshOpaqueOptions[i];
-                                tmpMesh.getMaterialMeta().setOpaque(!bool(i));
+                                tmpMesh.GetMaterialRef().setOpaque(!bool(i));
                             }
                         }
                         ImGui::EndCombo();
                     }
-                    if (!tmpMesh.getMaterialMeta().getOpaque()) {
-                        ImGui::DragFloat("transparency", &tmpMesh.getMaterialMeta().getTransparencyMeta(), this->defaultDragSpeed, 0.0f, 1.0f);
+                    if (!tmpMesh.GetMaterialRef().GetOpaque()) {
+                        ImGui::DragFloat("transparency_", &tmpMesh.GetMaterialRef().getTransparencyRef(), this->defaultDragSpeed, 0.0f, 1.0f);
                     }
-                    ImGui::ColorEdit3("ambient", &tmpMesh.getMaterialMeta().getAmbientColorMeta()[0]);
+                    ImGui::ColorEdit3("ambient", &tmpMesh.GetMaterialRef().getAmbientColorRef()[0]);
                     if (!enabledLightingMaps) {
-                        ImGui::ColorEdit3("diffuse", &tmpMesh.getMaterialMeta().getDiffuseColorMeta()[0]);
-                        ImGui::ColorEdit3("specular", &tmpMesh.getMaterialMeta().getSpecularColorMeta()[0]);
+                        ImGui::ColorEdit3("diffuse", &tmpMesh.GetMaterialRef().getDiffuseColorRef()[0]);
+                        ImGui::ColorEdit3("specular", &tmpMesh.GetMaterialRef().getSpecularColorRef()[0]);
                     }
-                    ImGui::DragFloat("shininess", &tmpMesh.getMaterialMeta().getShininessMeta(), this->defaultDragSpeed, 0.0f, this->defaultMaxValue);
+                    ImGui::DragFloat("shininess_", &tmpMesh.GetMaterialRef().getShininessRef(), this->defaultDragSpeed, 0.0f, this->defaultMaxValue);
                     ImGui::TreePop();
                 }
             }
 
-//            ImGui::ColorEdit3("diffuse", &meshModule->getMaterialMeta().getDiffuseMeta()[0]);
-//            ImGui::ColorEdit3("specular", &meshModule->getMaterialMeta().getDiffuseMeta()[0]);
+//            ImGui::ColorEdit3("diffuse", &meshModule->GetMaterialRef().getDiffuseMeta()[0]);
+//            ImGui::ColorEdit3("specular", &meshModule->GetMaterialRef().getDiffuseMeta()[0]);
         }
     }
 
@@ -217,8 +217,8 @@ namespace helloworld {
             this->updatePointLightModuleMonitor(dynamic_cast<dawn_engine::PointLightModule * > (targetModule));
         } else if (dynamic_cast<dawn_engine::DirectionalLightModule *>(targetModule) != nullptr) {
             this->updateDirectionLightModuleMonitor(dynamic_cast<dawn_engine::DirectionalLightModule *>(targetModule));
-        } else if (dynamic_cast<dawn_engine::MeshModule *> (targetModule)) {
-            this->updateMeshModuleMonitor(dynamic_cast<dawn_engine::MeshModule *> (targetModule));
+        } else if (dynamic_cast<dawn_engine::RendererModule *> (targetModule)) {
+            this->updateMeshModuleMonitor(dynamic_cast<dawn_engine::RendererModule *> (targetModule));
         } else {
             std::cout << "unknown module" << std::endl;
         }

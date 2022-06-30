@@ -21,7 +21,7 @@ namespace dawn_engine {
 
         [[maybe_unused]]  void setPosition(const glm::vec3 &pos);
 
-        [[maybe_unused]] [[nodiscard]] glm::vec3 getPosition() const;
+        [[maybe_unused]] [[nodiscard]] glm::vec3 GetPosition() const;
 
         [[maybe_unused]] [[nodiscard]] glm::vec3 &getPositionMeta();
 
@@ -43,7 +43,7 @@ namespace dawn_engine {
 
         [[maybe_unused]] [[nodiscard]] glm::mat4 getRotationMat4() const;
 
-        [[maybe_unused]] [[nodiscard]] glm::mat4 getModelMat4() const;
+        [[maybe_unused]] [[nodiscard]] glm::mat4 GetModelMat4() const;
     };
 
 } // namespace dawn_engine

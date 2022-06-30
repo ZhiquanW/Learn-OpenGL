@@ -157,7 +157,7 @@ at the end of the credits.
 // *channels_in_file has the number of components that _would_ have been
 // output otherwise. E.g. if you set desired_channels to 4, you will always
 // get RGBA output, but you can check *channels_in_file to see if it's trivially
-// opaque because e.g. there were only 3 channels in the source image.
+// opaque_ because e.g. there were only 3 channels in the source image.
 //
 // An output image with N components has the following components interleaved
 // in this order in each pixel:
@@ -4051,7 +4051,7 @@ static void stbi__YCbCr_to_RGB_simd(stbi_uc *out, stbi_uc const *y,
 
 #ifdef STBI_SSE2
     // step == 3 is pretty ugly on the final interleave, and i'm not convinced
-    // it's useful in practice (you wouldn't use it for textures, for example).
+    // it's useful in practice (you wouldn't use it for textures_, for example).
     // so just accelerate step == 4 case.
     if (step == 4) {
         // this is a fairly straightforward implementation and not
@@ -5467,7 +5467,7 @@ static int stbi__compute_transparency(stbi__png *z, stbi_uc tc[3], int out_n) {
     stbi__uint32 i, pixel_count = s->img_x * s->img_y;
     stbi_uc *p = z->out;
 
-    // compute color-based transparency, assuming we've
+    // compute color-based transparency_, assuming we've
     // already got 255 as the alpha value in the output
     STBI_ASSERT(out_n == 2 || out_n == 4);
 
@@ -5492,7 +5492,7 @@ static int stbi__compute_transparency16(stbi__png *z, stbi__uint16 tc[3],
     stbi__uint32 i, pixel_count = s->img_x * s->img_y;
     stbi__uint16 *p = (stbi__uint16 *)z->out;
 
-    // compute color-based transparency, assuming we've
+    // compute color-based transparency_, assuming we've
     // already got 65535 as the alpha value in the output
     STBI_ASSERT(out_n == 2 || out_n == 4);
 
@@ -8640,7 +8640,7 @@ STBIDEF int stbi_is_16_bit_from_callbacks(stbi_io_callbacks const *c,
       1.47  (2014-12-14) 1/2/4-bit PNG support, both direct and paletted (Omar
    Cornut & stb) optimize PNG (ryg) fix bug in interlaced PNG with
    user-specified channel count (stb) 1.46  (2014-08-26) fix broken tRNS chunk
-   (colorkey-style transparency) in non-paletted PNG 1.45  (2014-08-16) fix
+   (colorkey-style transparency_) in non-paletted PNG 1.45  (2014-08-16) fix
    MSVC-ARM internal compiler error by wrapping malloc 1.44  (2014-08-07)
               various warning fixes from Ronny Chevalier
       1.43  (2014-07-15)
@@ -8674,7 +8674,7 @@ STBIDEF int stbi_is_16_bit_from_callbacks(stbi_io_callbacks const *c,
    would have been broken for IO callbacks anyway error cases in bmp and tga
    give messages and don't leak (Raymond Barbiero, grisha) fix inefficiency in
    decoding 32-bit BMP (David Woo) 1.29  (2010-08-16) various warning fixes from
-   Aurelien Pocheville 1.28  (2010-08-01) fix bug in GIF palette transparency
+   Aurelien Pocheville 1.28  (2010-08-01) fix bug in GIF palette transparency_
    (SpartanJ) 1.27  (2010-08-01) cast-to-stbi_uc to fix warnings 1.26
    (2010-07-24) fix bug in file buffering for PNG reported by SpartanJ 1.25
    (2010-07-17) refix trans_data warning (Won Chun) 1.24  (2010-07-12) perf

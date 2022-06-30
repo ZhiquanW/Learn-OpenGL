@@ -11,12 +11,16 @@ namespace dawn_engine {
         this->loadModel(path);
     }
 
-    void DawnModel::Render(OpenGLShaderProgram *shaderProgram) {
-        for (auto &mesh: this->meshes) {
-            mesh.render(shaderProgram);
-        }
-
+    DawnModel::DawnModel(const std::vector<DawnMesh> &meshes)
+            : meshes_(meshes) {
     }
+
+//    void DawnModel::Render(GLShaderProgram *shaderProgram) {
+//        for (auto &mesh: this->meshes_) {
+//            mesh.render(shaderProgram);
+//        }
+//
+//    }
 
     void DawnModel::loadModel(const std::string &path) {
         Assimp::Importer importer;
@@ -33,7 +37,7 @@ namespace dawn_engine {
     void DawnModel::processNode(aiNode *node, const aiScene *scene) {
         for (unsigned int i = 0; i < node->mNumMeshes; ++i) {
             aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
-            this->meshes.push_back(processMesh(mesh, scene));
+            this->meshes_.push_back(processMesh(mesh, scene));
         }
         for (unsigned int i = 0; i < node->mNumChildren; ++i) {
             this->processNode(node->mChildren[i], scene);
@@ -41,11 +45,11 @@ namespace dawn_engine {
     }
 
     DawnMesh DawnModel::processMesh(aiMesh *mesh, const aiScene *scene) {
-        std::vector<Vertex> vertices;
+        std::vector<DawnVertex> vertices;
         std::vector<unsigned int> indices;
 
         for (unsigned int i = 0; i < mesh->mNumVertices; ++i) {
-            Vertex vertex{};
+            DawnVertex vertex{};
             // store position vector
             vertex.position.x = mesh->mVertices[i].x;
             vertex.position.y = mesh->mVertices[i].y;
@@ -76,7 +80,7 @@ namespace dawn_engine {
             }
             vertices.push_back(vertex);
         }
-        // store indices
+        // store indices_
         for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
             aiFace face = mesh->mFaces[i];
             for (unsigned int j = 0; j < face.mNumIndices; ++j) {
@@ -84,45 +88,56 @@ namespace dawn_engine {
             }
         }
         // store material
-        std::vector<int> diffuseMaps = {};
-        std::vector<int> specularMaps = {};
-        std::vector<int> normalMaps = {};
+        std::vector<std::shared_ptr<DawnTexture>> diffuse_textures = {};
+        std::vector<std::shared_ptr<DawnTexture>> specular_textures = {};
+        std::vector<std::shared_ptr<DawnTexture>> normal_textures = {};
         if (mesh->mMaterialIndex >= 0) {
             aiMaterial *meshMaterial = scene->mMaterials[mesh->mMaterialIndex];
-            diffuseMaps = this->loadMaterialTextures(meshMaterial, aiTextureType_DIFFUSE);
-            specularMaps = this->loadMaterialTextures(meshMaterial, aiTextureType_SPECULAR);
-            normalMaps = this->loadMaterialTextures(meshMaterial, aiTextureType_HEIGHT);
+            diffuse_textures = this->loadMaterialTextures(meshMaterial, aiTextureType_DIFFUSE);
+            specular_textures = this->loadMaterialTextures(meshMaterial, aiTextureType_SPECULAR);
+            normal_textures = this->loadMaterialTextures(meshMaterial, aiTextureType_HEIGHT);
         }
-        DawnMaterial material = {diffuseMaps, specularMaps, normalMaps};
+        DawnMaterial material = {diffuse_textures, specular_textures, normal_textures};
         return {vertices, indices, material};
     }
 
-    std::vector<int> DawnModel::loadMaterialTextures(aiMaterial *mat, aiTextureType type) {
-        std::vector<int> texturesID;
+    std::vector<std::shared_ptr<DawnTexture>> DawnModel::loadMaterialTextures(aiMaterial *mat, aiTextureType type) {
+        // search through all textures linked to the material (*mat),
+        // if loaded, add to target textures list else load texture to model and add it to target texture list
+        std::vector<std::shared_ptr<DawnTexture>> target_textures = {};
         for (unsigned int i = 0; i < mat->GetTextureCount(type); ++i) {
-            aiString str;
-            mat->GetTexture(type, i, &str);
+            aiString name;
+            mat->GetTexture(type, i, &name);
             bool isTexLoaded = false;
-            for (auto &loaded_texture: textures) {
-                if (std::strcmp(str.C_Str(), loaded_texture.path.data()) == 0) {
-                    texturesID.push_back(loaded_texture.id);
+            for (const auto &loadedTexture: this->textures_) {
+                std::string texName = std::filesystem::path(name.C_Str()).stem();
+                if (std::strcmp(texName.c_str(), loadedTexture->GetName().data()) == 0) {
+                    target_textures.emplace_back(loadedTexture);
                     isTexLoaded = true;
                     break;
                 }
             }
             if (!isTexLoaded) {
-                DawnTexture texture;
-                texture.id = TextureFromFile(str.C_Str(), this->directory);
-                texture.path = str.C_Str();
-                texturesID.push_back(texture.id);
-                textures.push_back(texture);
+                auto new_texture = std::make_shared<DawnTexture>(fmt::format("{}/{}", directory, name.C_Str()), true);
+                this->textures_.push_back(new_texture);
+                target_textures.push_back(new_texture);
             }
         }
-        return texturesID;
+        return target_textures;
     }
 
-    std::vector<DawnMesh> DawnModel::getMeshes() const {
-        return this->meshes;
+    std::vector<DawnMesh> DawnModel::GetMeshes() const {
+        return this->meshes_;
 
     }
+
+    std::vector<DawnMesh> &DawnModel::GetMeshesRef() {
+        return this->meshes_;
+    }
+
+    unsigned int DawnModel::GetMeshSize() const {
+        return this->meshes_.size();
+    }
+
+
 } // dawn_engine

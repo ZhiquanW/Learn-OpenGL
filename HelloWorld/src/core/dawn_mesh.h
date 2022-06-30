@@ -4,54 +4,42 @@
 #include "../modules/base_module.h"
 #include "../../include/opengl_shader_program.h"
 #include "dawn_material.h"
+#include "dawn_vertex.h"
 
 namespace dawn_engine {
-    int TextureFromFile(const char *path, const std::string &directory, bool gamma = false);
-
-# define MAX_BONE_INFLUENCE 4
-
-    struct Vertex {
-        glm::vec3 position{};
-        glm::vec3 normal{};
-        glm::vec2 texCoords{};
-        glm::vec3 tangent{};
-        glm::vec3 biTangent{};
-        int mBoneIDs[MAX_BONE_INFLUENCE] = {};
-        float mWeights[MAX_BONE_INFLUENCE] = {};
-    };
+    unsigned int TextureFromFile(const char *path, const std::string &directory, bool gamma = false);
 
 
     class DawnMesh {
     private:
 
-        unsigned int glVAO{}, glVBO{}, glEBO{};
-
-
     protected:
-        std::vector<Vertex> vertices;
-        std::vector<unsigned int> indices;
-        DawnMaterial material;
+        std::vector<DawnVertex> vertices_;
+        std::vector<unsigned int> indices_;
+        DawnMaterial material_;
 
     public:
         DawnMesh();
 
-        DawnMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, const DawnMaterial &material);
+        DawnMesh(const std::vector<DawnVertex> &vertices, const std::vector<unsigned int> &indices, const DawnMaterial &material);
 
-        ~DawnMesh();
+        ~DawnMesh() = default;
 
-        void initGLData();
+//        void render(GLShaderProgram *shaderProgram) const;
 
-        void deleteGLData();
+        [[nodiscard]] unsigned int GetVerticesNum() const;
 
-        void render(OpenGLShaderProgram *shaderProgram) const;
-
-        [[nodiscard]] unsigned int verticesNum() const;
+        unsigned int GetIndicesNum() const;
 
         bool enableLightingMap() const;
 
-        DawnMaterial getMaterial() const;
+        DawnMaterial GetMaterial() const;
 
-        DawnMaterial &getMaterialMeta();
+        DawnMaterial &GetMaterialRef();
+
+        std::vector<DawnVertex> &GetVerticesRef();
+
+        std::vector<unsigned int> &GetIndicesRef();
     };
 
 } // namespace dawn_engine

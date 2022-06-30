@@ -38,7 +38,7 @@ namespace helloworld {
 
         void updateTransformModuleMonitor(dawn_engine::TransformModule *transformModule) const;
 
-        void updateMeshModuleMonitor(dawn_engine::MeshModule *meshModule);
+        void updateMeshModuleMonitor(dawn_engine::RendererModule *meshModule);
 
         void embedBaseLightMonitor(dawn_engine::LightModule *lightModule) const;
 

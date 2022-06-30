@@ -7,9 +7,9 @@ namespace dawn_engine {
 
     std::size_t BaseModule::getHashModuleName(const char *moduleType) { return std::hash<std::string>()(moduleType); }
 
-    GameObject *BaseModule::getAttachedGameObject() const { return this->ownerPtr; }
+    GameObject *BaseModule::GetAttachedGameObject() const { return this->owner_ptr_; }
 
-    void BaseModule::setAttachedGameObject(GameObject *ownerPtr) { this->ownerPtr = ownerPtr; }
+    void BaseModule::SetAttachedGameObject(GameObject *owner_ptr) { this->owner_ptr_ = owner_ptr; }
 
     bool BaseModule::getActivation() const {
         return this->activation;

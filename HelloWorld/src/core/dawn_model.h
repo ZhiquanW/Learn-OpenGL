@@ -5,23 +5,22 @@
 #ifndef HELLOWORLD_DAWN_MODEL_H
 #define HELLOWORLD_DAWN_MODEL_H
 
+#include "common_includes.h"
 #include "dawn_mesh.h"
-
+#include "dawn_texture.h"
+#include "utils/gl_transformer.h"
 
 namespace dawn_engine {
 
-//    unsigned int TextureFromFile(const char *path, const std::string &directory, bool gamma);
-    struct DawnTexture {
-        int id;
-        std::string path;
-    };
+//    unsigned int LoadTexture2GL(const char *path, const std::string &directory, bool gamma);
+
 
     class DawnModel {
     private:
-        std::vector<DawnTexture> textures;
-        std::vector<DawnMesh> meshes;
+        std::vector<DawnMesh> meshes_ = {};
+        std::vector<std::shared_ptr<DawnTexture >> textures_ = {};
 
-        std::string directory;
+        std::string directory = {};
 
         void loadModel(const std::string &path);
 
@@ -29,7 +28,7 @@ namespace dawn_engine {
 
         DawnMesh processMesh(aiMesh *mesh, const aiScene *scene);
 
-        std::vector<int> loadMaterialTextures(aiMaterial *mat, aiTextureType type);
+        std::vector<std::shared_ptr<DawnTexture>> loadMaterialTextures(aiMaterial *mat, aiTextureType type);
 
     protected:
     public:
@@ -37,9 +36,16 @@ namespace dawn_engine {
 
         explicit DawnModel(const std::string &path, bool gamma = false);
 
-        void Render(OpenGLShaderProgram *shaderProgram);
+        DawnModel(const std::vector<DawnMesh> &meshes);
 
-        [[nodiscard]] std::vector<DawnMesh> getMeshes() const;
+//        void Render(GLShaderProgram *shaderProgram);
+
+        [[nodiscard]] std::vector<DawnMesh> GetMeshes() const;
+
+        std::vector<DawnMesh> &GetMeshesRef();
+
+        unsigned int GetMeshSize() const;
+
 
     };
 

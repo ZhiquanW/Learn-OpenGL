@@ -22,13 +22,13 @@ namespace dawn_engine {
         this->up = glm::normalize(glm::cross(this->right, this->front));
     }
 
-    glm::mat4 Camera::getViewMatrix() const {
+    glm::mat4 Camera::GetViewMatrix() const {
         return glm::lookAt(this->position, this->position + this->front, this->up);
     }
 
     GLfloat Camera::getFov() const { return this->fov; }
 
-    glm::vec3 Camera::getPos() const { return this->position; }
+    glm::vec3 Camera::GetPosition() const { return this->position; }
 
     void Camera::processKeyboard(CameraMovement direction, float deltaTime) {
         float distance = (float) this->moveSpeed * deltaTime;

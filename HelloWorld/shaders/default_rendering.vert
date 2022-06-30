@@ -17,11 +17,9 @@ uniform Camera main_camera;
 out vec3 frag_normal;
 out vec3 frag_pos;  
 out vec2 frag_tex_coord;
-void main() 
-{ 
-    gl_Position = main_camera.projection * main_camera.view * model_mat * vec4(pos, 1.0);
+void main() { 
     frag_normal = transpose(inverse(mat3(model_mat)))* normal;
     frag_pos = vec3(model_mat * vec4(pos, 1.0));
     frag_tex_coord = tex_coord;
-
-};
+    gl_Position = main_camera.projection * main_camera.view * model_mat * vec4(pos, 1.0);
+}

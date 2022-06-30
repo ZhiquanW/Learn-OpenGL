@@ -16,7 +16,7 @@ namespace dawn_engine {
     class BaseModule {
 
     protected:
-        GameObject *ownerPtr{};
+        GameObject *owner_ptr_{};
         bool activation = true;
     public:
         static const std::size_t type;
@@ -33,9 +33,9 @@ namespace dawn_engine {
 
         void setActivation(const bool &active);
 
-        [[nodiscard]] GameObject *getAttachedGameObject() const;
+        [[nodiscard]] GameObject *GetAttachedGameObject() const;
 
-        void setAttachedGameObject(GameObject *ownerPtr);
+        void SetAttachedGameObject(GameObject *owner_ptr);
 
         static std::size_t getHashModuleName(const char *moduleType);
     };

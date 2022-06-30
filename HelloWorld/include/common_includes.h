@@ -9,6 +9,7 @@
 #include <glm/gtx/string_cast.hpp>
 #include <stdexcept>
 #include <iostream>
+#include <filesystem>
 #include <algorithm>
 #include <memory>
 #include <unordered_map>

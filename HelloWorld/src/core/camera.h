@@ -33,9 +33,9 @@ namespace dawn_engine {
         void updateCameraFrame();
 
     public:
-        explicit Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 3.0f), double yaw = DEFAULT_YAW, double pitch = DEFAULT_PITCH);
+        explicit Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 9.0f), double yaw = DEFAULT_YAW, double pitch = DEFAULT_PITCH);
 
-        glm::mat4 getViewMatrix() const;
+        glm::mat4 GetViewMatrix() const;
 
         glm::mat4 getPerspectiveMatrix(float winWidth, float winHeight) const;
 
@@ -56,7 +56,7 @@ namespace dawn_engine {
         std::vector<std::shared_ptr<ShaderUniformVariableBase *>> getUniforms() const;
 
         [[nodiscard]] GLfloat getFov() const; // indicate that the return value of a function shouldn't be ignored when you do a function call.
-        [[nodiscard]] glm::vec3 getPos() const;
+        [[nodiscard]] glm::vec3 GetPosition() const;
 
         void processKeyboard(CameraMovement, float);
 

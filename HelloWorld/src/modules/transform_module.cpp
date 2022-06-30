@@ -27,12 +27,12 @@ namespace dawn_engine {
         return glm::scale(scaleMat, this->scale);
     }
 
-    glm::mat4 TransformModule::getModelMat4() const {
+    glm::mat4 TransformModule::GetModelMat4() const {
         glm::mat4 modelMat = glm::mat4(1.0f);
         return this->getTranslationMat4() * this->getRotationMat4() * this->getScaleMat4();
     }
 
-    glm::vec3 TransformModule::getPosition() const {
+    glm::vec3 TransformModule::GetPosition() const {
         return this->position;
     }
 

@@ -5,7 +5,7 @@
 #include "../../include/common_includes.h"
 #include "../../include/shader_uniform_variable.h"
 #include "transform_module.h"
-#include "../../include/game_object.h"
+#include "core/game_object.h"
 
 namespace dawn_engine {
     class LightModule : public BaseModule {

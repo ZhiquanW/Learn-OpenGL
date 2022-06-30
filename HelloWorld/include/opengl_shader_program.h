@@ -4,7 +4,7 @@
 #include "shader_uniform_variable.h"
 
 namespace dawn_engine {
-    class OpenGLShaderProgram {
+    class GLShaderProgram {
     private:
         std::string name = "NewShaderProgram";
         const char *vertexPath;
@@ -16,12 +16,12 @@ namespace dawn_engine {
         int createShaderProgram();
 
     public:
-        OpenGLShaderProgram(const char *name, const char *vertexPath, const char *fragmentPath);
+        GLShaderProgram(const char *name, const char *vertexPath, const char *fragmentPath);
 
-        OpenGLShaderProgram(const char *vertexPath, const char *fragmentPath);
+        GLShaderProgram(const char *vertexPath, const char *fragmentPath);
 
 
-        ~OpenGLShaderProgram();
+        ~GLShaderProgram();
 
         void activate() const;
 

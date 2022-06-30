@@ -136,7 +136,7 @@ namespace dawn_engine {
                                                                this->quadratic));
         light_uniforms.emplace_back(std::make_shared<ShaderUniformVariable<glm::vec3>>(
                 indexed_name + ".position",
-                this->getAttachedGameObject()->getModule<TransformModule>()->getPosition()));
+                this->GetAttachedGameObject()->GetModule<TransformModule>()->GetPosition()));
         return light_uniforms;
     }
 
@@ -194,7 +194,7 @@ namespace dawn_engine {
                                                                    this->getDirection()));
         light_uniforms.emplace_back(
                 std::make_shared<ShaderUniformVariable<glm::vec3>>(indexed_name + ".position",
-                                                                   this->getAttachedGameObject()->getModule<TransformModule>()->getPosition()));
+                                                                   this->GetAttachedGameObject()->GetModule<TransformModule>()->GetPosition()));
         light_uniforms.emplace_back(
                 std::make_shared<ShaderUniformVariable<float>>(indexed_name + ".linear",
                                                                this->getLinear()));

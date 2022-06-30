@@ -8,10 +8,10 @@
 void testCodes() {
     dawn_engine::GameObject cubeObject{true};
     // tmpObject.addModule(dawn_engine::TransformModuleType);
-    // std::cout << glm::to_string(tmpObject.getModule<dawn_engine::TransformModule>().getRotationMat4());
+    // std::cout << glm::to_string(tmpObject.GetModule<dawn_engine::TransformModule>().getRotationMat4());
     std::cout << glm::to_string(
-            cubeObject.getModule<dawn_engine::TransformModule>()->getScaleMat4()) << std::endl;
-    // auto a = tmpObject.getModule<dawn_engine::VisualShapeModule>();
+            cubeObject.GetModule<dawn_engine::TransformModule>()->getScaleMat4()) << std::endl;
+    // auto a = tmpObject.GetModule<dawn_engine::VisualShapeModule>();
 
     // std::cout << type(a) << std::endl;
 }

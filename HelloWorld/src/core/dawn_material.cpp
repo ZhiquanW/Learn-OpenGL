@@ -3,153 +3,147 @@
 //
 
 #include "dawn_material.h"
-
 #include <utility>
 
 namespace dawn_engine {
 
+    DawnMaterial::DawnMaterial(std::vector<std::shared_ptr<DawnTexture>> diffuse_textures,
+                               std::vector<std::shared_ptr<DawnTexture>> specular_textures,
+                               std::vector<std::shared_ptr<DawnTexture>> normal_textures)
+            : diffuse_textures_(std::move(diffuse_textures)), specular_textures_(std::move(specular_textures)), normal_textures_(std::move(normal_textures)),
+              material_type_(DawnMaterialType::Texture2D), shader_info_(ShaderTable::default_shader_info) {
+    }
+
 
     DawnMaterial::DawnMaterial(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, float shininess)
-            : ambientColor(ambient), diffuseColor(diffuse), specularColor(specular), shininess(shininess) {
+            : ambient_(ambient), diffuse_(diffuse), specular_(specular), shininess_(shininess), material_type_(DawnMaterialType::Phong),
+              shader_info_(ShaderTable::default_shader_info) {
     }
 
-    DawnMaterial::DawnMaterial(std::vector<int> diffuse, std::vector<int> specular) : diffuseTexIDs(std::move(diffuse)), specularTexIDs(std::move(specular)) {
+    DawnMaterial::DawnMaterial(std::vector<std::shared_ptr<DawnTexture>> cube_map_textures) : cube_map_textures_(std::move(cube_map_textures)),
+                                                                                              material_type_(DawnMaterialType::CubeMap) {
+        this->shader_info_ = ShaderTable::skybox_shader_info;
     }
 
-    DawnMaterial::DawnMaterial(std::vector<int> diffuse, std::vector<int> specular, std::vector<int> normal) : diffuseTexIDs(std::move(diffuse)),
-                                                                                                               specularTexIDs(std::move(specular)),
-                                                                                                               normalTexIDs(std::move(normal)) {
 
+    glm::vec3 DawnMaterial::GetAmbient() const {
+        return this->ambient_;
     }
 
-    DawnMaterial::DawnMaterial(glm::vec3 ambient, std::vector<int> diffuse, std::vector<int> specular, float shininess)
-            : ambientColor(ambient), diffuseTexIDs(std::move(diffuse)), specularTexIDs(std::move(specular)), shininess(shininess) {
-    }
-
-    glm::vec3 DawnMaterial::getAmbientColor() const {
-        return this->ambientColor;
-    }
-
-    glm::vec3 &DawnMaterial::getAmbientColorMeta() {
-        return this->ambientColor;
+    glm::vec3 &DawnMaterial::getAmbientColorRef() {
+        return this->ambient_;
     }
 
     void DawnMaterial::setAmbientColor(glm::vec3 value) {
-        this->ambientColor = value;
+        this->ambient_ = value;
 
     }
 
-    glm::vec3 DawnMaterial::getDiffuseColor() const {
-        return this->diffuseColor;
+    glm::vec3 DawnMaterial::GetDiffuse() const {
+        return this->diffuse_;
     }
 
-    glm::vec3 &DawnMaterial::getDiffuseColorMeta() {
-        return this->diffuseColor;
+    glm::vec3 &DawnMaterial::getDiffuseColorRef() {
+        return this->diffuse_;
     }
 
     void DawnMaterial::setDiffuseColor(glm::vec3 value) {
-        this->diffuseColor = value;
+        this->diffuse_ = value;
 
     }
 
-    glm::vec3 DawnMaterial::getSpecularColor() const {
-        return this->specularColor;
+    glm::vec3 DawnMaterial::GetSpecular() const {
+        return this->specular_;
     }
 
-    glm::vec3 &DawnMaterial::getSpecularColorMeta() {
-        return this->specularColor;
+    glm::vec3 &DawnMaterial::getSpecularColorRef() {
+        return this->specular_;
     }
 
     void DawnMaterial::setSpecularColor(glm::vec3 value) {
-        this->specularColor = value;
+        this->specular_ = value;
 
     }
 
-    float DawnMaterial::getShininess() const {
-        return this->shininess;
+    float DawnMaterial::GetShininess() const {
+        return this->shininess_;
     }
 
-    float &DawnMaterial::getShininessMeta() {
-        return this->shininess;
+    float &DawnMaterial::getShininessRef() {
+        return this->shininess_;
     }
 
     void DawnMaterial::setShininess(float value) {
-        this->shininess = value;
+        this->shininess_ = value;
     }
 
-    bool DawnMaterial::enabledLightingMaps() const {
-        return !this->diffuseTexIDs.empty();
+    bool DawnMaterial::EnabledLightingMaps() const {
+        return !this->diffuse_textures_.empty();
     }
 
-    std::vector<std::shared_ptr<ShaderUniformVariableBase>> DawnMaterial::getUniforms() const {
-        std::vector<std::shared_ptr<ShaderUniformVariableBase>> uniforms;
-        uniforms.emplace_back(std::make_shared<ShaderUniformVariable<bool>>("material.enable_lighting_maps", this->enabledLightingMaps()));
-        uniforms.emplace_back(std::make_shared<ShaderUniformVariable<bool>>("material.opaque", this->opaque));
-        uniforms.emplace_back(std::make_shared<ShaderUniformVariable<glm::vec3>>("material.ambient", this->ambientColor));
-        uniforms.emplace_back(std::make_shared<ShaderUniformVariable<glm::vec3>>("material.diffuse", this->diffuseColor));
-        uniforms.emplace_back(std::make_shared<ShaderUniformVariable<glm::vec3>>("material.specular", this->specularColor));
-        uniforms.emplace_back(std::make_shared<ShaderUniformVariable<float>>("material.shininess", this->shininess));
-        uniforms.emplace_back(std::make_shared<ShaderUniformVariable<float>>("material.transparency", fmin(1.0f - float(this->opaque), this->transparency)));
-        unsigned int textureUnitIdx = 0;
-        unsigned int diffuseIdx = 0;
-        for (auto texID: this->diffuseTexIDs) {
-            std::string uniformName = fmt::format("material.diffuse_texture_{}", diffuseIdx++);
-            uniforms.emplace_back(std::make_shared<ShaderUniformVariable<int>>(uniformName, textureUnitIdx++));
-        }
-        unsigned int specularIdx = 0;
-        for (auto texID: this->specularTexIDs) {
-            std::string uniformName = fmt::format("material.specular_texture_{}", specularIdx++);
-            uniforms.emplace_back(std::make_shared<ShaderUniformVariable<int>>(uniformName, textureUnitIdx++));
-        }
-        unsigned int normalIdx = 0;
-        for (auto texID: this->normalTexIDs) {
-            std::string uniformName = fmt::format("material.normal_texture_{}", normalIdx++);
-            uniforms.emplace_back(std::make_shared<ShaderUniformVariable<int>>(uniformName, textureUnitIdx++));
-        }
-        return uniforms;
-    }
 
-    void DawnMaterial::bindTextures() const {
-        int textureUnitIdx = 0;
-        for (auto texID: this->diffuseTexIDs) {
-            glActiveTexture(GL_TEXTURE0 + textureUnitIdx++);
-            glBindTexture(GL_TEXTURE_2D, texID);
-        }
-        for (auto texID: this->specularTexIDs) {
-            glActiveTexture(GL_TEXTURE0 + textureUnitIdx++);
-            glBindTexture(GL_TEXTURE_2D, texID);
-        }
-        for (auto texID: this->normalTexIDs) {
-            glActiveTexture(GL_TEXTURE0 + textureUnitIdx++);
-            glBindTexture(GL_TEXTURE_2D, texID);
-        }
-
-    }
+//    void DawnMaterial::bindTextures() const {
+//        int textureUnitIdx = 0;
+//        for (auto texID: this->diffuse_tex_ids_) {
+//            glActiveTexture(GL_TEXTURE0 + textureUnitIdx++);
+//            glBindTexture(GL_TEXTURE_CUBE_MAP, texID);
+//        }
+//        for (auto texID: this->specular_tex_ids_) {
+//            glActiveTexture(GL_TEXTURE0 + textureUnitIdx++);
+//            glBindTexture(GL_TEXTURE_2D, texID);
+//        }
+//        for (auto texID: this->normal_tex_ids_) {
+//            glActiveTexture(GL_TEXTURE0 + textureUnitIdx++);
+//            glBindTexture(GL_TEXTURE_2D, texID);
+//        }
+//    }
 
     void DawnMaterial::setOpaque(bool opaque) {
-        this->opaque = opaque;
-
+        this->opaque_ = opaque;
     }
 
-    bool DawnMaterial::getOpaque() const {
-        return this->opaque;
+    bool DawnMaterial::GetOpaque() const {
+        return this->opaque_;
     }
 
-    bool &DawnMaterial::getOpaqueMeta() {
-        return this->opaque;
+    bool &DawnMaterial::getOpaqueRef() {
+        return this->opaque_;
     }
 
     void DawnMaterial::setTransparency(float alpha) {
-        this->transparency = alpha;
-
+        this->transparency_ = alpha;
     }
 
-    float DawnMaterial::getTransparency() const {
-        return this->transparency;
+    float DawnMaterial::GetTransparency() const {
+        return this->transparency_;
     }
 
-    [[maybe_unused]] float &DawnMaterial::getTransparencyMeta() {
-        return this->transparency;
+    [[maybe_unused]] float &DawnMaterial::getTransparencyRef() {
+        return this->transparency_;
+    }
+
+    const ShaderInfo DawnMaterial::GetShaderInfo() const {
+        return this->shader_info_;
+    }
+
+    std::vector<std::shared_ptr<DawnTexture>> DawnMaterial::GetDiffuseTextures() const {
+        return this->diffuse_textures_;
+    }
+
+    std::vector<std::shared_ptr<DawnTexture>> DawnMaterial::GetSpecularTextures() const {
+        return this->specular_textures_;
+    }
+
+    std::vector<std::shared_ptr<DawnTexture>> DawnMaterial::GetNormalTextures() const {
+        return this->normal_textures_;
+    }
+
+    std::vector<std::shared_ptr<DawnTexture>> DawnMaterial::GetCubeMapTextures() const {
+        return this->cube_map_textures_;
+    }
+
+    DawnMaterialType DawnMaterial::GetMaterialType() const {
+        return this->material_type_;
     }
 
 
