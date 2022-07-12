@@ -19,6 +19,7 @@ namespace dawn_engine {
         inline static ShaderInfo default_shader_info{"default", "../shaders/default_rendering.vert", "../shaders/default_rendering.frag"};
         inline static ShaderInfo depth_shader_info{"depth", "../shaders/default_rendering.vert", "../shaders/depth_buffer_rendering.frag"};
         inline static ShaderInfo skybox_shader_info{"skybox", "../shaders/skybox.vert", "../shaders/skybox.frag"};
+        inline static ShaderInfo pure_shader_info{"pure", "../shaders/line_renderer.vert", "../shaders/line_renderer.frag"};
 
     };
 

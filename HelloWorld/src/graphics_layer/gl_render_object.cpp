@@ -18,7 +18,22 @@ namespace dawn_engine {
               vbo_(vbo),
               ebo_(ebo),
               indices_num_(indices_num),
-              linked_shader_(DawnEngine::engineInstance->getShaderProgramMapMeta().at(shader_info.name)) {
+              linked_shader_(DawnEngine::instance->GetShaderProgramMapMeta().at(shader_info.name)) {
+    }
+
+    GLRenderObject::GLRenderObject(GLRenderElement render_element,
+                                   unsigned int vao,
+                                   unsigned int vbo,
+                                   unsigned int ebo,
+                                   unsigned int indices_num,
+                                   const ShaderInfo &shader_info)
+            : render_element_(render_element),
+              vao_(vao),
+              vbo_(vbo),
+              ebo_(ebo),
+              indices_num_(indices_num),
+              linked_shader_(DawnEngine::instance->GetShaderProgramMapMeta().at(shader_info.name)) {
+
     }
 
     GLRenderObject::GLRenderObject(unsigned int vao,
@@ -36,7 +51,7 @@ namespace dawn_engine {
               diffuse_tex_ids_(std::move(diffuse_tex_ids)),
               specular_tex_ids_(std::move(specular_tex_ids)),
               normal_tex_ids_(std::move(normal_tex_ids)),
-              linked_shader_(DawnEngine::engineInstance->getShaderProgramMapMeta().at(shader_info.name)) {
+              linked_shader_(DawnEngine::instance->GetShaderProgramMapMeta().at(shader_info.name)) {
     }
 
     GLRenderObject::GLRenderObject(unsigned int vao,
@@ -50,7 +65,7 @@ namespace dawn_engine {
               ebo_(ebo),
               indices_num_(indices_num),
               cube_map_tex_id_(cube_map_tex_id),
-              linked_shader_(DawnEngine::engineInstance->getShaderProgramMapMeta().at(shader_info.name)) {
+              linked_shader_(DawnEngine::instance->GetShaderProgramMapMeta().at(shader_info.name)) {
     }
 
     GLRenderObject::~GLRenderObject() {
@@ -98,19 +113,28 @@ namespace dawn_engine {
 //        uniforms.insert(uniforms.end(), transform_uniforms.begin(), transform_uniforms.end());
 //        uniforms.insert(uniforms.end(), tex_uniforms.begin(), tex_uniforms.end());
         this->linked_shader_->activate();
-        this->linked_shader_->setUniforms(this->uniforms_);
+        this->linked_shader_->GetUniforms(this->uniforms_);
         glBindTexture(GL_TEXTURE_CUBE_MAP, 1);
         this->BindGLData();
-        glDrawElements(GL_TRIANGLES, (int) this->indices_num_, GL_UNSIGNED_INT, 0);
-        this->UnbindGLData();
+        switch (this->render_element_) {
+            case GLRenderElement::TRIANGLE:
+                glDrawElements(GL_TRIANGLES, (int) this->indices_num_, GL_UNSIGNED_INT, 0);
+                break;
+            case GLRenderElement::LINE:
+                glDrawArrays(GL_LINES, 0, 2);
+
+                break;
+
+        }
 
 
     }
 
     void GLRenderObject::RefreshUniforms(std::vector<std::shared_ptr<ShaderUniformVariableBase>> uniforms) {
-        this->uniforms_ = uniforms;
+        this->uniforms_ = std::move(uniforms);
 
     }
+
 
 //    void GLRenderObject::AllocateGLData(std::vector<DawnVertex> vertices, std::vector<unsigned int> indices) {
 //        glGenVertexArrays(1, &this->vao_);

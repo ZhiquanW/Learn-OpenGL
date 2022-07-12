@@ -6,9 +6,10 @@
 namespace helloworld {
     class HelloWorldApp : public dawn_engine::DawnEngine {
     private:
-        void addDefaultLight();
+        void AddDefaultLight();
 
-        void addDefaultCube();
+        void AddDemoObjs();
+
 
     public:
         HelloWorldApp(uint width, uint height);

@@ -11,11 +11,11 @@ namespace dawn_engine {
 
     void BaseModule::SetAttachedGameObject(GameObject *owner_ptr) { this->owner_ptr_ = owner_ptr; }
 
-    bool BaseModule::getActivation() const {
+    bool BaseModule::GetActivation() const {
         return this->activation;
     }
 
-    bool &BaseModule::getActivationMeta() {
+    bool &BaseModule::GetActivationMeta() {
         return this->activation;
     }
 

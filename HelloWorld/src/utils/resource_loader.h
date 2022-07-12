@@ -202,7 +202,7 @@ inline unsigned int LoadCubeMap2GL(const std::vector<std::shared_ptr<dawn_engine
 //        }
 //    }
 //
-//    inline dawn_engine::DawnModel loadModel(const std::string &path) {
+//    inline dawn_engine::DawnModel LoadModel(const std::string &path) {
 //        Assimp::Importer importer;
 //        std::vector<dawn_engine::DawnMesh> meshes;
 //

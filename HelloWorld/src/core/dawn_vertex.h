@@ -9,6 +9,7 @@
 
 namespace dawn_engine {
 # define MAX_BONE_INFLUENCE 4
+
     struct DawnVertex {
         glm::vec3 position{};
         glm::vec3 normal{};
@@ -17,6 +18,12 @@ namespace dawn_engine {
         glm::vec3 biTangent{};
         int mBoneIDs[MAX_BONE_INFLUENCE] = {};
         float mWeights[MAX_BONE_INFLUENCE] = {};
+
+        DawnVertex() = default;
+
+        DawnVertex(glm::vec3 pos) : position(pos) {
+
+        }
     };
 
 }

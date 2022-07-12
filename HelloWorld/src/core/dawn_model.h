@@ -22,7 +22,7 @@ namespace dawn_engine {
 
         std::string directory = {};
 
-        void loadModel(const std::string &path);
+        void LoadModel(const std::string &path);
 
         void processNode(aiNode *node, const aiScene *scene);
 
@@ -44,8 +44,11 @@ namespace dawn_engine {
 
         std::vector<DawnMesh> &GetMeshesRef();
 
-        unsigned int GetMeshSize() const;
+        unsigned int GetMeshNum() const;
 
+        void SetAllTransparent(float alpha);
+
+        void EnableAllTransparent();
 
     };
 

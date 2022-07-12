@@ -5,27 +5,27 @@
 #include <fstream>
 
 namespace dawn_engine {
-    DawnEngine *DawnEngine::engineInstance = nullptr;
+    DawnEngine *DawnEngine::instance = nullptr;
 
     DawnEngine::DawnEngine(uint32_t win_width, uint32_t win_height, const std::string &name)
             : deltaTime(1.0f / 60.0f), lastTime(0.0f), uiSystem(nullptr) {
-        DawnEngine::engineInstance = this;
-        this->renderWindow = new RenderWindow(win_width, win_height, name);
-        this->mainCamera = Camera();
+        DawnEngine::instance = this;
+        this->render_window_ = new RenderWindow(win_width, win_height, name);
+        this->main_camera_ = Camera();
         this->game_object_ptrs = {};
         if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
             throw std::runtime_error("failed to initialize glad");
             return;
         }
-        glViewport(0, 0, (GLsizei) this->renderWindow->getWinWidth(),
-                   (GLsizei) this->renderWindow->getWinHeight());
+        glViewport(0, 0, (GLsizei) this->render_window_->GetWinWidth(),
+                   (GLsizei) this->render_window_->GetWinHeight());
         this->enableFeatures();
-        this->initShaderPrograms();
+        this->InitShaderPrograms();
     }
 
 
     DawnEngine::~DawnEngine() {
-        delete this->renderWindow;
+        delete this->render_window_;
         if (!this->uiSystem) {
             delete this->uiSystem;
         }
@@ -37,79 +37,87 @@ namespace dawn_engine {
         if (this->uiSystem != nullptr) {
             this->uiSystem->start(this);
         }
+        this->InitGlobalUniformBlocks();
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-//        glClearDepth(1.0f);
-        while (!this->renderWindow->should_close()) {
+
+        while (!this->render_window_->should_close()) {
             glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             auto currentTime = static_cast<GLfloat>(glfwGetTime());
             this->deltaTime = currentTime - this->lastTime;
             this->lastTime = currentTime;
             // Start the Dear ImGui frame
-            this->renderWindow->process_inputs(&this->mainCamera, this->deltaTime);
+            this->render_window_->process_inputs(&this->main_camera_, this->deltaTime);
             this->update();
             this->render();
             if (uiSystem != nullptr) {
                 this->uiSystem->render(this);
             }
-            this->renderWindow->swap_buffers();
+            this->render_window_->swap_buffers();
             glfwPollEvents();
 
         }
     }
 
-    void DawnEngine::addGameObject(GameObject *gObjPtr) {
+    void DawnEngine::AddGameObject(GameObject *gObjPtr) {
         this->game_object_ptrs.emplace_back(gObjPtr);
     }
 
-    void DawnEngine::GlobalUniformRefresh() {
+    void DawnEngine::RefreshGlobalUniformBlocks() {
         std::vector<std::string> targetShaderPrograms = {ShaderTable::default_shader_info.name,
                                                          ShaderTable::depth_shader_info.name, ShaderTable::skybox_shader_info.name};
         // update camera uniforms
-        this->setUniformInShaderPrograms(targetShaderPrograms, ExtractUniforms("main_camera", mainCamera, this->renderWindow->getWinWidth(),
-                                                                               this->renderWindow->getWinHeight()));
-        this->setUniformInShaderPrograms({ShaderTable::skybox_shader_info.name},
-                                         {std::make_shared<ShaderUniformVariable<glm::mat4>>("main_camera.view", glm::mat4(glm::mat3(this->mainCamera.GetViewMatrix())))});
-        // update light uniforms
-        uint32_t dirLightNum = 0;
-        uint32_t pointLightNum = 0;
-        uint32_t spotLightNum = 0;
+        this->uniform_buffer_map.at("CameraBlock").RefreshData(0, ExtractUniforms("main_camera", this->main_camera_, this->render_window_->GetWinWidth(),
+                                                                                  this->render_window_->GetWinHeight()));
+        this->uniform_buffer_map.at("CameraBlock").SyncGLData();
+        size_t dir_lights_uniform_idx = 1;
+        size_t point_lights_uniform_idx = 1;
+        size_t spot_lights_uniform_idx = 1;
         for (auto gObj: this->game_object_ptrs) {
-            auto *dirLightM = gObj->GetModule<DirectionalLightModule>();
-            if (dirLightM != nullptr && dirLightM->getActivation()) {
-                this->setUniformInShaderPrograms(targetShaderPrograms, ExtractUniforms(fmt::format("directional_lights[{}]", dirLightNum++), dirLightM));
+            auto dir_light_m = gObj->GetModule<DirectionalLightModule>();
+            if (dir_light_m != nullptr) {
+                auto tmp_uniforms = ExtractUniforms("", dir_light_m);
+                this->uniform_buffer_map.at("DirLightBlock").RefreshData(1, tmp_uniforms);
+                dir_lights_uniform_idx += tmp_uniforms.size();
+                continue;
             }
-            auto *pointLightM = gObj->GetModule<PointLightModule>();
-            if (pointLightM != nullptr && pointLightM->getActivation()) {
-                this->setUniformInShaderPrograms(targetShaderPrograms, ExtractUniforms(fmt::format("point_lights[{}]", pointLightNum++), pointLightM));
+            auto point_light_m = gObj->GetModule<PointLightModule>();
+            if (point_light_m != nullptr) {
+                auto tmp_uniforms = ExtractUniforms("", point_light_m);
+                this->uniform_buffer_map.at("PointLightBlock").RefreshData(1, tmp_uniforms);
+                point_lights_uniform_idx += tmp_uniforms.size();
+                continue;
             }
-            auto *spotLightM = gObj->GetModule<SpotLightModule>();
-            if (spotLightM != nullptr && spotLightM->getActivation()) {
-                this->setUniformInShaderPrograms(targetShaderPrograms, ExtractUniforms(fmt::format("spot_lights[{}]", spotLightNum++), spotLightM));
+            auto spot_light_m = gObj->GetModule<SpotLightModule>();
+            if (spot_light_m != nullptr) {
+                auto tmp_uniforms = ExtractUniforms("", spot_light_m);
+                this->uniform_buffer_map.at("SpotLightBlock").RefreshData(1, tmp_uniforms);
+                spot_lights_uniform_idx += tmp_uniforms.size();
+                continue;
+
             }
         }
-        this->setUniformInShaderPrograms(targetShaderPrograms, {std::make_shared<ShaderUniformVariable<int>>("dir_lights_num", int(dirLightNum)),
-                                                                std::make_shared<ShaderUniformVariable<int>>("point_lights_num", int(pointLightNum)),
-                                                                std::make_shared<ShaderUniformVariable<int>>("spot_lights_num", int(spotLightNum))});
-        //
+        this->uniform_buffer_map.at("DirLightBlock").SyncGLData();
+        this->uniform_buffer_map.at("SpotLightBlock").SyncGLData();
+        this->uniform_buffer_map.at("PointLightBlock").SyncGLData();
     }
 
 
     void DawnEngine::render() {
-        this->GlobalUniformRefresh();
-        // sort objects for transparent rendering
+        this->RefreshGlobalUniformBlocks();
         std::vector<std::shared_ptr<GLRenderObject>> opaque_render_queue = {};
         std::map<float, std::shared_ptr<GLRenderObject>> transparent_render_queue = {};
         for (auto g_obj: this->game_object_ptrs) {
             if (g_obj->GetModule<RendererModule>() != nullptr) {
-                float distance2cam = glm::length(g_obj->GetModule<TransformModule>()->GetPosition() - this->mainCamera.GetPosition());
+                float distance2cam = glm::length(g_obj->GetModule<TransformModule>()->GetPosition() - this->main_camera_.GetPosition());
                 auto render_pairs = g_obj->GetModule<RendererModule>()->GetGLRenderObjectMap();
                 for (auto render_pair: render_pairs) {
                     auto mesh = g_obj->GetModule<RendererModule>()->GetMesh(render_pair.first);
                     std::vector<std::shared_ptr<ShaderUniformVariableBase>> uniforms = {};
                     auto transform_uniforms = ExtractUniforms("model_mat", g_obj->GetModule<TransformModule>());
                     uniforms.insert(uniforms.begin(), transform_uniforms.begin(), transform_uniforms.end());
-                    if (mesh.GetMaterial().GetShaderInfo().name == ShaderTable::default_shader_info.name) {
+                    if (mesh.GetMaterial().GetShaderInfo().name == ShaderTable::default_shader_info.name ||
+                        mesh.GetMaterial().GetShaderInfo().name == ShaderTable::pure_shader_info.name) {
                         auto material_uniforms = ExtractUniforms("material", mesh.GetMaterial());
                         uniforms.insert(uniforms.begin(), material_uniforms.begin(), material_uniforms.end());
                     }
@@ -122,24 +130,33 @@ namespace dawn_engine {
                 }
             }
         }
-        // render opqaue objects
+        // render opaque objects
         for (const auto &render_obj: opaque_render_queue) {
             render_obj->render();
+        }
+
+        // render skybox
+        if (this->skybox_ptr_ != nullptr) {
+            glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+            skybox_ptr_->GetModule<RendererModule>()->render();
+            glDepthMask(GL_TRUE);
+
+
         }
         // render transparent objects
         for (const auto &render_obj_pair: transparent_render_queue) {
             render_obj_pair.second->render();
         }
         // render opaque_ object
-//        this->activeShader = this->shaderProgramMap.at("default");
+//        this->activeShader = this->shader_program_map.at("default");
 //        for (auto gObj: this->game_object_ptrs) {
 //            auto *rendererM = gObj->GetModule<RendererModule>();
 ////            rendererM->render();
 //            auto modelMat = gObj->GetModule<TransformModule>()->GetModelMat4();
 //            auto pos = gObj->GetModule<TransformModule>()->GetPosition();
-//            float zDis = glm::length(this->mainCamera.GetPosition() - pos);
+//            float zDis = glm::length(this->main_camera_.GetPosition() - pos);
 //            this->activeShader->activate();
-//            if (rendererM and rendererM->getActivation()) {
+//            if (rendererM and rendererM->GetActivation()) {
 //                for (const auto &mesh: rendererM->getMeshesRef()) {
 //                    if (mesh.GetMaterial().GetOpaque()) {
 //                        // render opaque_ object
@@ -157,35 +174,24 @@ namespace dawn_engine {
 //            this->activeShader->setUniform("model_mat", it->second.modelMat);
 //            it->second.mesh.render(this->activeShader);
 //        }
-        // render skybox
-        if (this->skyboxPtr != nullptr) {
-            glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
-            skyboxPtr->GetModule<RendererModule>()->render();
-            glDepthMask(GL_TRUE);
 
-
-        }
 
     }
 
-    void DawnEngine::initShaderPrograms() {
-        shaderProgramMap.insert({ShaderTable::default_shader_info.name, new GLShaderProgram(ShaderTable::default_shader_info.name.c_str(),
-                                                                                            ShaderTable::default_shader_info.vert_path.c_str(),
-                                                                                            ShaderTable::default_shader_info.frag_path.c_str())});
-        shaderProgramMap.insert({ShaderTable::depth_shader_info.name, new GLShaderProgram(ShaderTable::depth_shader_info.name.c_str(),
-                                                                                          ShaderTable::depth_shader_info.vert_path.c_str(),
-                                                                                          ShaderTable::depth_shader_info.frag_path.c_str())});
-        shaderProgramMap.insert({ShaderTable::skybox_shader_info.name, new GLShaderProgram(ShaderTable::skybox_shader_info.name.c_str(),
-                                                                                           ShaderTable::skybox_shader_info.vert_path.c_str(),
-                                                                                           ShaderTable::skybox_shader_info.frag_path.c_str())});
+    void DawnEngine::InitShaderPrograms() {
+        shader_program_map.insert({ShaderTable::default_shader_info.name, new GLShaderProgram(ShaderTable::default_shader_info.name.c_str(),
+                                                                                              ShaderTable::default_shader_info.vert_path.c_str(),
+                                                                                              ShaderTable::default_shader_info.frag_path.c_str())});
+        shader_program_map.insert({ShaderTable::depth_shader_info.name, new GLShaderProgram(ShaderTable::depth_shader_info.name.c_str(),
+                                                                                            ShaderTable::depth_shader_info.vert_path.c_str(),
+                                                                                            ShaderTable::depth_shader_info.frag_path.c_str())});
+        shader_program_map.insert({ShaderTable::skybox_shader_info.name, new GLShaderProgram(ShaderTable::skybox_shader_info.name.c_str(),
+                                                                                             ShaderTable::skybox_shader_info.vert_path.c_str(),
+                                                                                             ShaderTable::skybox_shader_info.frag_path.c_str())});
+        shader_program_map.insert({ShaderTable::pure_shader_info.name, new GLShaderProgram(ShaderTable::pure_shader_info.name.c_str(),
+                                                                                           ShaderTable::pure_shader_info.vert_path.c_str(),
+                                                                                           ShaderTable::pure_shader_info.frag_path.c_str())});
 
-//        shaderProgramMap.insert({"default", new GLShaderProgram("default", "../shaders/default_rendering.vert",
-//                                                                "../shaders/default_rendering.frag")});
-//        shaderProgramMap.insert({"depth", new GLShaderProgram("depth", "../shaders/default_rendering.vert",
-//                                                              "../shaders/depth_buffer_rendering.frag")});
-//        shaderProgramMap.insert({"skybox", new GLShaderProgram("depth", "../shaders/skybox.vert",
-//                                                               "../shaders/skybox.frag")});
-        this->activeShader = shaderProgramMap["default"];
     }
 
     void DawnEngine::enableFeatures() {
@@ -200,7 +206,7 @@ namespace dawn_engine {
 
     void DawnEngine::mountUISystem(DawnUISystem *uiSystem) {
         this->uiSystem = uiSystem;
-        this->uiSystem->initialize(this->renderWindow->getWindowPtr());
+        this->uiSystem->initialize(this->render_window_->getWindowPtr());
 
     }
 
@@ -217,43 +223,34 @@ namespace dawn_engine {
         return this->enableDepthRendering;
     }
 
-    std::unordered_map<std::string, GLShaderProgram *> &DawnEngine::getShaderProgramMapMeta() {
-        return this->shaderProgramMap;
+    std::unordered_map<std::string, GLShaderProgram *> &DawnEngine::GetShaderProgramMapMeta() {
+        return this->shader_program_map;
     }
 
-    void DawnEngine::setActiveShaderProgram(const char *name) {
-        this->activeShader = this->shaderProgramMap.at(name);
 
+    Camera &DawnEngine::GetMainCameraRef() {
+        return this->main_camera_;
     }
 
-    [[maybe_unused]] GLShaderProgram *DawnEngine::getActiveShaderProgram() {
-        return this->activeShader;
-
-
-    }
-
-    Camera &DawnEngine::getMainCameraMeta() {
-        return this->mainCamera;
-    }
-
-    void DawnEngine::setUniformInShaderPrograms(std::vector<std::string> shaderProgramNames, const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms) {
-        for (const auto &name: shaderProgramNames) {
-            auto shaderProgramPtr = this->shaderProgramMap.at(name);
+    void DawnEngine::SetUniformInShaderPrograms(std::vector<std::string> shader_program_names, const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms) {
+        for (const auto &name: shader_program_names) {
+            auto shaderProgramPtr = this->shader_program_map.at(name);
             if (shaderProgramPtr != nullptr) {
                 shaderProgramPtr->activate();
-                shaderProgramPtr->setUniforms(uniforms);
+                shaderProgramPtr->GetUniforms(uniforms);
             }
         }
 
     }
 
-    void DawnEngine::addSkybox(GameObject *skyboxPtr) {
-        this->skyboxPtr = skyboxPtr;
+    void DawnEngine::AddSkybox(GameObject *skybox_ptr) {
+        this->skybox_ptr_ = skybox_ptr;
 
 
     }
 
     void DawnEngine::awake() {
+        this->InitGlobalUniformBlocks();
 
     }
 
@@ -263,6 +260,62 @@ namespace dawn_engine {
 
     void DawnEngine::update() {
 
+    }
+
+    void DawnEngine::InitGlobalUniformBlocks() {
+//        this->camera_ubo_ = AllocateUniformBlock(ExtractUniforms("main_camera", this->main_camera_, this->render_window_->GetWinWidth(), this->render_window_->GetWinHeight()));
+        this->uniform_buffer_map.insert({"CameraBlock", GLUniformBuffer(0, ExtractUniforms("main_camera",
+                                                                                           this->main_camera_,
+                                                                                           this->render_window_->GetWinWidth(),
+                                                                                           this->render_window_->GetWinHeight()))});
+        // collect and classify light uniforms
+        GLUniformBuffer dir_light_uniform_buffer = GLUniformBuffer(1);
+        GLUniformBuffer point_light_uniform_buffer = GLUniformBuffer(2);
+        GLUniformBuffer spot_light_uniform_buffer = GLUniformBuffer(3);
+
+        int dir_lights_num = 0;
+        int point_lights_num = 0;
+        int spot_lights_num = 0;
+        dir_light_uniform_buffer.AppendUniform(std::make_shared<ShaderUniformVariable<int>>("dir_lights_num", dir_lights_num));
+        point_light_uniform_buffer.AppendUniform(std::make_shared<ShaderUniformVariable<int>>("point_lights_num", point_lights_num));
+        spot_light_uniform_buffer.AppendUniform(std::make_shared<ShaderUniformVariable<int>>("spot_lights_num", spot_lights_num));
+        for (auto gObj: this->game_object_ptrs) {
+            auto dir_light_m = gObj->GetModule<DirectionalLightModule>();
+            if (dir_light_m != nullptr) {
+                dir_light_uniform_buffer.AppendStructUniforms(ExtractUniforms("", dir_light_m));
+                dir_lights_num++;
+                continue;
+            }
+            auto point_light_m = gObj->GetModule<PointLightModule>();
+            if (point_light_m != nullptr) {
+                point_light_uniform_buffer.AppendStructUniforms(ExtractUniforms("", point_light_m));
+                point_lights_num++;
+                continue;
+            }
+            auto spot_light_m = gObj->GetModule<SpotLightModule>();
+            if (spot_light_m != nullptr) {
+                spot_light_uniform_buffer.AppendStructUniforms(ExtractUniforms("", spot_light_m));
+                spot_lights_num++;
+                continue;
+
+            }
+        }
+
+        dir_light_uniform_buffer.RefreshData(0, {std::make_shared<ShaderUniformVariable<int>>("dir_lights_num", dir_lights_num)});
+        point_light_uniform_buffer.RefreshData(0, {std::make_shared<ShaderUniformVariable<int>>("point_lights_num", point_lights_num)});
+        spot_light_uniform_buffer.RefreshData(0, {std::make_shared<ShaderUniformVariable<int>>("spot_lights_num", spot_lights_num)});
+        // create uniform buffer
+        // pre-compute uniform block size
+        dir_light_uniform_buffer.GenBuffer();
+        dir_light_uniform_buffer.SyncGLData();
+        point_light_uniform_buffer.GenBuffer();
+        point_light_uniform_buffer.SyncGLData();
+        spot_light_uniform_buffer.GenBuffer();
+        spot_light_uniform_buffer.SyncGLData();
+
+        this->uniform_buffer_map.insert({"DirLightBlock", dir_light_uniform_buffer});
+        this->uniform_buffer_map.insert({"PointLightBlock", point_light_uniform_buffer});
+        this->uniform_buffer_map.insert({"SpotLightBlock", spot_light_uniform_buffer});
     }
 
 

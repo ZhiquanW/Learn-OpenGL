@@ -5,7 +5,7 @@
 namespace dawn_engine {
 
     enum PrimitiveType {
-        CubePrimitiveType, SpherePrimitiveType
+        BoxPrimitive, SpherePrimitiveType
     };
     enum LightType {
         DirectionalLightType, PointLightType, SpotLightType
@@ -27,9 +27,9 @@ namespace dawn_engine {
 
         virtual ~BaseModule() = 0;
 
-        bool getActivation() const;
+        bool GetActivation() const;
 
-        bool &getActivationMeta();
+        bool &GetActivationMeta();
 
         void setActivation(const bool &active);
 

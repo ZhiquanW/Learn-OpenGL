@@ -2,34 +2,35 @@
 #ifndef DAWN_ENGINE_H
 #define DAWN_ENGINE_H
 
+#include "modules/collider_module.h"
 #include "game_object.h"
 #include "include/render_window.h"
+#include "modules/transform_module.h"
 #include "core/dawn_ui_system.h"
 #include "core/dawn_model.h"
-#include "modules/transform_module.h"
 #include "utils/glsl_utils.h"
 #include "graphics_layer/gl_render_object.h"
+#include "graphics_layer/gl_uniform_buffer.h"
 
 namespace dawn_engine {
     class DawnEngine {
     private:
-        RenderWindow *renderWindow;
         DawnUISystem *uiSystem;
-        Camera mainCamera;
-        bool enableDepthRendering = false;
-        std::unordered_map<std::string, DawnModel> modelMap = {};
-        std::unordered_map<std::string, GLShaderProgram *> shaderProgramMap = {};
-        GLShaderProgram *activeShader;
-        GLfloat deltaTime;
-        GLfloat lastTime;
 
         // customized data
         void render();
 
+        std::unordered_map<std::string, GLUniformBuffer> uniform_buffer_map = {};
 
     protected:
+        Camera main_camera_;
+        bool enableDepthRendering = false;
+        std::unordered_map<std::string, DawnModel> modelMap = {};
+        std::unordered_map<std::string, GLShaderProgram *> shader_program_map = {};
+        GLfloat deltaTime;
+        GLfloat lastTime;
         std::vector<GameObject *> game_object_ptrs;
-        GameObject *skyboxPtr;
+        GameObject *skybox_ptr_;
 
         void mountUISystem(DawnUISystem *uiSystem);
 
@@ -39,14 +40,15 @@ namespace dawn_engine {
 
         virtual void update();
 
-        virtual void GlobalUniformRefresh();
+        virtual void InitGlobalUniformBlocks();
 
-        void addGameObject(GameObject *gObjPtr);
+        virtual void RefreshGlobalUniformBlocks();
 
-        void addSkybox(GameObject *skyboxPtr);
 
     public:
-        static DawnEngine *engineInstance;
+        RenderWindow *render_window_;
+
+        static DawnEngine *instance;
 
         DawnEngine(uint32_t win_width, uint32_t win_height, const std::string &name);
 
@@ -59,11 +61,16 @@ namespace dawn_engine {
 
         void launch();
 
-        void initShaderPrograms();
+        void AddGameObject(GameObject *gObjPtr);
+
+        void AddSkybox(GameObject *skybox_ptr);
+
+
+        void InitShaderPrograms();
 
         void enableFeatures();
 
-        void setUniformInShaderPrograms(std::vector<std::string> shaderProgramNames, const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms);
+        void SetUniformInShaderPrograms(std::vector<std::string> shader_program_names, const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms);
 
         std::vector<GameObject *> getGameObjectPtrs() const;
 
@@ -71,13 +78,12 @@ namespace dawn_engine {
 
         bool &getDepthRenderingSwitchMeta();
 
-        std::unordered_map<std::string, GLShaderProgram *> &getShaderProgramMapMeta();
+        std::unordered_map<std::string, GLShaderProgram *> &GetShaderProgramMapMeta();
 
-        void setActiveShaderProgram(const char *name);
 
         [[maybe_unused]] GLShaderProgram *getActiveShaderProgram();
 
-        Camera &getMainCameraMeta();
+        Camera &GetMainCameraRef();
 
 //        static GLShaderProgram *findShaderProgram(std::string name);
     };

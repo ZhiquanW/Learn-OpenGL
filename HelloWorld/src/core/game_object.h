@@ -19,11 +19,13 @@ namespace dawn_engine {
         void initGameObject();
 
     public:
-        static GameObject *createPrimitive(PrimitiveType pType);
+        static GameObject *CreatePrimitive(PrimitiveType pType);
 
-        static GameObject *createLight(LightType lType);
+        static GameObject *CreateLight(LightType lType);
 
-        static GameObject *createSkybox(std::vector<std::string> facesPaths);
+        static GameObject *CreateSkybox(std::vector<std::string> facesPaths);
+
+        static GameObject *CreateLine(glm::vec3 start_pos, glm::vec3 end_pos);
 
         GameObject();
 
@@ -45,7 +47,7 @@ namespace dawn_engine {
         ModuleType *GetModule() const;
 
         template<class ModuleType, typename... Args>
-        void addModule(Args &&...params);
+        void AddModule(Args &&...params);
     };
 
     template<class ModuleType>
@@ -58,7 +60,7 @@ namespace dawn_engine {
     }
 
     template<class ModuleType, typename... Args>
-    void GameObject::addModule(Args &&...params) {
+    void GameObject::AddModule(Args &&...params) {
         if (!this->moduleDict.count(ModuleType::type)) {
             this->moduleDict.insert({ModuleType::type, std::vector<BaseModule *>()});
         }
@@ -66,5 +68,6 @@ namespace dawn_engine {
         module_ptr->SetAttachedGameObject(this);
         this->moduleDict.at(ModuleType::type).emplace_back(module_ptr);
     }
+
 
 } // namespace dawn_engine

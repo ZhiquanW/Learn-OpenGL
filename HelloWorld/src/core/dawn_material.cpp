@@ -14,6 +14,12 @@ namespace dawn_engine {
               material_type_(DawnMaterialType::Texture2D), shader_info_(ShaderTable::default_shader_info) {
     }
 
+    DawnMaterial::DawnMaterial(glm::vec3 pure_color)
+            : ambient_(pure_color),
+              material_type_(DawnMaterialType::Pure),
+              shader_info_(ShaderTable::pure_shader_info) {
+
+    }
 
     DawnMaterial::DawnMaterial(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, float shininess)
             : ambient_(ambient), diffuse_(diffuse), specular_(specular), shininess_(shininess), material_type_(DawnMaterialType::Phong),
@@ -30,7 +36,7 @@ namespace dawn_engine {
         return this->ambient_;
     }
 
-    glm::vec3 &DawnMaterial::getAmbientColorRef() {
+    glm::vec3 &DawnMaterial::GetAmbientColorRef() {
         return this->ambient_;
     }
 
@@ -43,7 +49,7 @@ namespace dawn_engine {
         return this->diffuse_;
     }
 
-    glm::vec3 &DawnMaterial::getDiffuseColorRef() {
+    glm::vec3 &DawnMaterial::GetDiffuseColorRef() {
         return this->diffuse_;
     }
 
@@ -56,7 +62,7 @@ namespace dawn_engine {
         return this->specular_;
     }
 
-    glm::vec3 &DawnMaterial::getSpecularColorRef() {
+    glm::vec3 &DawnMaterial::GetSpecularColorRef() {
         return this->specular_;
     }
 
@@ -69,7 +75,7 @@ namespace dawn_engine {
         return this->shininess_;
     }
 
-    float &DawnMaterial::getShininessRef() {
+    float &DawnMaterial::GetShininessRef() {
         return this->shininess_;
     }
 
@@ -98,7 +104,7 @@ namespace dawn_engine {
 //        }
 //    }
 
-    void DawnMaterial::setOpaque(bool opaque) {
+    void DawnMaterial::SetOpaque(bool opaque) {
         this->opaque_ = opaque;
     }
 
@@ -110,7 +116,7 @@ namespace dawn_engine {
         return this->opaque_;
     }
 
-    void DawnMaterial::setTransparency(float alpha) {
+    void DawnMaterial::SetTransparency(float alpha) {
         this->transparency_ = alpha;
     }
 

@@ -28,9 +28,9 @@ namespace dawn_engine {
 
         RenderWindow &operator=(const RenderWindow &) = delete;
 
-        [[nodiscard]] uint32_t getWinWidth() const;
+        [[nodiscard]] uint32_t GetWinWidth() const;
 
-        [[nodiscard]] uint32_t getWinHeight() const;
+        [[nodiscard]] uint32_t GetWinHeight() const;
 
         bool should_close();
 

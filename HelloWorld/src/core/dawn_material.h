@@ -9,20 +9,20 @@
 #include "../../include/common_includes.h"
 #include "../../include/shader_uniform_variable.h"
 #include "shader_program_table.h"
-#include "opengl_shader_program.h"
+#include "graphics_layer/gl_shader_program.h"
 #include "core/dawn_texture.h"
 
 namespace dawn_engine {
 
     enum DawnMaterialType {
-        Phong, Texture2D, CubeMap
+        Phong, Texture2D, CubeMap, Pure
     };
 
     class DawnMaterial {
     private:
     protected:
         ShaderInfo shader_info_ = ShaderTable::default_shader_info;
-        glm::vec3 ambient_ = glm::vec3(0.0f);
+        glm::vec3 ambient_ = glm::vec3(1.0f);
         glm::vec3 diffuse_ = glm::vec3(1.0f);
         glm::vec3 specular_ = glm::vec3(1.0f);
         float shininess_ = 3.0f;
@@ -38,6 +38,8 @@ namespace dawn_engine {
     public:
         DawnMaterial() = default;
 
+        DawnMaterial(glm::vec3 pure_color);
+
         DawnMaterial(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, float shininess);
 
         DawnMaterial(std::vector<std::shared_ptr<DawnTexture>> diffuse_textures,
@@ -48,13 +50,13 @@ namespace dawn_engine {
 
         ~DawnMaterial() = default;
 
-        void setOpaque(bool opaque);
+        void SetOpaque(bool opaque);
 
         bool GetOpaque() const;
 
         bool &getOpaqueRef();
 
-        void setTransparency(float alpha);
+        void SetTransparency(float alpha);
 
         [[nodiscard]] float GetTransparency() const;
 
@@ -62,25 +64,25 @@ namespace dawn_engine {
 
         [[nodiscard]] glm::vec3 GetAmbient() const;
 
-        [[nodiscard]] glm::vec3 &getAmbientColorRef();
+        [[nodiscard]] glm::vec3 &GetAmbientColorRef();
 
         void setAmbientColor(glm::vec3 value);
 
         [[nodiscard]] glm::vec3 GetDiffuse() const;
 
-        [[nodiscard]] glm::vec3 &getDiffuseColorRef();
+        [[nodiscard]] glm::vec3 &GetDiffuseColorRef();
 
         void setDiffuseColor(glm::vec3 value);
 
         [[nodiscard]] glm::vec3 GetSpecular() const;
 
-        [[nodiscard]] glm::vec3 &getSpecularColorRef();
+        [[nodiscard]] glm::vec3 &GetSpecularColorRef();
 
         void setSpecularColor(glm::vec3 value);
 
         [[nodiscard]] float GetShininess() const;
 
-        [[nodiscard]] float &getShininessRef();
+        [[nodiscard]] float &GetShininessRef();
 
         void setShininess(float value);
 

@@ -8,7 +8,7 @@ namespace dawn_engine {
 
 
     DawnModel::DawnModel(const std::string &path, bool gamma) {
-        this->loadModel(path);
+        this->LoadModel(path);
     }
 
     DawnModel::DawnModel(const std::vector<DawnMesh> &meshes)
@@ -22,7 +22,7 @@ namespace dawn_engine {
 //
 //    }
 
-    void DawnModel::loadModel(const std::string &path) {
+    void DawnModel::LoadModel(const std::string &path) {
         Assimp::Importer importer;
         const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
@@ -135,8 +135,20 @@ namespace dawn_engine {
         return this->meshes_;
     }
 
-    unsigned int DawnModel::GetMeshSize() const {
+    unsigned int DawnModel::GetMeshNum() const {
         return this->meshes_.size();
+    }
+
+    void DawnModel::SetAllTransparent(float alpha) {
+        for (auto &mesh: this->meshes_) {
+            mesh.GetMaterialRef().SetTransparency(alpha);
+        }
+    }
+
+    void DawnModel::EnableAllTransparent() {
+        for (auto &mesh: this->meshes_) {
+            mesh.GetMaterialRef().SetOpaque(false);
+        }
     }
 
 

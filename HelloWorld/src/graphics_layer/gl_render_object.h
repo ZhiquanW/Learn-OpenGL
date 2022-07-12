@@ -12,10 +12,16 @@
 #include "core/dawn_mesh.h"
 
 namespace dawn_engine {
+
+    enum GLRenderElement {
+        TRIANGLE, LINE
+    };
+
     class RendererModlue;
 
     class GLRenderObject {
     private:
+        GLRenderElement render_element_ = GLRenderElement::TRIANGLE;
         unsigned int vao_ = 0;
         unsigned int vbo_ = 0;
         unsigned int ebo_ = 0;
@@ -35,6 +41,13 @@ namespace dawn_engine {
         GLRenderObject() = default;
 
         explicit GLRenderObject(unsigned int vao,
+                                unsigned int vbo,
+                                unsigned int ebo,
+                                unsigned int indices_num,
+                                const ShaderInfo &shader_info);
+
+        explicit GLRenderObject(GLRenderElement render_element,
+                                unsigned int vao,
                                 unsigned int vbo,
                                 unsigned int ebo,
                                 unsigned int indices_num,

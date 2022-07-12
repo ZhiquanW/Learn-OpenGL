@@ -7,7 +7,7 @@
 
 void testCodes() {
     dawn_engine::GameObject cubeObject{true};
-    // tmpObject.addModule(dawn_engine::TransformModuleType);
+    // tmpObject.AddModule(dawn_engine::TransformModuleType);
     // std::cout << glm::to_string(tmpObject.GetModule<dawn_engine::TransformModule>().getRotationMat4());
     std::cout << glm::to_string(
             cubeObject.GetModule<dawn_engine::TransformModule>()->getScaleMat4()) << std::endl;
@@ -17,7 +17,7 @@ void testCodes() {
 }
 // void run() {
 //     dawn_engine::DawnEngine render_engine = dawn_engine::DawnEngine(1600, 1600, "hello world");
-//     render_engine.initShaderPrograms();
+//     render_engine.InitShaderPrograms();
 //     render_engine.loadTextures("../assets/test4.jpg", "../assets/test3.jpg");
 //     render_engine.add_data();
 //     render_engine.launch();

@@ -11,13 +11,13 @@
 
 namespace dawn_engine {
 
-    inline std::vector<std::shared_ptr<ShaderUniformVariableBase>> ExtractUniforms(const std::string &name, Camera camera, float winWidth, float winHeight) {
+    inline std::vector<std::shared_ptr<ShaderUniformVariableBase>> ExtractUniforms(const std::string &name, Camera camera, float win_width, float win_height) {
         return {
+                std::make_shared<ShaderUniformVariable<glm::mat4 >>(fmt::format("{}.projection", name), camera.GetPerspectiveMatrix(win_width, win_height)),
                 std::make_shared<ShaderUniformVariable<glm::mat4 >>(fmt::format("{}.view", name), camera.GetViewMatrix()),
-                std::make_shared<ShaderUniformVariable<glm::mat4 >>(fmt::format("{}.projection", name), camera.getPerspectiveMatrix(winWidth, winHeight)),
                 std::make_shared<ShaderUniformVariable<glm::vec3 >>(fmt::format("{}.pos", name), camera.GetPosition()),
-                std::make_shared<ShaderUniformVariable<float >>(fmt::format("{}.z_near", name), camera.getZNear()),
-                std::make_shared<ShaderUniformVariable<float >>(fmt::format("{}.z_far", name), camera.getZFar()),
+                std::make_shared<ShaderUniformVariable<float >>(fmt::format("{}.z_near", name), camera.GetZNear()),
+                std::make_shared<ShaderUniformVariable<float >>(fmt::format("{}.z_far", name), camera.GetZFar()),
 
         };
     }
@@ -62,16 +62,17 @@ namespace dawn_engine {
 
     inline std::vector<std::shared_ptr<ShaderUniformVariableBase>> ExtractUniforms(const std::string &name, LightModule *lightModule) {
         std::vector<std::shared_ptr<ShaderUniformVariableBase>> light_uniforms = {
-                std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".ambient", lightModule->getAmbient()),
-                std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".diffuse", lightModule->getDiffuse()),
-                std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".specular", lightModule->getSpecular())};
+                std::make_shared<ShaderUniformVariable<int>>(name + ".activation", lightModule->GetActivation()),
+                std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".ambient_", lightModule->GetAmbient()),
+                std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".diffuse", lightModule->GetDiffuse()),
+                std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".specular", lightModule->GetSpecular())};
 
         return light_uniforms;
     }
 
     inline std::vector<std::shared_ptr<ShaderUniformVariableBase>> ExtractUniforms(const std::string &name, DirectionalLightModule *lightModule) {
         std::vector<std::shared_ptr<ShaderUniformVariableBase>> light_uniforms = ExtractUniforms(name, (LightModule *) lightModule);
-        light_uniforms.emplace_back(std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".direction", lightModule->getDirection()));
+        light_uniforms.emplace_back(std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".direction", lightModule->GetDirection()));
         return light_uniforms;
     }
 
@@ -80,8 +81,8 @@ namespace dawn_engine {
         light_uniforms.emplace_back(std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".direction", spotLightModule->getDirection()));
         light_uniforms.emplace_back(
                 std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".position", spotLightModule->GetAttachedGameObject()->GetModule<TransformModule>()->GetPosition()));
-        light_uniforms.emplace_back(std::make_shared<ShaderUniformVariable<float>>(name + ".linear", spotLightModule->getLinear()));
         light_uniforms.emplace_back(std::make_shared<ShaderUniformVariable<float>>(name + ".constant", spotLightModule->getConstant()));
+        light_uniforms.emplace_back(std::make_shared<ShaderUniformVariable<float>>(name + ".linear", spotLightModule->getLinear()));
         light_uniforms.emplace_back(std::make_shared<ShaderUniformVariable<float>>(name + ".quadratic", spotLightModule->getQuadratic()));
         light_uniforms.emplace_back(std::make_shared<ShaderUniformVariable<float>>(name + ".inner_range", spotLightModule->getInnerRange()));
         light_uniforms.emplace_back(std::make_shared<ShaderUniformVariable<float>>(name + ".outer_range", spotLightModule->getOuterRange()));
@@ -147,8 +148,7 @@ namespace dawn_engine {
 //    }
 
     inline std::vector<unsigned int> AllocateGLTextureDataFiltered(std::unordered_map<std::string, unsigned int> &loaded_texture_id_map, const
-    std::vector<std::shared_ptr<DawnTexture>> &
-    textures) {
+    std::vector<std::shared_ptr<DawnTexture>> &textures) {
         std::vector<unsigned int> gl_texture_ids = {};
         for (const auto &tex: textures) {
             if (loaded_texture_id_map.find(tex->GetName()) != loaded_texture_id_map.end()) {
@@ -162,7 +162,60 @@ namespace dawn_engine {
         return gl_texture_ids;
     }
 
+    inline unsigned int AllocateUniformBlock(Camera camera, float win_width, float win_height) {
+        // todo: 1. input: camera 2. input: uniforms 3. divide update with dynamics and statics
+        unsigned int ubo;
+        long buffer_size = 2 * sizeof(glm::mat4);
+        unsigned int binding_idx = 0;
+        glGenBuffers(1, &ubo);
+        glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+        glBufferData(GL_UNIFORM_BUFFER, buffer_size, nullptr, GL_STATIC_DRAW);
+        glBindBufferRange(GL_UNIFORM_BUFFER, binding_idx, ubo, 0, buffer_size);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(camera.GetPerspectiveMatrix(win_width, win_height)));
+        glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(camera.GetViewMatrix()));
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        return ubo;
+    }
 
+    inline unsigned int AllocateUniformBlock(const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms) {
+        unsigned int ubo;
+        auto uniforms_sizes = dawn_engine::ShaderUniformVariableBase::GetUniformsDataSizes(uniforms);
+        long buffer_size = 0;
+        for (auto uniform_size: uniforms_sizes) {
+            buffer_size += uniform_size;
+        }
+
+        unsigned int binding_idx = 0;
+        glGenBuffers(1, &ubo);
+        glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+        glBufferData(GL_UNIFORM_BUFFER, buffer_size, nullptr, GL_STATIC_DRAW);
+        glBindBufferRange(GL_UNIFORM_BUFFER, binding_idx, ubo, 0, buffer_size);
+        long buffer_offset = 0;
+        for (const auto &uniform: uniforms) {
+            if (uniform->GetTypeHash() == typeid(int).hash_code()) {
+                glBufferSubData(GL_UNIFORM_BUFFER, buffer_offset, sizeof(int), &std::dynamic_pointer_cast<ShaderUniformVariable<int>>(uniform)->GetDataRef());
+                buffer_offset += 4;
+            } else if (uniform->GetTypeHash() == typeid(bool).hash_code()) {
+                glBufferSubData(GL_UNIFORM_BUFFER, buffer_offset, sizeof(int), &std::dynamic_pointer_cast<ShaderUniformVariable<bool>>(uniform)->GetDataRef());
+                buffer_offset += 4;
+            } else if (uniform->GetTypeHash() == typeid(float).hash_code()) {
+                glBufferSubData(GL_UNIFORM_BUFFER, buffer_offset, sizeof(float), &std::dynamic_pointer_cast<ShaderUniformVariable<float>>(uniform)->GetDataRef());
+                buffer_offset += 4;
+            } else if (uniform->GetTypeHash() == typeid(glm::vec3).hash_code()) {
+                glBufferSubData(GL_UNIFORM_BUFFER, buffer_offset, sizeof(glm::vec3),
+                                glm::value_ptr(std::dynamic_pointer_cast<ShaderUniformVariable<glm::vec3>>(uniform)->GetDataRef()));
+                buffer_offset += 16;
+            } else if (uniform->GetTypeHash() == typeid(glm::mat4).hash_code()) {
+                glBufferSubData(GL_UNIFORM_BUFFER, buffer_offset, sizeof(glm::mat4),
+                                glm::value_ptr(std::dynamic_pointer_cast<ShaderUniformVariable<glm::mat4>>(uniform)->GetDataRef()));
+                buffer_offset += 64;
+            } else {
+                throw std::runtime_error("unknown shader uniform variable type");
+            }
+        }
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        return ubo;
+    }
 }
 
 

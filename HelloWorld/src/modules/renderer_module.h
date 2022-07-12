@@ -14,8 +14,6 @@ namespace dawn_engine {
     protected:
         std::deque<bool> activations;
         DawnModel model_;
-//        std::vector<DawnMesh> meshes = {};
-//        std::vector<std::shared_ptr<GLRenderObject>> gl_render_objects = {};
         std::unordered_map<unsigned int, std::shared_ptr<GLRenderObject>> render_obj_map;
 
     public:
@@ -53,6 +51,8 @@ namespace dawn_engine {
         DawnMesh &GetMesh(unsigned int idx);
 
         std::vector<DawnMesh> &GetMeshes();
+
+        DawnModel &GetModelRef();
 
 
     };

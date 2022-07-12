@@ -2,7 +2,7 @@
 
 
 #include "../modules/base_module.h"
-#include "../../include/opengl_shader_program.h"
+#include "graphics_layer/gl_shader_program.h"
 #include "dawn_material.h"
 #include "dawn_vertex.h"
 
@@ -31,7 +31,7 @@ namespace dawn_engine {
 
         unsigned int GetIndicesNum() const;
 
-        bool enableLightingMap() const;
+        bool EnableLightingMap() const;
 
         DawnMaterial GetMaterial() const;
 

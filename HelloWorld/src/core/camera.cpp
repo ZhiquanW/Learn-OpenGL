@@ -26,7 +26,7 @@ namespace dawn_engine {
         return glm::lookAt(this->position, this->position + this->front, this->up);
     }
 
-    GLfloat Camera::getFov() const { return this->fov; }
+    GLfloat Camera::GetFov() const { return this->fov; }
 
     glm::vec3 Camera::GetPosition() const { return this->position; }
 
@@ -72,15 +72,15 @@ namespace dawn_engine {
         this->fov = std::min(80.0f, this->fov);
     }
 
-    glm::mat4 Camera::getPerspectiveMatrix(float winWidth, float winHeight) const {
+    glm::mat4 Camera::GetPerspectiveMatrix(float winWidth, float winHeight) const {
         return glm::perspective((float) glm::radians(this->fov), winWidth / winHeight, this->zNear, this->zFar);
     }
 
-    float Camera::getZNear() const {
+    float Camera::GetZNear() const {
         return this->zNear;
     }
 
-    float Camera::getZFar() const {
+    float Camera::GetZFar() const {
         return this->zFar;
     }
 
@@ -102,5 +102,9 @@ namespace dawn_engine {
 
     float &Camera::getFovMeta() {
         return this->fov;
+    }
+
+    glm::vec3 Camera::GetFront() const {
+        return this->front;
     }
 } // namespace dawn_engine

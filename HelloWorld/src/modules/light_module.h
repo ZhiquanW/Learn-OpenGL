@@ -12,9 +12,9 @@ namespace dawn_engine {
 
     private:
     protected:
-        glm::vec3 ambient;
-        glm::vec3 diffuse;
-        glm::vec3 specular;
+        glm::vec3 ambient_;
+        glm::vec3 diffuse_;
+        glm::vec3 specular_;
     public:
         static const std::size_t type;
 
@@ -27,17 +27,24 @@ namespace dawn_engine {
 
         ~LightModule() override;
 
-        [[nodiscard]] glm::vec3 getAmbient() const;
+        [[nodiscard]] glm::vec3 GetAmbient() const;
 
-        glm::vec3 &getAmbientMeta();
 
-        [[nodiscard]] glm::vec3 getDiffuse() const;
+        glm::vec3 &GetAmbientMeta();
 
-        glm::vec3 &getDiffuseMeta();
+        void SetAmbient(glm::vec3 ambient);
 
-        [[nodiscard]] glm::vec3 getSpecular() const;
+        [[nodiscard]] glm::vec3 GetDiffuse() const;
 
-        glm::vec3 &getSpecularMeta();
+        glm::vec3 &GetDiffuseMeta();
+
+        void SetDiffuse(glm::vec3 diffuse);
+
+        [[nodiscard]] glm::vec3 GetSpecular() const;
+
+        glm::vec3 &GetSpecularMeta();
+
+        void SetSpecular(glm::vec3 specular);
 
         [[nodiscard]] virtual std::vector<std::shared_ptr<ShaderUniformVariableBase>>
         getUniforms(const std::string &name) const;
@@ -68,7 +75,7 @@ namespace dawn_engine {
         [[maybe_unused]] [[nodiscard]] virtual std::vector<std::shared_ptr<ShaderUniformVariableBase>>
         getUniforms(uint32_t idx) const;
 
-        [[maybe_unused]] [[nodiscard]] glm::vec3 getDirection() const;
+        [[maybe_unused]] [[nodiscard]] glm::vec3 GetDirection() const;
 
         glm::vec3 &getDirectionMeta();
 

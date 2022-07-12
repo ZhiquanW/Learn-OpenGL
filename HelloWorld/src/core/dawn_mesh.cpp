@@ -53,7 +53,7 @@ namespace dawn_engine {
 //    }
 
 //    void DawnMesh::render(GLShaderProgram *shaderProgram) const {
-//        shaderProgram->setUniforms(this->material.getUniforms());
+//        shaderProgram->GetUniforms(this->material.getUniforms());
 //        this->material.bindTextures();
 //        glBindVertexArray(this->glVAO);
 //        glDrawElements(GL_TRIANGLES, (int) this->indices_.size(), GL_UNSIGNED_INT, 0);
@@ -71,7 +71,7 @@ namespace dawn_engine {
         return this->indices_.size();
     }
 
-    bool DawnMesh::enableLightingMap() const {
+    bool DawnMesh::EnableLightingMap() const {
         return this->material_.EnabledLightingMaps();
     }
 

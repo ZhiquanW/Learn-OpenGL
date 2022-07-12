@@ -33,9 +33,9 @@ namespace dawn_engine {
         glfwTerminate();
     }
 
-    uint32_t RenderWindow::getWinWidth() const { return this->width; }
+    uint32_t RenderWindow::GetWinWidth() const { return this->width; }
 
-    uint32_t RenderWindow::getWinHeight() const { return this->height; }
+    uint32_t RenderWindow::GetWinHeight() const { return this->height; }
 
     GLFWwindow *RenderWindow::getWindowPtr() const { return this->glfwWindow; }
 

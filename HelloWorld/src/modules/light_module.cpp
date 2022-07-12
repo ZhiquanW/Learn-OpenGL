@@ -14,14 +14,14 @@ namespace dawn_engine {
 
 
     LightModule::LightModule()
-            : BaseModule(), ambient(glm::vec3(0.1f)), diffuse(glm::vec3(1.0f)),
-              specular(glm::vec3(1.0f)) {}
+            : BaseModule(), ambient_(glm::vec3(0.1f)), diffuse_(glm::vec3(1.0f)),
+              specular_(glm::vec3(1.0f)) {}
 
     LightModule::LightModule(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular)
-            : BaseModule(), ambient(ambient), diffuse(diffuse), specular(specular) {}
+            : BaseModule(), ambient_(ambient), diffuse_(diffuse), specular_(specular) {}
 
     LightModule::LightModule(glm::vec3 color)
-            : BaseModule(), ambient(color), diffuse(color), specular(color) {}
+            : BaseModule(), ambient_(color), diffuse_(color), specular_(color) {}
 
     LightModule::~LightModule() = default;
 
@@ -31,39 +31,53 @@ namespace dawn_engine {
     LightModule::getUniforms(const std::string &name) const {
         std::vector<std::shared_ptr<ShaderUniformVariableBase>> light_uniforms;
         light_uniforms.emplace_back(
-                std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".ambient",
-                                                                   this->ambient));
+                std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".ambient_",
+                                                                   this->ambient_));
         light_uniforms.emplace_back(
                 std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".diffuse",
-                                                                   this->diffuse));
+                                                                   this->diffuse_));
         light_uniforms.emplace_back(
                 std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".specular",
-                                                                   this->specular));
+                                                                   this->specular_));
         return light_uniforms;
     }
 
-    glm::vec3 LightModule::getAmbient() const {
-        return this->ambient;
+    glm::vec3 LightModule::GetAmbient() const {
+        return this->ambient_;
     }
 
-    glm::vec3 &LightModule::getAmbientMeta() {
-        return this->ambient;
+    glm::vec3 &LightModule::GetAmbientMeta() {
+        return this->ambient_;
     }
 
-    glm::vec3 LightModule::getDiffuse() const {
-        return this->diffuse;
+    glm::vec3 LightModule::GetDiffuse() const {
+        return this->diffuse_;
     }
 
-    glm::vec3 &LightModule::getDiffuseMeta() {
-        return this->diffuse;
+    glm::vec3 &LightModule::GetDiffuseMeta() {
+        return this->diffuse_;
     }
 
-    glm::vec3 LightModule::getSpecular() const {
-        return this->specular;
+    glm::vec3 LightModule::GetSpecular() const {
+        return this->specular_;
     }
 
-    glm::vec3 &LightModule::getSpecularMeta() {
-        return this->specular;
+    glm::vec3 &LightModule::GetSpecularMeta() {
+        return this->specular_;
+    }
+
+    void LightModule::SetAmbient(glm::vec3 ambient) {
+        this->ambient_ = ambient;
+    }
+
+    void LightModule::SetDiffuse(glm::vec3 diffuse) {
+        this->diffuse_ = diffuse;
+
+    }
+
+    void LightModule::SetSpecular(glm::vec3 specular) {
+        this->specular_ = specular;
+
     }
 
 
@@ -85,7 +99,7 @@ namespace dawn_engine {
 
     DirectionalLightModule::~DirectionalLightModule() = default;;
 
-    glm::vec3 DirectionalLightModule::getDirection() const { return glm::normalize(this->direction); }
+    glm::vec3 DirectionalLightModule::GetDirection() const { return glm::normalize(this->direction); }
 
     glm::vec3 &DirectionalLightModule::getDirectionMeta() {
         this->direction = glm::normalize(this->direction);

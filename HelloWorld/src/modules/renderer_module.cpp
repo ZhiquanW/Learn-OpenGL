@@ -11,7 +11,7 @@ namespace dawn_engine {
 
 
     RendererModule::RendererModule(DawnModel model) : BaseModule(), model_(std::move(model)) {
-        this->activations.resize(model_.GetMeshSize());
+        this->activations.resize(model_.GetMeshNum());
         std::fill(this->activations.begin(), this->activations.end(), true);
         GenerateGLRenderObjects();
     }
@@ -21,6 +21,7 @@ namespace dawn_engine {
         for (unsigned int i = 0; i < this->model_.GetMeshesRef().size(); ++i) {
             auto mesh = this->model_.GetMeshesRef()[i];
             auto gl_obj = AllocateGLVertexData(mesh.GetVerticesRef(), mesh.GetIndicesRef());
+
             if (mesh.GetMaterial().GetMaterialType() == DawnMaterialType::Texture2D) {
                 std::vector<unsigned int> diffuse_gl_texture_ids = AllocateGLTextureDataFiltered(texture_id_map, mesh.GetMaterial().GetDiffuseTextures());
                 std::vector<unsigned int> specular_gl_texture_ids = AllocateGLTextureDataFiltered(texture_id_map, mesh.GetMaterial().GetSpecularTextures());
@@ -45,6 +46,19 @@ namespace dawn_engine {
                                                                                  mesh.GetIndicesNum(),
                                                                                  cube_map_gl_texture_id,
                                                                                  mesh.GetMaterial().GetShaderInfo())});
+            } else if (mesh.GetMaterial().GetMaterialType() == DawnMaterialType::Pure) {
+                GLRenderElement render_element = GLRenderElement::TRIANGLE;
+                if (mesh.GetIndicesNum() == 2) {
+                    render_element = GLRenderElement::LINE;
+                }
+                
+                this->render_obj_map.insert(
+                        {i, std::make_shared<GLRenderObject>(render_element,
+                                                             gl_obj[0],
+                                                             gl_obj[1],
+                                                             gl_obj[2],
+                                                             mesh.GetIndicesNum(),
+                                                             mesh.GetMaterial().GetShaderInfo())});
             }
         }
     }
@@ -136,6 +150,10 @@ namespace dawn_engine {
 
     DawnMesh &RendererModule::GetMesh(unsigned int idx) {
         return this->model_.GetMeshesRef()[idx];
+    }
+
+    DawnModel &RendererModule::GetModelRef() {
+        return this->model_;
     }
 
 

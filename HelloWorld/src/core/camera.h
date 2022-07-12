@@ -37,13 +37,13 @@ namespace dawn_engine {
 
         glm::mat4 GetViewMatrix() const;
 
-        glm::mat4 getPerspectiveMatrix(float winWidth, float winHeight) const;
+        glm::mat4 GetPerspectiveMatrix(float winWidth, float winHeight) const;
 
-        [[nodiscard]] float getZNear() const;
+        [[nodiscard]] float GetZNear() const;
 
         float &getZNearMeta();
 
-        [[nodiscard]] float getZFar() const;
+        [[nodiscard]] float GetZFar() const;
 
         float &getZFarMeta();
 
@@ -53,9 +53,11 @@ namespace dawn_engine {
 
         float &getFovMeta();
 
+        glm::vec3 GetFront() const;
+
         std::vector<std::shared_ptr<ShaderUniformVariableBase *>> getUniforms() const;
 
-        [[nodiscard]] GLfloat getFov() const; // indicate that the return value of a function shouldn't be ignored when you do a function call.
+        [[nodiscard]] GLfloat GetFov() const; // indicate that the return value of a function shouldn't be ignored when you do a function call.
         [[nodiscard]] glm::vec3 GetPosition() const;
 
         void processKeyboard(CameraMovement, float);
