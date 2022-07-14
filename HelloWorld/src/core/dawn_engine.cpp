@@ -210,7 +210,7 @@ namespace dawn_engine {
 
     }
 
-    std::vector<GameObject *> DawnEngine::getGameObjectPtrs() const {
+    std::vector<GameObject *> DawnEngine::GetGameObjectPtrs() const {
         return this->game_object_ptrs;
     }
 
@@ -316,6 +316,25 @@ namespace dawn_engine {
         this->uniform_buffer_map.insert({"DirLightBlock", dir_light_uniform_buffer});
         this->uniform_buffer_map.insert({"PointLightBlock", point_light_uniform_buffer});
         this->uniform_buffer_map.insert({"SpotLightBlock", spot_light_uniform_buffer});
+    }
+
+    RayHitInfo DawnEngine::RayCastDetection(Ray ray) {
+        std::map<float, RayHitInfo> hit_info_queue;
+        for (auto game_obj: this->game_object_ptrs) {
+            auto collider_m = game_obj->GetModule<dawn_engine::ColliderModule>();
+            if (collider_m != nullptr && collider_m->GetActivation()) {
+                auto transform_m = game_obj->GetModule<TransformModule>();
+                auto inv_mat = glm::inverse(transform_m->GetTranslationMat() * transform_m->GetRotationMat());
+                auto transformed_ray = TransformRay(inv_mat, ray);
+                auto hit_info = CollisionDetection(transformed_ray,
+                                                   collider_m->GetColliderShape(),
+                                                   game_obj->GetModule<TransformModule>()->GetScaleMat());
+                if (hit_info.any_hit) {
+                    hit_info_queue.insert({hit_info.distance, hit_info});
+                }
+            }
+        }
+        return hit_info_queue.begin()->second;
     }
 
 

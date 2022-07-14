@@ -55,6 +55,10 @@ namespace dawn_engine {
 
         glm::vec3 GetFront() const;
 
+        glm::vec3 GetUp() const;
+
+        glm::vec3 GetRight() const;
+
         std::vector<std::shared_ptr<ShaderUniformVariableBase *>> getUniforms() const;
 
         [[nodiscard]] GLfloat GetFov() const; // indicate that the return value of a function shouldn't be ignored when you do a function call.

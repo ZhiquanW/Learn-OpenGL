@@ -40,7 +40,7 @@ namespace dawn_engine {
         return this->ambient_;
     }
 
-    void DawnMaterial::setAmbientColor(glm::vec3 value) {
+    void DawnMaterial::SetAmbientColor(glm::vec3 value) {
         this->ambient_ = value;
 
     }

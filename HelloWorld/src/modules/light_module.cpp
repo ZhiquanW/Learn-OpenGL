@@ -4,12 +4,12 @@
 
 namespace dawn_engine {
 
-    const std::size_t LightModule::type = BaseModule::getHashModuleName(quote(LightModule));
-    const std::size_t DirectionalLightModule::type = BaseModule::getHashModuleName(
+    const std::size_t LightModule::type = BaseModule::GetHashModuleName(quote(LightModule));
+    const std::size_t DirectionalLightModule::type = BaseModule::GetHashModuleName(
             quote(DirectionalLightModule));
-    const std::size_t PointLightModule::type = BaseModule::getHashModuleName(
+    const std::size_t PointLightModule::type = BaseModule::GetHashModuleName(
             quote(PointLightModule));
-    const std::size_t SpotLightModule::type = BaseModule::getHashModuleName(
+    const std::size_t SpotLightModule::type = BaseModule::GetHashModuleName(
             quote(SpotLightModule));
 
 

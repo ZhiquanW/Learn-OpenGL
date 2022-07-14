@@ -107,4 +107,13 @@ namespace dawn_engine {
     glm::vec3 Camera::GetFront() const {
         return this->front;
     }
+
+    glm::vec3 Camera::GetUp() const {
+        return this->up;
+    }
+
+    glm::vec3 Camera::GetRight() const {
+        return this->right;
+
+    }
 } // namespace dawn_engine

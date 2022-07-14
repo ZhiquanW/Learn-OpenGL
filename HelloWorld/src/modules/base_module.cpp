@@ -5,7 +5,7 @@ namespace dawn_engine {
 
     BaseModule::~BaseModule() = default;
 
-    std::size_t BaseModule::getHashModuleName(const char *moduleType) { return std::hash<std::string>()(moduleType); }
+    std::size_t BaseModule::GetHashModuleName(const char *moduleType) { return std::hash<std::string>()(moduleType); }
 
     GameObject *BaseModule::GetAttachedGameObject() const { return this->owner_ptr_; }
 

@@ -72,7 +72,7 @@ namespace dawn_engine {
 
         void SetUniformInShaderPrograms(std::vector<std::string> shader_program_names, const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms);
 
-        std::vector<GameObject *> getGameObjectPtrs() const;
+        std::vector<GameObject *> GetGameObjectPtrs() const;
 
         bool enabledDepthRendering() const;
 
@@ -84,6 +84,8 @@ namespace dawn_engine {
         [[maybe_unused]] GLShaderProgram *getActiveShaderProgram();
 
         Camera &GetMainCameraRef();
+
+        RayHitInfo RayCastDetection(Ray ray);
 
 //        static GLShaderProgram *findShaderProgram(std::string name);
     };

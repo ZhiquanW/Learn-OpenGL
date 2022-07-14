@@ -37,7 +37,7 @@ namespace dawn_engine {
 
         void SetAttachedGameObject(GameObject *owner_ptr);
 
-        static std::size_t getHashModuleName(const char *moduleType);
+        static std::size_t GetHashModuleName(const char *moduleType);
     };
 
 } // namespace dawn_engine

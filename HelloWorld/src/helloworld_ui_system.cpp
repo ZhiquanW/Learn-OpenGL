@@ -10,16 +10,16 @@ namespace helloworld {
     }
 
     void HelloWorldUISystem::start(dawn_engine::DawnEngine *enginePtr) {
-        this->initGameObjectTracker(enginePtr->getGameObjectPtrs());
-        this->initGameObjectMonitors(enginePtr->getGameObjectPtrs());
+        this->initGameObjectTracker(enginePtr->GetGameObjectPtrs());
+        this->initGameObjectMonitors(enginePtr->GetGameObjectPtrs());
         this->initGlobalSettingsPanel(enginePtr);
     }
 
     void HelloWorldUISystem::update(dawn_engine::DawnEngine *enginePtr) {
         this->OnMouseClicked();
         this->updateGlobalSettingsPanel(enginePtr);
-        this->updateGameObjectTracker(enginePtr->getGameObjectPtrs());
-        this->updateGameObjectMonitors(enginePtr->getGameObjectPtrs());
+        this->updateGameObjectTracker(enginePtr->GetGameObjectPtrs());
+        this->updateGameObjectMonitors(enginePtr->GetGameObjectPtrs());
         this->UpdateCreationPopup(enginePtr);
     }
 
@@ -65,12 +65,15 @@ namespace helloworld {
     }
 
     void HelloWorldUISystem::updateGameObjectTracker(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs) {
+        if (gameObjectPtrs.size() > this->gameObjectTrackerSelectionTable.size()) {
+            this->gameObjectTrackerSelectionTable.resize(gameObjectPtrs.size());
+        }
         ImGui::ShowDemoWindow();
         ImGui::Begin("Game Object Tracker");
         uint32_t selection_idx = 0;
         for (auto gObj: gameObjectPtrs) {
             std::string indexed_name = fmt::format("{}: {}", selection_idx,
-                                                   gObj->getName().c_str());
+                                                   gObj->GetName().c_str());
             if (ImGui::Selectable(indexed_name.c_str(),
                                   (bool) this->gameObjectTrackerSelectionTable[selection_idx],
                                   ImGuiSelectableFlags_AllowDoubleClick)) {
@@ -92,15 +95,15 @@ namespace helloworld {
 
     void HelloWorldUISystem::initGameObjectMonitors(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs) {}
 
-    void HelloWorldUISystem::updateGameObjectMonitors(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs) {
-        uint32_t gameObjectNum = gameObjectPtrs.size();
+    void HelloWorldUISystem::updateGameObjectMonitors(const std::vector<dawn_engine::GameObject *> &game_objs) {
+        uint32_t gameObjectNum = game_objs.size();
         for (int i = 0; i < gameObjectNum; ++i) {
             if (this->gameObjectTrackerSelectionTable[i]) {
-                std::string indexed_name = fmt::format("{}: {}", i, gameObjectPtrs[i]->getName().c_str());
+                std::string indexed_name = fmt::format("{}: {}", i, game_objs[i]->GetName().c_str());
                 ImGui::Begin(indexed_name.c_str());
-                for (const auto &modulesPair: gameObjectPtrs[i]->getModules()) {
-                    for (const auto &modulePtr: modulesPair.second) {
-                        this->embedModuleMonitor(modulePtr);
+                for (const auto &modulesPair: game_objs[i]->getModules()) {
+                    for (const auto &module_ptr: modulesPair.second) {
+                        this->EmbedModuleMonitor(module_ptr);
                     }
                 }
                 ImGui::End();
@@ -109,7 +112,7 @@ namespace helloworld {
     }
 
 
-    void HelloWorldUISystem::updateTransformModuleMonitor(dawn_engine::TransformModule *const transformModule) const {
+    void HelloWorldUISystem::UpdateTransformModuleMonitor(dawn_engine::TransformModule *const transformModule) const {
         if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::DragFloat3("position", &transformModule->getPositionMeta()[0], this->defaultDragSpeed, this->defaultMinValue, this->defaultMaxValue);
             ImGui::DragFloat3("rotation", &transformModule->getRotationMeta()[0], this->defaultDragSpeed, this->defaultMinValue, this->defaultMaxValue);
@@ -118,7 +121,7 @@ namespace helloworld {
 
     }
 
-    void HelloWorldUISystem::updateMeshModuleMonitor(dawn_engine::RendererModule *meshModule) {
+    void HelloWorldUISystem::UpdateMeshModuleMonitor(dawn_engine::RendererModule *meshModule) {
         if (ImGui::CollapsingHeader("mesh module", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Checkbox("module activation", &meshModule->GetActivationMeta());
             ImGui::Text("mesh num: %zu", meshModule->getMeshes().size());
@@ -174,7 +177,7 @@ namespace helloworld {
 
     }
 
-    void HelloWorldUISystem::updatePointLightModuleMonitor(dawn_engine::PointLightModule *const pointLightModule) const {
+    void HelloWorldUISystem::UpdatePointLightModuleMonitor(dawn_engine::PointLightModule *const pointLightModule) const {
         if (ImGui::CollapsingHeader("Point Light", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Checkbox("activation", &pointLightModule->GetActivationMeta());
             this->EmbedBaseLightMonitor(pointLightModule);
@@ -186,7 +189,7 @@ namespace helloworld {
     }
 
 
-    void HelloWorldUISystem::updateDirectionLightModuleMonitor(dawn_engine::DirectionalLightModule *const directionalLightModule) const {
+    void HelloWorldUISystem::UpdateDirectionLightModuleMonitor(dawn_engine::DirectionalLightModule *const directionalLightModule) const {
         if (ImGui::CollapsingHeader("Directional Light", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Checkbox("activation", &directionalLightModule->GetActivationMeta());
             this->EmbedBaseLightMonitor(directionalLightModule);
@@ -195,7 +198,7 @@ namespace helloworld {
         }
     }
 
-    void HelloWorldUISystem::updateSpotLightModuleMonitor(dawn_engine::SpotLightModule *const spotLightModule) const {
+    void HelloWorldUISystem::UpdateSpotLightModuleMonitor(dawn_engine::SpotLightModule *const spotLightModule) const {
         if (ImGui::CollapsingHeader("Spot Light", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Checkbox("activation", &spotLightModule->GetActivationMeta());
             this->EmbedBaseLightMonitor(spotLightModule);
@@ -209,18 +212,27 @@ namespace helloworld {
         }
     }
 
-    void HelloWorldUISystem::embedModuleMonitor(dawn_engine::BaseModule *const targetModule) {
+    void HelloWorldUISystem::UpdateColliderModuleMonitor(dawn_engine::ColliderModule *const collider_module) const {
+        if (ImGui::CollapsingHeader("Collider Module", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::Checkbox("activation", &collider_module->GetActivationMeta());
+        }
+    }
+
+    void HelloWorldUISystem::EmbedModuleMonitor(dawn_engine::BaseModule *targetModule) {
 
         if (dynamic_cast<dawn_engine::TransformModule *>(targetModule) != nullptr) {
-            this->updateTransformModuleMonitor(dynamic_cast<dawn_engine::TransformModule *>(targetModule));
+            this->UpdateTransformModuleMonitor(dynamic_cast<dawn_engine::TransformModule *>(targetModule));
         } else if (dynamic_cast<dawn_engine::SpotLightModule *>(targetModule) != nullptr) {
-            this->updateSpotLightModuleMonitor(dynamic_cast<dawn_engine::SpotLightModule *>(targetModule));
+            this->UpdateSpotLightModuleMonitor(dynamic_cast<dawn_engine::SpotLightModule *>(targetModule));
         } else if (dynamic_cast<dawn_engine::PointLightModule * > (targetModule) != nullptr) {
-            this->updatePointLightModuleMonitor(dynamic_cast<dawn_engine::PointLightModule * > (targetModule));
+            this->UpdatePointLightModuleMonitor(dynamic_cast<dawn_engine::PointLightModule * > (targetModule));
         } else if (dynamic_cast<dawn_engine::DirectionalLightModule *>(targetModule) != nullptr) {
-            this->updateDirectionLightModuleMonitor(dynamic_cast<dawn_engine::DirectionalLightModule *>(targetModule));
+            this->UpdateDirectionLightModuleMonitor(dynamic_cast<dawn_engine::DirectionalLightModule *>(targetModule));
         } else if (dynamic_cast<dawn_engine::RendererModule *> (targetModule)) {
-            this->updateMeshModuleMonitor(dynamic_cast<dawn_engine::RendererModule *> (targetModule));
+            this->UpdateMeshModuleMonitor(dynamic_cast<dawn_engine::RendererModule *> (targetModule));
+        } else if (static_cast<dawn_engine::ColliderModule *>(targetModule)) {
+            this->UpdateColliderModuleMonitor(dynamic_cast<dawn_engine::ColliderModule *> (targetModule));
+
         } else {
             std::cout << "unknown module" << std::endl;
         }
@@ -241,30 +253,49 @@ namespace helloworld {
         }
     }
 
-    dawn_engine::Ray HelloWorldUISystem::GenRayOnClick(glm::vec3 start_pos, glm::vec3 cam_dir, float fov, glm::vec2 win_size, glm::vec2 mouse_pos) {
+    Ray HelloWorldUISystem::GenRayOnClick(glm::vec3 start_pos, glm::vec3 cam_front, glm::vec3 cam_up, glm::vec3 cam_right, float fov, glm::vec2 win_size, glm::vec2 mouse_pos) {
         glm::vec2 win_center = win_size / 2.0f;
-        float plane_z = win_center.y / glm::tan(glm::radians(fov / 2.0f));
+        float plane_z = win_center.y / glm::tan(glm::radians(fov) / 2);
         glm::vec2 offset2center = mouse_pos - win_center;
         offset2center.y *= -1;
-        glm::vec3 local_dir = glm::vec3(offset2center, plane_z) / plane_z;
-        return {start_pos, cam_dir + glm::vec3(local_dir.x, local_dir.y, 0.0f)};
+        glm::vec3 x_axis = cam_right * offset2center.x;
+        glm::vec3 y_axis = cam_up * offset2center.y;
+        glm::vec3 z_axis = cam_front * plane_z;
+        glm::vec3 dir = glm::normalize(x_axis + y_axis + z_axis);
+        return {start_pos, dir};
     }
 
     void HelloWorldUISystem::OnMouseClicked() {
-        if (!ImGui::IsItemHovered() && ImGui::IsMouseClicked(0)) {
-            ImGuiIO &io = ImGui::GetIO();
+        ImGuiIO &io = ImGui::GetIO();
+        if (!io.WantCaptureMouse && ImGui::IsMouseClicked(0)) {
+            // draw ray on click
             glm::vec2 win_size = glm::vec2(io.DisplaySize.x, io.DisplaySize.y);
-            dawn_engine::Ray ray = GenRayOnClick(dawn_engine::DawnEngine::instance->GetMainCameraRef().GetPosition(),
-                                                 dawn_engine::DawnEngine::instance->GetMainCameraRef().GetFront(),
-                                                 dawn_engine::DawnEngine::instance->GetMainCameraRef().GetFov(),
-                                                 win_size,
-                                                 glm::vec2(io.MousePos.x, io.MousePos.y));
+            auto camera = dawn_engine::DawnEngine::instance->GetMainCameraRef();
+            Ray ray = GenRayOnClick(camera.GetPosition(),
+                                    camera.GetFront(),
+                                    camera.GetUp(),
+                                    camera.GetRight(),
+                                    camera.GetFov(),
+                                    win_size,
+                                    glm::vec2(io.MousePos.x, io.MousePos.y));
             auto *game_obj = new dawn_engine::GameObject("Ray Line", true);
-//            std::vector<dawn_engine::DawnVertex> vertices = {dawn_engine::DawnVertex(ray.GetStartPos()), dawn_engine::DawnVertex(ray.ToDirection(100))};
-            std::vector<dawn_engine::DawnVertex> vertices = {dawn_engine::DawnVertex(ray.GetStartPos()), dawn_engine::DawnVertex(ray.ToDirection(100.0f))};
+//            std::vector<dawn_engine::DawnVertex> vertices = {dawn_engine::DawnVertex(ray.GetOrigin()), dawn_engine::DawnVertex(ray.ToDirection(100))};
+            std::vector<dawn_engine::DawnVertex> vertices = {dawn_engine::DawnVertex(ray.GetOrigin()), dawn_engine::DawnVertex(ray.ToDirection(100.0f))};
             auto line_mesh = dawn_engine::DawnMesh(vertices, {0, 1}, dawn_engine::DawnMaterial(glm::vec3(1.0f, 1.0f, 0.0f)));
             game_obj->AddModule<dawn_engine::RendererModule>(dawn_engine::DawnModel({line_mesh}));
             dawn_engine::DawnEngine::instance->AddGameObject(game_obj);
+//            // collision detection on click
+            auto hit_info = dawn_engine::DawnEngine::instance->RayCastDetection(ray);
+            if (hit_info.any_hit) {
+                auto hit_point = dawn_engine::GameObject::CreatePrimitive(dawn_engine::PrimitiveType::BoxPrimitive);
+                auto transform_m = hit_point->GetModule<dawn_engine::TransformModule>();
+                transform_m->SetPosition(ray.ToDirection(hit_info.distance));
+                transform_m->SetScale(glm::vec3(0.1f));
+                hit_point->GetModule<dawn_engine::RendererModule>()->GetMesh(0).GetMaterialRef().SetAmbientColor(glm::vec3(1.0f, 0.0f, 0.0f));
+                dawn_engine::DawnEngine::instance->AddGameObject(hit_point);
+            } else {
+                std::cout << " no hit" << std::endl;
+            }
 
         }
         if (ImGui::IsMouseClicked(1)) {

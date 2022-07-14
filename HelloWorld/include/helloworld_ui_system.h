@@ -32,27 +32,29 @@ namespace helloworld {
 
         void initGameObjectMonitors(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs);
 
-        void updateGameObjectMonitors(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs);
+        void updateGameObjectMonitors(const std::vector<dawn_engine::GameObject *> &game_objs);
 
         void InitCreationPopup(dawn_engine::DawnEngine *engine_ptr);
 
         void UpdateCreationPopup(dawn_engine::DawnEngine *engine_ptr);
 
-        void embedModuleMonitor(dawn_engine::BaseModule *targetModule);
+        void EmbedModuleMonitor(dawn_engine::BaseModule *targetModule);
 
-        void updateTransformModuleMonitor(dawn_engine::TransformModule *transformModule) const;
+        void UpdateTransformModuleMonitor(dawn_engine::TransformModule *const transformModule) const;
 
-        void updateMeshModuleMonitor(dawn_engine::RendererModule *meshModule);
+        void UpdateMeshModuleMonitor(dawn_engine::RendererModule *meshModule);
 
         void EmbedBaseLightMonitor(dawn_engine::LightModule *lightModule) const;
 
-        void updatePointLightModuleMonitor(dawn_engine::PointLightModule *pointLightModule) const;
+        void UpdatePointLightModuleMonitor(dawn_engine::PointLightModule *const pointLightModule) const;
 
-        void updateDirectionLightModuleMonitor(dawn_engine::DirectionalLightModule *directionalLightModule) const;
+        void UpdateDirectionLightModuleMonitor(dawn_engine::DirectionalLightModule *const directionalLightModule) const;
 
-        void updateSpotLightModuleMonitor(dawn_engine::SpotLightModule *spotLightModule) const;
+        void UpdateSpotLightModuleMonitor(dawn_engine::SpotLightModule *const spotLightModule) const;
 
-        dawn_engine::Ray GenRayOnClick(glm::vec3 start_pos, glm::vec3 cam_dir, float fov, glm::vec2 win_size, glm::vec2 mouse_pos);
+        void UpdateColliderModuleMonitor(dawn_engine::ColliderModule *const collider_module) const;
+
+        Ray GenRayOnClick(glm::vec3 start_pos, glm::vec3 cam_front, glm::vec3 cam_up, glm::vec3 cam_right, float fov, glm::vec2 win_size, glm::vec2 mouse_pos);
 
         void OnMouseClicked();
 

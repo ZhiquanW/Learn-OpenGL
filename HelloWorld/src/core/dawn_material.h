@@ -66,7 +66,7 @@ namespace dawn_engine {
 
         [[nodiscard]] glm::vec3 &GetAmbientColorRef();
 
-        void setAmbientColor(glm::vec3 value);
+        void SetAmbientColor(glm::vec3 value);
 
         [[nodiscard]] glm::vec3 GetDiffuse() const;
 

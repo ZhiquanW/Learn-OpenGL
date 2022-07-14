@@ -19,7 +19,7 @@ namespace dawn_engine {
 
         TransformModule(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
 
-        [[maybe_unused]]  void setPosition(const glm::vec3 &pos);
+        [[maybe_unused]]  void SetPosition(const glm::vec3 &pos);
 
         [[maybe_unused]] [[nodiscard]] glm::vec3 GetPosition() const;
 
@@ -27,23 +27,25 @@ namespace dawn_engine {
 
         [[maybe_unused]]  void setRotation(const glm::vec3 &rot);
 
-        [[maybe_unused]] [[nodiscard]] glm::vec3 getRotation() const;
+        [[maybe_unused]] [[nodiscard]] glm::vec3 GetRotation() const;
 
         [[maybe_unused]] [[nodiscard]] glm::vec3 &getRotationMeta();
 
-        [[maybe_unused]] void setScale(const glm::vec3 &s);
+        [[maybe_unused]] void SetScale(const glm::vec3 &s);
 
         [[maybe_unused]] [[nodiscard]] glm::vec3 getScale() const;
 
         [[maybe_unused]] [[nodiscard]] glm::vec3 &getScaleMeta();
 
-        [[maybe_unused]] [[nodiscard]] glm::mat4 getTranslationMat4() const;
+        [[maybe_unused]] [[nodiscard]] glm::mat4 GetTranslationMat() const;
 
-        [[maybe_unused]] [[nodiscard]] glm::mat4 getScaleMat4() const;
+        [[maybe_unused]] [[nodiscard]] glm::mat4 GetScaleMat() const;
 
-        [[maybe_unused]] [[nodiscard]] glm::mat4 getRotationMat4() const;
+        [[maybe_unused]] [[nodiscard]] glm::mat4 GetRotationMat() const;
 
         [[maybe_unused]] [[nodiscard]] glm::mat4 GetModelMat4() const;
+
+        glm::mat4 GetTransformMat() const;
     };
 
 } // namespace dawn_engine

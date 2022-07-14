@@ -2,7 +2,7 @@
 
 namespace dawn_engine {
 //  Transform Module
-    const std::size_t TransformModule::type = BaseModule::getHashModuleName(quote(TransformModule));
+    const std::size_t TransformModule::type = BaseModule::GetHashModuleName(quote(TransformModule));
 
     TransformModule::TransformModule()
             : BaseModule(), position(glm::vec3(0.0f)), rotation(glm::vec3(0.0f)), scale(glm::vec3(1.0f)) {}
@@ -12,24 +12,24 @@ namespace dawn_engine {
 
     TransformModule::~TransformModule() = default;
 
-    glm::mat4 TransformModule::getTranslationMat4() const {
+    glm::mat4 TransformModule::GetTranslationMat() const {
         glm::mat4 transMat = glm::mat4(1.0f);
         return glm::translate(transMat, this->position);
     }
 
-    glm::mat4 TransformModule::getRotationMat4() const {
+    glm::mat4 TransformModule::GetRotationMat() const {
         glm::mat4 rotateMat = glm::mat4(1.0f);
         return glm::eulerAngleXZY(this->rotation.x, this->rotation.y, this->rotation.z);
     }
 
-    glm::mat4 TransformModule::getScaleMat4() const {
+    glm::mat4 TransformModule::GetScaleMat() const {
         glm::mat4 scaleMat = glm::mat4(1.0f);
         return glm::scale(scaleMat, this->scale);
     }
 
     glm::mat4 TransformModule::GetModelMat4() const {
         glm::mat4 modelMat = glm::mat4(1.0f);
-        return this->getTranslationMat4() * this->getRotationMat4() * this->getScaleMat4();
+        return this->GetTranslationMat() * this->GetRotationMat() * this->GetScaleMat();
     }
 
     glm::vec3 TransformModule::GetPosition() const {
@@ -40,7 +40,7 @@ namespace dawn_engine {
         return this->position;
     }
 
-    [[maybe_unused]] glm::vec3 TransformModule::getRotation() const {
+    [[maybe_unused]] glm::vec3 TransformModule::GetRotation() const {
         return this->rotation;
     }
 
@@ -56,7 +56,7 @@ namespace dawn_engine {
         return this->scale;
     }
 
-    void TransformModule::setPosition(const glm::vec3 &pos) {
+    void TransformModule::SetPosition(const glm::vec3 &pos) {
         this->position = pos;
     }
 
@@ -64,9 +64,13 @@ namespace dawn_engine {
         this->rotation = rot;
     }
 
-    void TransformModule::setScale(const glm::vec3 &s) {
+    void TransformModule::SetScale(const glm::vec3 &s) {
         this->scale = s;
 
+    }
+
+    glm::mat4 TransformModule::GetTransformMat() const {
+        return GetTranslationMat() * GetRotationMat() * GetScaleMat();
     }
 
 

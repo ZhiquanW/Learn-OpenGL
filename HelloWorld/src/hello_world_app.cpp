@@ -31,6 +31,10 @@ namespace helloworld {
     }
 
     void HelloWorldApp::start() {
+        auto v0 = glm::vec3(1, 2, 3);
+        auto v1 = glm::vec3(1.5, 2.5, 1.5);
+        std::cout << glm::to_string(glm::min(v0, v1)) << std::endl;
+
         // std::shared_ptr<dawn_engine::PointLight> pLight(
         //     new dawn_engine::PointLight(glm::vec3(1.0f), glm::vec3(0.9f), glm::vec3(0.9f), glm::vec3(0.9f)));
         // this->addLight(pLight);
@@ -39,7 +43,7 @@ namespace helloworld {
 
 
 
-        // tmpLight->GetModule<dawn_engine::DirectionalLightModule>()->setAmbientColor(glm::vec3(1.0f, 0.0f, 0.0));
+        // tmpLight->GetModule<dawn_engine::DirectionalLightModule>()->SetAmbientColor(glm::vec3(1.0f, 0.0f, 0.0));
         // tmpLight->GetModule<dawn_engine::DirectionalLightModule>()->setDiffuseColor(glm::vec3(1.0f, 0.0f, 0.0));
         this->AddDefaultLight();
         this->AddDemoObjs();
@@ -63,6 +67,10 @@ namespace helloworld {
         auto line_mesh = dawn_engine::DawnMesh(vertices, {0, 1}, dawn_engine::DawnMaterial(glm::vec3(1.0f, 1.0f, 0.0f)));
         game_obj->AddModule<dawn_engine::RendererModule>(dawn_engine::DawnModel({line_mesh}));
         dawn_engine::DawnEngine::instance->AddGameObject(game_obj);
+        auto box = dawn_engine::GameObject::CreatePrimitive(dawn_engine::BoxPrimitive);
+        box->AddModule<dawn_engine::ColliderModule>(ColliderBox(box->GetModule<dawn_engine::TransformModule>()->GetPosition(), glm::vec3(1.0f)));
+        dawn_engine::DawnEngine::instance->AddGameObject(box);
+
 //        dawn_engine::DawnModel backpackModel = dawn_engine::DawnModel("../assets/backpack/backpack.obj");
 //        auto backpack_obj = new dawn_engine::GameObject();
 //        backpack_obj->AddModule<dawn_engine::RendererModule>(backpackModel);
@@ -70,11 +78,11 @@ namespace helloworld {
 ////         add game object
 //
 //        auto opaque_cube = dawn_engine::GameObject::CreatePrimitive(dawn_engine::BoxPrimitive);
-//        opaque_cube->GetModule<dawn_engine::TransformModule>()->setPosition(
+//        opaque_cube->GetModule<dawn_engine::TransformModule>()->SetPosition(
 //                glm::vec3(2.0, 0.0, 0.0));
 //        this->AddGameObject(opaque_cube);
 //        auto transparent_cube = dawn_engine::GameObject::CreatePrimitive(dawn_engine::BoxPrimitive);
-//        transparent_cube->GetModule<dawn_engine::TransformModule>()->setPosition(
+//        transparent_cube->GetModule<dawn_engine::TransformModule>()->SetPosition(
 //                glm::vec3(-2.0, 0.0, 0.0));
 //        transparent_cube->GetModule<dawn_engine::RendererModule>()->GetModelRef().EnableAllTransparent();
 //        transparent_cube->GetModule<dawn_engine::RendererModule>()->GetModelRef().SetAllTransparent(0.5f);
@@ -82,11 +90,11 @@ namespace helloworld {
 //
 //        auto tmpPLight = dawn_engine::GameObject::CreateLight(
 //                dawn_engine::LightType::PointLightType);
-//        tmpPLight->GetModule<dawn_engine::TransformModule>()->setPosition(glm::vec3(0, 0, 1));
+//        tmpPLight->GetModule<dawn_engine::TransformModule>()->SetPosition(glm::vec3(0, 0, 1));
 //        this->AddGameObject(tmpPLight);
 //        auto tmpSLight = dawn_engine::GameObject::CreateLight(
 //                dawn_engine::LightType::SpotLightType);
-//        tmpSLight->GetModule<dawn_engine::TransformModule>()->setPosition(
+//        tmpSLight->GetModule<dawn_engine::TransformModule>()->SetPosition(
 //                glm::vec3(0, 0, 1));
 //        tmpSLight->GetModule<dawn_engine::SpotLightModule>()->setDirection(
 //                glm::vec3(0.0, 0, -1));

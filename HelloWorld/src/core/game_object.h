@@ -35,7 +35,7 @@ namespace dawn_engine {
 
         ~GameObject();
 
-        std::string getName() const;
+        std::string GetName() const;
 
         void setName(std::string objName);
 

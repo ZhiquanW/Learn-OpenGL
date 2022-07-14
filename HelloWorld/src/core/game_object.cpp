@@ -250,7 +250,7 @@ namespace dawn_engine {
         return nullptr;
     }
 
-    std::string GameObject::getName() const {
+    std::string GameObject::GetName() const {
         return this->name;
     }
 

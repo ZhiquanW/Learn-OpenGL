@@ -7,7 +7,7 @@
 namespace dawn_engine {
 
 // Visual Shape Module
-    const std::size_t RendererModule::type = BaseModule::getHashModuleName(quote(RendererModule));
+    const std::size_t RendererModule::type = BaseModule::GetHashModuleName(quote(RendererModule));
 
 
     RendererModule::RendererModule(DawnModel model) : BaseModule(), model_(std::move(model)) {
@@ -50,8 +50,9 @@ namespace dawn_engine {
                 GLRenderElement render_element = GLRenderElement::TRIANGLE;
                 if (mesh.GetIndicesNum() == 2) {
                     render_element = GLRenderElement::LINE;
+                    glLineWidth(16);
                 }
-                
+
                 this->render_obj_map.insert(
                         {i, std::make_shared<GLRenderObject>(render_element,
                                                              gl_obj[0],
