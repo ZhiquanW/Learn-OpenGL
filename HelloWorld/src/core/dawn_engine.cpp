@@ -19,7 +19,7 @@ namespace dawn_engine {
         }
         glViewport(0, 0, (GLsizei) this->render_window_->GetWinWidth(),
                    (GLsizei) this->render_window_->GetWinHeight());
-        this->enableFeatures();
+        this->EnableGLFeatures();
         this->InitShaderPrograms();
     }
 
@@ -104,6 +104,15 @@ namespace dawn_engine {
 
 
     void DawnEngine::render() {
+        // 1. render depth of scene to texture (from light's perspective)
+        // --------------------------------------------------------------
+        glm::mat4 light_projection, light_view;
+        glm::mat4 light_space_mat;
+        light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, main_camera_.GetZNear(),main_camera_.GetZFar());
+        auto dir_light = this->FindGameObjectByName("dir_light");
+        light_view = glm::lookAt(dir_light->GetModule<TransformModule>()->GetPosition(), glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+
+        // main render
         this->RefreshGlobalUniformBlocks();
         std::vector<std::shared_ptr<GLRenderObject>> opaque_render_queue = {};
         std::map<float, std::shared_ptr<GLRenderObject>> transparent_render_queue = {};
@@ -180,8 +189,8 @@ namespace dawn_engine {
 
     void DawnEngine::InitShaderPrograms() {
         shader_program_map.insert({ShaderTable::default_shader_info.name, new GLShaderProgram(ShaderTable::default_shader_info.name.c_str(),
-                                                                                              ShaderTable::default_shader_info.vert_path.c_str(),
-                                                                                              ShaderTable::default_shader_info.frag_path.c_str())});
+                                                                                              ShaderTable::blinn_phong_info.vert_path.c_str(),
+                                                                                              ShaderTable::blinn_phong_info.frag_path.c_str())});
         shader_program_map.insert({ShaderTable::depth_shader_info.name, new GLShaderProgram(ShaderTable::depth_shader_info.name.c_str(),
                                                                                             ShaderTable::depth_shader_info.vert_path.c_str(),
                                                                                             ShaderTable::depth_shader_info.frag_path.c_str())});
@@ -191,15 +200,20 @@ namespace dawn_engine {
         shader_program_map.insert({ShaderTable::pure_shader_info.name, new GLShaderProgram(ShaderTable::pure_shader_info.name.c_str(),
                                                                                            ShaderTable::pure_shader_info.vert_path.c_str(),
                                                                                            ShaderTable::pure_shader_info.frag_path.c_str())});
+        shader_program_map.insert({ShaderTable::blinn_phong_info.name, new GLShaderProgram(ShaderTable::blinn_phong_info.name.c_str(),
+                                                                                           ShaderTable::blinn_phong_info.vert_path.c_str(),
+                                                                                           ShaderTable::blinn_phong_info.frag_path.c_str())});
 
     }
 
-    void DawnEngine::enableFeatures() {
+    void DawnEngine::EnableGLFeatures() {
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_CULL_FACE);
+        glEnable(GL_MULTISAMPLE);
+
 
 
     }
@@ -232,7 +246,7 @@ namespace dawn_engine {
         return this->main_camera_;
     }
 
-    void DawnEngine::SetUniformInShaderPrograms(std::vector<std::string> shader_program_names, const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms) {
+    void DawnEngine::SetUniformInShaderPrograms(const std::vector<std::string>& shader_program_names, const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms) {
         for (const auto &name: shader_program_names) {
             auto shaderProgramPtr = this->shader_program_map.at(name);
             if (shaderProgramPtr != nullptr) {
@@ -335,6 +349,15 @@ namespace dawn_engine {
             }
         }
         return hit_info_queue.begin()->second;
+    }
+
+    GameObject *DawnEngine::FindGameObjectByName(std::string name) {
+        for(auto game_obj : this->game_object_ptrs){
+            if(game_obj->GetName() == name){
+                return game_obj;
+            }
+        }
+        return nullptr;
     }
 
 

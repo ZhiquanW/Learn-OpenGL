@@ -4845,7 +4845,7 @@ public:
 public:
     m3d_t *getCStruct();
     std::string getName();
-    void setName(std::string name);
+    void SetName(std::string name);
     std::string getLicense();
     void setLicense(std::string license);
     std::string getAuthor();

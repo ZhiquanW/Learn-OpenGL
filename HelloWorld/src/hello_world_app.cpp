@@ -61,7 +61,6 @@ namespace helloworld {
                                                                        "../assets/skybox/front.jpg", "../assets/skybox/back.jpg",
                                                                });
         this->AddSkybox(skyboxObj);
-
         auto *game_obj = new dawn_engine::GameObject("Ray Line");
         std::vector<dawn_engine::DawnVertex> vertices = {dawn_engine::DawnVertex(glm::vec3(0.0f)), dawn_engine::DawnVertex(glm::vec3(0.0f, 1.0f, 0.0f))};
         auto line_mesh = dawn_engine::DawnMesh(vertices, {0, 1}, dawn_engine::DawnMaterial(glm::vec3(1.0f, 1.0f, 0.0f)));
@@ -105,6 +104,7 @@ namespace helloworld {
     void HelloWorldApp::AddDefaultLight() {
         auto tmpLight = dawn_engine::GameObject::CreateLight(
                 dawn_engine::LightType::DirectionalLightType);
+        tmpLight->SetName("dir_light");
         tmpLight->GetModule<dawn_engine::DirectionalLightModule>()->setDirection(
                 glm::vec3(-1.0, -1.0, -1.0));
         tmpLight->GetModule<dawn_engine::DirectionalLightModule>()->SetAmbient(glm::vec3(0.4f));

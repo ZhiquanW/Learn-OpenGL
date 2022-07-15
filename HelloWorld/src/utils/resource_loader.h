@@ -38,7 +38,7 @@ inline unsigned int loadTexture2GL(const char *path, const std::string &director
     return textureID;
 }
 
-inline unsigned int LoadTexture2GL(const std::shared_ptr<dawn_engine::DawnTexture> texture, bool gamma) {
+inline unsigned int LoadTexture2GL(const std::shared_ptr<dawn_engine::DawnTexture>& texture, bool gamma) {
     unsigned int texture_id;
     glGenTextures(1, &texture_id);
     if (texture->GetData()) {

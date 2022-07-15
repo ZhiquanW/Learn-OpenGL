@@ -139,13 +139,31 @@ namespace dawn_engine {
         return {vao, vbo, ebo};
     }
 
-//    inline std::vector<unsigned int> AllocateTextureData(const std::vector<std::shared_ptr<DawnTexture>> &textures) {
-//        std::vector<unsigned int> texture_ids = {};
-//        for (const auto &texture: textures) {
-//            texture_ids.push_back(LoadTexture2GL(texture, true));
-//        }
-//        return texture_ids;
-//    }
+
+    inline unsigned int AllocateGLTexture(glm::vec2 size){
+        unsigned int tex_id;
+        glGenTextures(1, &tex_id);
+        glBindTexture(GL_TEXTURE_2D, tex_id);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,size.x,size.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        return  tex_id;
+    }
+
+    inline unsigned int AllocateGLDepthMap(glm::vec2 size) {
+        unsigned int fbo;
+        glGenFramebuffers(1, &fbo);
+        unsigned int tex_id = AllocateGLTexture(size);
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, fbo, 0);
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        return fbo;
+    }
 
     inline std::vector<unsigned int> AllocateGLTextureDataFiltered(std::unordered_map<std::string, unsigned int> &loaded_texture_id_map, const
     std::vector<std::shared_ptr<DawnTexture>> &textures) {

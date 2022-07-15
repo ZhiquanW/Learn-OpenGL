@@ -15,14 +15,14 @@ namespace dawn_engine {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_SAMPLES, 4);
+
         this->glfwWindow = glfwCreateWindow((int) this->width, (int) this->height,
                                             this->name.c_str(), nullptr, nullptr);
         int ww, hh;
         glfwGetFramebufferSize(this->glfwWindow, &ww, &hh);
         if (this->glfwWindow == nullptr) {
             throw std::runtime_error("failed to create GLFW window");
-//        glfwTerminate();
-//        return;
         }
         glfwMakeContextCurrent(this->glfwWindow);
         glfwSetFramebufferSizeCallback(this->glfwWindow, windowReshapeCallbacks);

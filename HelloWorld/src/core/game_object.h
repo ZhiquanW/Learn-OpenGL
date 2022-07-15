@@ -37,7 +37,7 @@ namespace dawn_engine {
 
         std::string GetName() const;
 
-        void setName(std::string objName);
+        void SetName(std::string objName);
 
         std::unordered_map<std::size_t, std::vector<BaseModule *>> getModules() const;
 
@@ -48,6 +48,7 @@ namespace dawn_engine {
 
         template<class ModuleType, typename... Args>
         void AddModule(Args &&...params);
+
     };
 
     template<class ModuleType>

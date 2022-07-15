@@ -45,6 +45,8 @@ namespace dawn_engine {
         virtual void RefreshGlobalUniformBlocks();
 
 
+
+
     public:
         RenderWindow *render_window_;
 
@@ -65,12 +67,11 @@ namespace dawn_engine {
 
         void AddSkybox(GameObject *skybox_ptr);
 
-
         void InitShaderPrograms();
 
-        void enableFeatures();
+        void EnableGLFeatures();
 
-        void SetUniformInShaderPrograms(std::vector<std::string> shader_program_names, const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms);
+        void SetUniformInShaderPrograms(const std::vector<std::string>& shader_program_names, const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms);
 
         std::vector<GameObject *> GetGameObjectPtrs() const;
 
@@ -87,6 +88,7 @@ namespace dawn_engine {
 
         RayHitInfo RayCastDetection(Ray ray);
 
+        GameObject * FindGameObjectByName(std::string name);
 //        static GLShaderProgram *findShaderProgram(std::string name);
     };
 

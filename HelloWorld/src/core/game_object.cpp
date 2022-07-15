@@ -254,7 +254,7 @@ namespace dawn_engine {
         return this->name;
     }
 
-    void GameObject::setName(std::string objName) {
+    void GameObject::SetName(std::string objName) {
         this->name = std::move(objName);
     }
 
