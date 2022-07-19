@@ -112,8 +112,8 @@ namespace dawn_engine {
 //                                                                                                  this->normal_tex_ids_, this->cube_map_tex_id_);
 //        uniforms.insert(uniforms.end(), transform_uniforms.begin(), transform_uniforms.end());
 //        uniforms.insert(uniforms.end(), tex_uniforms.begin(), tex_uniforms.end());
-        this->linked_shader_->activate();
-        this->linked_shader_->GetUniforms(this->uniforms_);
+        this->linked_shader_->Activate();
+        this->linked_shader_->SetUniforms(this->uniforms_);
         glBindTexture(GL_TEXTURE_CUBE_MAP, 1);
         this->BindGLData();
         switch (this->render_element_) {
@@ -133,6 +133,10 @@ namespace dawn_engine {
     void GLRenderObject::RefreshUniforms(std::vector<std::shared_ptr<ShaderUniformVariableBase>> uniforms) {
         this->uniforms_ = std::move(uniforms);
 
+    }
+
+    void GLRenderObject::RefreshShaderProgram(GLShaderProgram *shader_program) {
+        this->linked_shader_ = shader_program;
     }
 
 

@@ -37,6 +37,7 @@ namespace dawn_engine {
 
     public:
         DawnMaterial() = default;
+        explicit DawnMaterial(ShaderInfo  shader_info);
 
         DawnMaterial(glm::vec3 pure_color);
 
@@ -93,6 +94,8 @@ namespace dawn_engine {
         void bindTextures() const;
 
         const ShaderInfo GetShaderInfo() const;
+
+        void SetShaderInfo(const ShaderInfo & shader_info);
 
         std::vector<std::shared_ptr<DawnTexture>> GetDiffuseTextures() const;
 

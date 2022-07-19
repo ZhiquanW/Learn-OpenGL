@@ -22,16 +22,16 @@ namespace dawn_engine {
         };
     }
 
-    inline std::vector<std::shared_ptr<ShaderUniformVariableBase>> ExtractUniforms(const std::string &name, const DawnMaterial &material) {
+    inline std::vector<std::shared_ptr<ShaderUniformVariableBase>> ExtractUniforms(const std::string &name,  std::shared_ptr<DawnMaterial> material_ptr) {
         std::vector<std::shared_ptr<ShaderUniformVariableBase>> uniforms = {
-                std::make_shared<ShaderUniformVariable<bool>>(fmt::format("{}.enable_lighting_maps", name), material.EnabledLightingMaps()),
-                std::make_shared<ShaderUniformVariable<bool>>(fmt::format("{}.opaque", name), material.GetOpaque()),
-                std::make_shared<ShaderUniformVariable<glm::vec3>>(fmt::format("{}.ambient", name), material.GetAmbient()),
-                std::make_shared<ShaderUniformVariable<glm::vec3>>(fmt::format("{}.diffuse", name), material.GetDiffuse()),
-                std::make_shared<ShaderUniformVariable<glm::vec3>>(fmt::format("{}.specular", name), material.GetSpecular()),
-                std::make_shared<ShaderUniformVariable<float>>(fmt::format("{}.shininess", name), material.GetShininess()),
+                std::make_shared<ShaderUniformVariable<bool>>(fmt::format("{}.enable_lighting_maps", name), material_ptr->EnabledLightingMaps()),
+                std::make_shared<ShaderUniformVariable<bool>>(fmt::format("{}.opaque", name), material_ptr->GetOpaque()),
+                std::make_shared<ShaderUniformVariable<glm::vec3>>(fmt::format("{}.ambient", name), material_ptr->GetAmbient()),
+                std::make_shared<ShaderUniformVariable<glm::vec3>>(fmt::format("{}.diffuse", name), material_ptr->GetDiffuse()),
+                std::make_shared<ShaderUniformVariable<glm::vec3>>(fmt::format("{}.specular", name), material_ptr->GetSpecular()),
+                std::make_shared<ShaderUniformVariable<float>>(fmt::format("{}.shininess", name), material_ptr->GetShininess()),
                 std::make_shared<ShaderUniformVariable<float>>(fmt::format("{}.transparency", name),
-                                                               fmin(1.0f - float(material.GetOpaque()), material.GetTransparency()))
+                                                               fmin(1.0f - float(material_ptr->GetOpaque()), material_ptr->GetTransparency()))
         };
         return uniforms;
     }
@@ -157,7 +157,7 @@ namespace dawn_engine {
         glGenFramebuffers(1, &fbo);
         unsigned int tex_id = AllocateGLTexture(size);
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, fbo, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex_id, 0);
         glDrawBuffer(GL_NONE);
         glReadBuffer(GL_NONE);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

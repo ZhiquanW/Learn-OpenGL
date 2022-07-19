@@ -15,8 +15,9 @@
 namespace dawn_engine {
     class DawnEngine {
     private:
-        DawnUISystem *uiSystem;
+        DawnUISystem *ui_system_;
 
+        void render_depth_map();
         // customized data
         void render();
 
@@ -27,12 +28,14 @@ namespace dawn_engine {
         bool enableDepthRendering = false;
         std::unordered_map<std::string, DawnModel> modelMap = {};
         std::unordered_map<std::string, GLShaderProgram *> shader_program_map = {};
+        std::unordered_map<std::string, DawnMaterial> material_map = {};
         GLfloat deltaTime;
         GLfloat lastTime;
         std::vector<GameObject *> game_object_ptrs;
         GameObject *skybox_ptr_;
+        unsigned int depth_fbo = 0;
 
-        void mountUISystem(DawnUISystem *uiSystem);
+        void MountUISystem(DawnUISystem *ui_system);
 
         virtual void awake();
 
@@ -69,6 +72,8 @@ namespace dawn_engine {
 
         void InitShaderPrograms();
 
+        void InitMaterials();
+
         void EnableGLFeatures();
 
         void SetUniformInShaderPrograms(const std::vector<std::string>& shader_program_names, const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms);
@@ -81,15 +86,21 @@ namespace dawn_engine {
 
         std::unordered_map<std::string, GLShaderProgram *> &GetShaderProgramMapMeta();
 
-
-        [[maybe_unused]] GLShaderProgram *getActiveShaderProgram();
-
         Camera &GetMainCameraRef();
 
         RayHitInfo RayCastDetection(Ray ray);
 
         GameObject * FindGameObjectByName(std::string name);
-//        static GLShaderProgram *findShaderProgram(std::string name);
+
+        GameObject  * CreatePrimitive(PrimitiveType pType) ;
+
+        void AddMaterial(const std::string & name, const DawnMaterial& material) ;
+
+        DawnMaterial GetMaterial(const std::string & name);
+
+        void AddShaderProgram(const std::string & name, GLShaderProgram * shader_program);
+
+        GLShaderProgram * GetShaderProgram(const std::string & name);
     };
 
 } // namespace dawn_engine

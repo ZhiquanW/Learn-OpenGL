@@ -29,7 +29,7 @@ namespace dawn_engine {
 
         void render(DawnEngine *enginePtr);
 
-        [[nodiscard]] DawnEngine *getEnginePtr() const;
+        [[nodiscard]] DawnEngine *GetEnginePtr() const;
 
         void setEnginePtr(DawnEngine *dawnEnginePtr) const;
 

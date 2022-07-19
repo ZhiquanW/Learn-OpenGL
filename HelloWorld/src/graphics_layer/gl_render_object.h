@@ -17,9 +17,8 @@ namespace dawn_engine {
         TRIANGLE, LINE
     };
 
-    class RendererModlue;
 
-    class GLRenderObject {
+    class  GLRenderObject {
     private:
         GLRenderElement render_element_ = GLRenderElement::TRIANGLE;
         unsigned int vao_ = 0;
@@ -75,6 +74,8 @@ namespace dawn_engine {
         void ReleaseGLData();
 
         void RefreshUniforms(std::vector<std::shared_ptr<ShaderUniformVariableBase>> uniforms);
+
+        void RefreshShaderProgram(GLShaderProgram * shader_program);
 
         void render() const;
 

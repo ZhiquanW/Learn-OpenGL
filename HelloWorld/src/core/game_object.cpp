@@ -43,112 +43,7 @@ namespace dawn_engine {
         return module_num;
     }
 
-    GameObject *GameObject::CreatePrimitive(PrimitiveType pType) {
-        switch (pType) {
-            case BoxPrimitive: {
-                std::vector<float> positionRaw = {
-                        -0.5f, -0.5f, -0.5f, // face 1: left
-                        -0.5f, -0.5f, 0.5f,
-                        -0.5f, 0.5f, -0.5f,
-                        -0.5f, 0.5f, 0.5f, // indices_: {0 1 2} {1 3 2}
-                        0.5f, -0.5f, -0.5f, // face 2: right
-                        0.5f, -0.5f, 0.5f,
-                        0.5f, 0.5f, -0.5f,
-                        0.5f, 0.5f, 0.5f, // indices_: {4 6 5} {5 6 7}
-                        -0.5f, -0.5f, -0.5f, // face 3: bottom
-                        -0.5f, -0.5f, 0.5f,
-                        0.5f, -0.5f, -0.5f,
-                        0.5f, -0.5f, 0.5f, // indices_: {8 10 9} {9 10 11}
-                        -0.5f, 0.5f, -0.5f, // face 4: top
-                        -0.5f, 0.5f, 0.5f,
-                        0.5f, 0.5f, -0.5f,
-                        0.5f, 0.5f, 0.5f, // indices_: {12 13 14} {13 15 14}
-                        -0.5f, -0.5f, 0.5f, // face 5: front
-                        -0.5f, 0.5f, 0.5f,
-                        0.5f, -0.5f, 0.5f,
-                        0.5f, 0.5f, 0.5f, // indices_: {16 18 17} {17 18 19}
-                        -0.5f, -0.5f, -0.5f, // face 6: back
-                        -0.5f, 0.5f, -0.5f,
-                        0.5f, -0.5f, -0.5f,
-                        0.5f, 0.5f, -0.5f, // indices_: {20 21 22} {21 23 22}
-                };
-                std::vector<float> normalRaw = {-1.0f, 0.0f, 0.0f,
-                                                -1.0f, 0.0f, 0.0f,
-                                                -1.0f, 0.0f, 0.0f,
-                                                -1.0f, 0.0f, 0.0f,
-                                                1.0f, 0.0f, 0.0f,
-                                                1.0f, 0.0f, 0.0f,
-                                                1.0f, 0.0f, 0.0f,
-                                                1.0f, 0.0f, 0.0f,
-                                                0.0f, -1.0f, 0.0f,
-                                                0.0f, -1.0f, 0.0f,
-                                                0.0f, -1.0f, 0.0f,
-                                                0.0f, -1.0f, 0.0f,
-                                                0.0f, 1.0f, 0.0f,
-                                                0.0f, 1.0f, 0.0f,
-                                                0.0f, 1.0f, 0.0f,
-                                                0.0f, 1.0f, 0.0f,
-                                                0.0f, 0.0f, 1.0f,
-                                                0.0f, 0.0f, 1.0f,
-                                                0.0f, 0.0f, 1.0f,
-                                                0.0f, 0.0f, 1.0f,
-                                                0.0f, 0.0f, -1.0f,
-                                                0.0f, 0.0f, -1.0f,
-                                                0.0f, 0.0f, -1.0f,
-                                                0.0f, 0.0f, -1.0f,
-                };
-                std::vector<float> texCoordsRaw = {0.0f, 0.0f,
-                                                   0.0f, 1.0f,
-                                                   1.0f, 0.0f,
-                                                   1.0f, 1.0f,
-                                                   0.0f, 0.0f,
-                                                   0.0f, 1.0f,
-                                                   1.0f, 0.0f,
-                                                   1.0f, 1.0f,
-                                                   0.0f, 0.0f,
-                                                   0.0f, 1.0f,
-                                                   1.0f, 0.0f,
-                                                   1.0f, 1.0f,
-                                                   0.0f, 0.0f,
-                                                   0.0f, 1.0f,
-                                                   1.0f, 0.0f,
-                                                   1.0f, 1.0f,
-                                                   0.0f, 0.0f,
-                                                   0.0f, 1.0f,
-                                                   1.0f, 0.0f,
-                                                   1.0f, 1.0f,
-                                                   0.0f, 0.0f,
-                                                   0.0f, 1.0f,
-                                                   1.0f, 0.0f,
-                                                   1.0f, 1.0f};
-                int num_vertices = 24;  // 6 faces * 4 vertex on each face (2 triangles on each face)
-                std::vector<DawnVertex> vertices;
-                for (int i = 0; i < num_vertices; ++i) {
-                    DawnVertex tmpV = {};
-                    tmpV.position = glm::vec3(positionRaw[i * 3], positionRaw[i * 3 + 1], positionRaw[i * 3 + 2]);
-                    tmpV.normal = glm::vec3(normalRaw[i * 3], normalRaw[i * 3 + 1], normalRaw[i * 3 + 2]);
-                    tmpV.texCoords = glm::vec2(texCoordsRaw[i * 2], texCoordsRaw[i * 2 + 1]);
-                    vertices.push_back(tmpV);
-                }
-                std::vector<unsigned int> indices = {0, 1, 2, 1, 3, 2,
-                                                     4, 6, 5, 5, 6, 7,
-                                                     8, 10, 9, 9, 10, 11,
-                                                     12, 13, 14, 13, 15, 14,
-                                                     16, 18, 17, 17, 18, 19,
-                                                     20, 21, 22, 21, 23, 22
-                };
-                DawnMesh mesh = DawnMesh(vertices, indices, DawnMaterial());
-                auto *cubePrimitive(new GameObject("New Cube Primitive", true));
-                DawnModel model({mesh});
-                cubePrimitive->AddModule<RendererModule>(model);
-                return cubePrimitive;
-                break;
-            }
-            default:
-                break;
-        }
-        return nullptr;
-    }
+
 
     GameObject *GameObject::CreateSkybox(std::vector<std::string> facesPaths) {
         std::vector<float> positionRaw = {
@@ -211,7 +106,7 @@ namespace dawn_engine {
         for (const auto &path: facesPaths) {
             cube_map_textures.emplace_back(std::make_shared<DawnTexture>(path));
         }
-        DawnMaterial skybox_material = DawnMaterial(cube_map_textures);
+        auto  skybox_material = std::make_shared<DawnMaterial>(cube_map_textures);
         DawnMesh mesh = DawnMesh(vertices, indices, skybox_material);
         DawnModel model = DawnModel({mesh});
         auto *skybox(new GameObject("New Skybox", true));

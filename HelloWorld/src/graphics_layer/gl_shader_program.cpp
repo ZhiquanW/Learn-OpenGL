@@ -75,75 +75,75 @@ namespace dawn_engine {
         this->id = createShaderProgram();
     }
 
-    void GLShaderProgram::activate() const { glUseProgram(this->id); }
+    void GLShaderProgram::Activate() const { glUseProgram(this->id); }
 
-    void GLShaderProgram::setBool(const std::string &name, bool value) const {
+    void GLShaderProgram::SetBool(const std::string &name, bool value) const {
         glUniform1i(glGetUniformLocation(this->id, name.c_str()), (int) value);
     }
 
-    void GLShaderProgram::setInt(const std::string &name, int value) const {
+    void GLShaderProgram::SetInt(const std::string &name, int value) const {
         glUniform1i(glGetUniformLocation(this->id, name.c_str()), value);
     }
 
-    void GLShaderProgram::setFloat(const std::string &name, float value) const {
+    void GLShaderProgram::SetFloat(const std::string &name, float value) const {
         glUniform1f(glGetUniformLocation(this->id, name.c_str()), value);
     }
 
-    void GLShaderProgram::setMatrix4fv(const std::string &name, glm::mat4 value) const {
+    void GLShaderProgram::SetMatrix4fv(const std::string &name, glm::mat4 value) const {
         glUniformMatrix4fv(glGetUniformLocation(this->id, name.c_str()), 1, GL_FALSE,
                            glm::value_ptr(value));
     }
 
-    void GLShaderProgram::setVec3fv(const std::string &name, glm::vec3 value) const {
+    void GLShaderProgram::SetVec3fv(const std::string &name, glm::vec3 value) const {
         glUniform3fv(glGetUniformLocation(this->id, name.c_str()), 1, glm::value_ptr(value));
     }
 
-    void GLShaderProgram::setUniform(const std::string &name, bool value) const {
+    void GLShaderProgram::SetUniform(const std::string &name, bool value) const {
         glUniform1i(glGetUniformLocation(this->id, name.c_str()), (int) value);
     }
 
-    void GLShaderProgram::setUniform(const std::string &name, int value) const {
+    void GLShaderProgram::SetUniform(const std::string &name, int value) const {
         glUniform1i(glGetUniformLocation(this->id, name.c_str()), value);
 
     }
 
-    void GLShaderProgram::setUniform(const std::string &name, float value) const {
+    void GLShaderProgram::SetUniform(const std::string &name, float value) const {
         glUniform1f(glGetUniformLocation(this->id, name.c_str()), value);
     }
 
-    void GLShaderProgram::setUniform(const std::string &name, glm::vec3 value) const {
+    void GLShaderProgram::SetUniform(const std::string &name, glm::vec3 value) const {
         glUniform3fv(glGetUniformLocation(this->id, name.c_str()), 1, glm::value_ptr(value));
     }
 
 
-    void GLShaderProgram::setUniform(const std::string &name, glm::mat4 value) const {
+    void GLShaderProgram::SetUniform(const std::string &name, glm::mat4 value) const {
         glUniformMatrix4fv(glGetUniformLocation(this->id, name.c_str()), 1, GL_FALSE,
                            glm::value_ptr(value));
     }
 
-    void GLShaderProgram::GetUniforms(
+    void GLShaderProgram::SetUniforms(
             const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms) const {
         for (const auto &u_sp: uniforms) {
             ShaderUniformVariableBase *u_ptr = u_sp.get();
             if (u_ptr->GetTypeHash() == typeid(int).hash_code()) {
-                this->setUniform(u_ptr->getName(), dynamic_cast<ShaderUniformVariable<int> *>(u_ptr)->GetData());
-//                this->setInt(u_ptr->GetName(),
+                this->SetUniform(u_ptr->getName(), dynamic_cast<ShaderUniformVariable<int> *>(u_ptr)->GetData());
+//                this->SetInt(u_ptr->GetName(),
 //                             dynamic_cast<ShaderUniformVariable<int> *>(u_ptr)->GetData());
             } else if (u_ptr->GetTypeHash() == typeid(bool).hash_code()) {
-                this->setUniform(u_ptr->getName(), dynamic_cast<ShaderUniformVariable<bool> *>(u_ptr)->GetData());
-//                this->setBool(u_ptr->GetName(),
+                this->SetUniform(u_ptr->getName(), dynamic_cast<ShaderUniformVariable<bool> *>(u_ptr)->GetData());
+//                this->SetBool(u_ptr->GetName(),
 //                              dynamic_cast<ShaderUniformVariable<bool> *>(u_ptr)->GetData());
             } else if (u_ptr->GetTypeHash() == typeid(float).hash_code()) {
-                this->setUniform(u_ptr->getName(), dynamic_cast<ShaderUniformVariable<float> *>(u_ptr)->GetData());
-                //                this->setFloat(u_ptr->GetName(),
+                this->SetUniform(u_ptr->getName(), dynamic_cast<ShaderUniformVariable<float> *>(u_ptr)->GetData());
+                //                this->SetFloat(u_ptr->GetName(),
 //                               dynamic_cast<ShaderUniformVariable<float> *>(u_ptr)->GetData());
             } else if (u_ptr->GetTypeHash() == typeid(glm::vec3).hash_code()) {
-                this->setUniform(u_ptr->getName(), dynamic_cast<ShaderUniformVariable<glm::vec3> *>(u_ptr)->GetData());
-//                this->setVec3fv(u_ptr->GetName(),
+                this->SetUniform(u_ptr->getName(), dynamic_cast<ShaderUniformVariable<glm::vec3> *>(u_ptr)->GetData());
+//                this->SetVec3fv(u_ptr->GetName(),
 //                                dynamic_cast<ShaderUniformVariable<glm::vec3> *>(u_ptr)->GetData());
             } else if (u_ptr->GetTypeHash() == typeid(glm::mat4).hash_code()) {
-                this->setUniform(u_ptr->getName(), dynamic_cast<ShaderUniformVariable<glm::mat4> *>(u_ptr)->GetData());
-//                this->setMatrix4fv(u_ptr->GetName(),
+                this->SetUniform(u_ptr->getName(), dynamic_cast<ShaderUniformVariable<glm::mat4> *>(u_ptr)->GetData());
+//                this->SetMatrix4fv(u_ptr->GetName(),
 //                                   dynamic_cast<ShaderUniformVariable<glm::mat4> *>(u_ptr)->GetData());
             } else {
                 throw std::runtime_error("unknown shader uniform variable type");
@@ -185,6 +185,8 @@ namespace dawn_engine {
     unsigned int GLShaderProgram::GetID() const {
         return this->id;
     }
+
+
 
 
 } // namespace dawn_engine

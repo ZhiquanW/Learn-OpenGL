@@ -6,6 +6,9 @@
 #include <utility>
 
 namespace dawn_engine {
+    DawnMaterial::DawnMaterial(ShaderInfo  shader_info) :shader_info_(std::move(shader_info)){
+    }
+
 
     DawnMaterial::DawnMaterial(std::vector<std::shared_ptr<DawnTexture>> diffuse_textures,
                                std::vector<std::shared_ptr<DawnTexture>> specular_textures,
@@ -150,6 +153,11 @@ namespace dawn_engine {
 
     DawnMaterialType DawnMaterial::GetMaterialType() const {
         return this->material_type_;
+    }
+
+    void DawnMaterial::SetShaderInfo(const ShaderInfo & shader_info) {
+        this->shader_info_ = shader_info;
+
     }
 
 

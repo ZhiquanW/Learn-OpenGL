@@ -7,7 +7,6 @@
 #include "dawn_vertex.h"
 
 namespace dawn_engine {
-    unsigned int TextureFromFile(const char *path, const std::string &directory, bool gamma = false);
 
 
     class DawnMesh {
@@ -16,12 +15,12 @@ namespace dawn_engine {
     protected:
         std::vector<DawnVertex> vertices_;
         std::vector<unsigned int> indices_;
-        DawnMaterial material_;
+        std::shared_ptr<DawnMaterial> material_ptr_;
 
     public:
         DawnMesh();
 
-        DawnMesh(const std::vector<DawnVertex> &vertices, const std::vector<unsigned int> &indices, const DawnMaterial &material);
+        DawnMesh(const std::vector<DawnVertex> &vertices, const std::vector<unsigned int> &indices, const std::shared_ptr<DawnMaterial> & material_ptr);
 
         ~DawnMesh() = default;
 
@@ -33,9 +32,9 @@ namespace dawn_engine {
 
         bool EnableLightingMap() const;
 
-        DawnMaterial GetMaterial() const;
+        std::shared_ptr<DawnMaterial> GetMaterialPtr() const;
 
-        DawnMaterial &GetMaterialRef();
+        void SetMaterialPtr(const std::shared_ptr<DawnMaterial> &material_ptr);
 
         std::vector<DawnVertex> &GetVerticesRef();
 

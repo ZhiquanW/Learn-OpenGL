@@ -6,10 +6,10 @@ namespace dawn_engine {
 
     DawnMesh::DawnMesh() = default;
 
-    DawnMesh::DawnMesh(const std::vector<DawnVertex> &vertices, const std::vector<unsigned int> &indices, const DawnMaterial &material) {
+    DawnMesh::DawnMesh(const std::vector<DawnVertex> &vertices, const std::vector<unsigned int> &indices,const  std::shared_ptr<DawnMaterial>  &material_ptr) {
         this->vertices_ = vertices;
         this->indices_ = indices;
-        this->material_ = material;
+        this->material_ptr_ = material_ptr;
     }
 
 //
@@ -53,7 +53,7 @@ namespace dawn_engine {
 //    }
 
 //    void DawnMesh::render(GLShaderProgram *shaderProgram) const {
-//        shaderProgram->GetUniforms(this->material.getUniforms());
+//        shaderProgram->SetUniforms(this->material.getUniforms());
 //        this->material.bindTextures();
 //        glBindVertexArray(this->glVAO);
 //        glDrawElements(GL_TRIANGLES, (int) this->indices_.size(), GL_UNSIGNED_INT, 0);
@@ -72,16 +72,13 @@ namespace dawn_engine {
     }
 
     bool DawnMesh::EnableLightingMap() const {
-        return this->material_.EnabledLightingMaps();
+        return this->material_ptr_->EnabledLightingMaps();
     }
 
-    DawnMaterial DawnMesh::GetMaterial() const {
-        return this->material_;
+    std::shared_ptr<DawnMaterial>  DawnMesh::GetMaterialPtr() const {
+        return this->material_ptr_;
     }
 
-    DawnMaterial &DawnMesh::GetMaterialRef() {
-        return this->material_;
-    }
 
     std::vector<DawnVertex> &DawnMesh::GetVerticesRef() {
         return this->vertices_;
@@ -89,6 +86,10 @@ namespace dawn_engine {
 
     std::vector<unsigned int> &DawnMesh::GetIndicesRef() {
         return this->indices_;
+    }
+
+    void DawnMesh::SetMaterialPtr(const std::shared_ptr<DawnMaterial> &material_ptr) {
+        this->material_ptr_ = material_ptr;
     }
 
 

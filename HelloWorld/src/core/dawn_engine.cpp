@@ -8,7 +8,7 @@ namespace dawn_engine {
     DawnEngine *DawnEngine::instance = nullptr;
 
     DawnEngine::DawnEngine(uint32_t win_width, uint32_t win_height, const std::string &name)
-            : deltaTime(1.0f / 60.0f), lastTime(0.0f), uiSystem(nullptr) {
+            : deltaTime(1.0f / 60.0f), lastTime(0.0f), ui_system_(nullptr) {
         DawnEngine::instance = this;
         this->render_window_ = new RenderWindow(win_width, win_height, name);
         this->main_camera_ = Camera();
@@ -21,21 +21,24 @@ namespace dawn_engine {
                    (GLsizei) this->render_window_->GetWinHeight());
         this->EnableGLFeatures();
         this->InitShaderPrograms();
+        this->InitMaterials();
+        // TMP: generate depth texture and framebuffer
+        this->depth_fbo = AllocateGLDepthMap(glm::vec2(1024));
     }
 
 
     DawnEngine::~DawnEngine() {
         delete this->render_window_;
-        if (!this->uiSystem) {
-            delete this->uiSystem;
+        if (!this->ui_system_) {
+            delete this->ui_system_;
         }
     }
 
     void DawnEngine::launch() {
         this->awake();
         this->start();
-        if (this->uiSystem != nullptr) {
-            this->uiSystem->start(this);
+        if (this->ui_system_ != nullptr) {
+            this->ui_system_->start(this);
         }
         this->InitGlobalUniformBlocks();
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -50,8 +53,8 @@ namespace dawn_engine {
             this->render_window_->process_inputs(&this->main_camera_, this->deltaTime);
             this->update();
             this->render();
-            if (uiSystem != nullptr) {
-                this->uiSystem->render(this);
+            if (ui_system_ != nullptr) {
+                this->ui_system_->render(this);
             }
             this->render_window_->swap_buffers();
             glfwPollEvents();
@@ -103,35 +106,82 @@ namespace dawn_engine {
     }
 
 
-    void DawnEngine::render() {
-        // 1. render depth of scene to texture (from light's perspective)
-        // --------------------------------------------------------------
-        glm::mat4 light_projection, light_view;
-        glm::mat4 light_space_mat;
-        light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, main_camera_.GetZNear(),main_camera_.GetZFar());
+    /*  render depth of scene to texture (from light's perspective)
+     * 1. set light uniform
+     * 2. activate light depth shader
+     * 3. set light uniforms
+     * 4. render
+    */
+    void DawnEngine::render_depth_map() {
+        auto light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, main_camera_.GetZNear(),main_camera_.GetZFar());
         auto dir_light = this->FindGameObjectByName("dir_light");
-        light_view = glm::lookAt(dir_light->GetModule<TransformModule>()->GetPosition(), glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-
-        // main render
-        this->RefreshGlobalUniformBlocks();
+        auto light_view = glm::lookAt(glm::vec3(10.0f), glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+        auto light_space_mat = light_projection * light_view;
+        auto depth_shader = this->shader_program_map.at("simple_depth");
+        glViewport(0, 0, 1024, 1024);
+        glBindFramebuffer(GL_FRAMEBUFFER, this->depth_fbo);
+        glClear(GL_DEPTH_BUFFER_BIT);
         std::vector<std::shared_ptr<GLRenderObject>> opaque_render_queue = {};
         std::map<float, std::shared_ptr<GLRenderObject>> transparent_render_queue = {};
         for (auto g_obj: this->game_object_ptrs) {
             if (g_obj->GetModule<RendererModule>() != nullptr) {
                 float distance2cam = glm::length(g_obj->GetModule<TransformModule>()->GetPosition() - this->main_camera_.GetPosition());
                 auto render_pairs = g_obj->GetModule<RendererModule>()->GetGLRenderObjectMap();
-                for (auto render_pair: render_pairs) {
+                for (const auto& render_pair: render_pairs) {
+                    auto mesh = g_obj->GetModule<RendererModule>()->GetMesh(render_pair.first);
+
+                    std::vector<std::shared_ptr<ShaderUniformVariableBase>> uniforms = {std::make_shared<ShaderUniformVariable<glm::mat4 >>("light_space_mat", light_space_mat)};
+                    auto transform_uniforms = ExtractUniforms("model_mat", g_obj->GetModule<TransformModule>());
+                    uniforms.insert(uniforms.begin(), transform_uniforms.begin(), transform_uniforms.end());
+                    render_pair.second->RefreshShaderProgram(depth_shader);
+                    render_pair.second->RefreshUniforms(uniforms);
+
+                    if (mesh.GetMaterialPtr()->GetOpaque()) {
+                        opaque_render_queue.push_back(render_pair.second);
+                    } else {
+                        transparent_render_queue.insert({distance2cam, render_pair.second});
+                    }
+                }
+            }
+        }
+        // render opaque objects
+        for (const auto &render_obj: opaque_render_queue) {
+            render_obj->render();
+        }
+        // render transparent objects
+        for (const auto &render_obj_pair: transparent_render_queue) {
+            render_obj_pair.second->render();
+        }
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    }
+    void DawnEngine::render() {
+        this->RefreshGlobalUniformBlocks();
+        this->render_depth_map();
+        // main render
+        // reset viewport
+        glViewport(0, 0, (GLsizei) this->render_window_->GetWinWidth(),
+                   (GLsizei) this->render_window_->GetWinHeight());
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        std::vector<std::shared_ptr<GLRenderObject>> opaque_render_queue = {};
+        std::map<float, std::shared_ptr<GLRenderObject>> transparent_render_queue = {};
+        for (auto g_obj: this->game_object_ptrs) {
+            if (g_obj->GetModule<RendererModule>() != nullptr) {
+                float distance2cam = glm::length(g_obj->GetModule<TransformModule>()->GetPosition() - this->main_camera_.GetPosition());
+                auto render_pairs = g_obj->GetModule<RendererModule>()->GetGLRenderObjectMap();
+                for (const auto& render_pair: render_pairs) {
                     auto mesh = g_obj->GetModule<RendererModule>()->GetMesh(render_pair.first);
                     std::vector<std::shared_ptr<ShaderUniformVariableBase>> uniforms = {};
                     auto transform_uniforms = ExtractUniforms("model_mat", g_obj->GetModule<TransformModule>());
                     uniforms.insert(uniforms.begin(), transform_uniforms.begin(), transform_uniforms.end());
-                    if (mesh.GetMaterial().GetShaderInfo().name == ShaderTable::default_shader_info.name ||
-                        mesh.GetMaterial().GetShaderInfo().name == ShaderTable::pure_shader_info.name) {
-                        auto material_uniforms = ExtractUniforms("material", mesh.GetMaterial());
+                    if (mesh.GetMaterialPtr()->GetShaderInfo().name == ShaderTable::default_shader_info.name ||
+                            mesh.GetMaterialPtr()->GetShaderInfo().name == ShaderTable::pure_shader_info.name) {
+                        auto material_uniforms = ExtractUniforms("material", mesh.GetMaterialPtr());
                         uniforms.insert(uniforms.begin(), material_uniforms.begin(), material_uniforms.end());
                     }
                     render_pair.second->RefreshUniforms(uniforms);
-                    if (mesh.GetMaterial().GetOpaque()) {
+                    render_pair.second->RefreshShaderProgram(this->shader_program_map.at(mesh.GetMaterialPtr()->GetShaderInfo().name));
+                    if (mesh.GetMaterialPtr()->GetOpaque()) {
                         opaque_render_queue.push_back(render_pair.second);
                     } else {
                         transparent_render_queue.insert({distance2cam, render_pair.second});
@@ -167,9 +217,9 @@ namespace dawn_engine {
 //            this->activeShader->activate();
 //            if (rendererM and rendererM->GetActivation()) {
 //                for (const auto &mesh: rendererM->getMeshesRef()) {
-//                    if (mesh.GetMaterial().GetOpaque()) {
+//                    if (mesh.GetMaterialPtr().GetOpaque()) {
 //                        // render opaque_ object
-//                        this->activeShader->setUniform("model_mat", gObj->GetModule<TransformModule>()->GetModelMat4());
+//                        this->activeShader->SetUniform("model_mat", gObj->GetModule<TransformModule>()->GetModelMat4());
 //                        mesh.render(this->activeShader);
 //                    } else {
 //                        // insert transparent object for sorting
@@ -180,7 +230,7 @@ namespace dawn_engine {
 //        }
         // render transparent object
 //        for (auto it = transparentRenderMap.rbegin(); it != transparentRenderMap.rend(); ++it) {
-//            this->activeShader->setUniform("model_mat", it->second.modelMat);
+//            this->activeShader->SetUniform("model_mat", it->second.modelMat);
 //            it->second.mesh.render(this->activeShader);
 //        }
 
@@ -203,7 +253,15 @@ namespace dawn_engine {
         shader_program_map.insert({ShaderTable::blinn_phong_info.name, new GLShaderProgram(ShaderTable::blinn_phong_info.name.c_str(),
                                                                                            ShaderTable::blinn_phong_info.vert_path.c_str(),
                                                                                            ShaderTable::blinn_phong_info.frag_path.c_str())});
+        shader_program_map.insert({ShaderTable::simple_depth_shader_info.name,new GLShaderProgram(ShaderTable::simple_depth_shader_info.name.c_str(),
+                                                                                             ShaderTable::simple_depth_shader_info.vert_path.c_str(),
+                                                                                             ShaderTable::simple_depth_shader_info.frag_path.c_str())});
 
+    }
+
+    void DawnEngine::InitMaterials() {
+        this->material_map.insert({"default", DawnMaterial()});
+        this->material_map.insert({"depth",DawnMaterial(ShaderTable::depth_shader_info)});
     }
 
     void DawnEngine::EnableGLFeatures() {
@@ -218,9 +276,9 @@ namespace dawn_engine {
 
     }
 
-    void DawnEngine::mountUISystem(DawnUISystem *uiSystem) {
-        this->uiSystem = uiSystem;
-        this->uiSystem->initialize(this->render_window_->getWindowPtr());
+    void DawnEngine::MountUISystem(DawnUISystem *ui_system) {
+        this->ui_system_ = ui_system;
+        this->ui_system_->initialize(this->render_window_->getWindowPtr());
 
     }
 
@@ -250,8 +308,8 @@ namespace dawn_engine {
         for (const auto &name: shader_program_names) {
             auto shaderProgramPtr = this->shader_program_map.at(name);
             if (shaderProgramPtr != nullptr) {
-                shaderProgramPtr->activate();
-                shaderProgramPtr->GetUniforms(uniforms);
+                shaderProgramPtr->Activate();
+                shaderProgramPtr->SetUniforms(uniforms);
             }
         }
 
@@ -330,7 +388,10 @@ namespace dawn_engine {
         this->uniform_buffer_map.insert({"DirLightBlock", dir_light_uniform_buffer});
         this->uniform_buffer_map.insert({"PointLightBlock", point_light_uniform_buffer});
         this->uniform_buffer_map.insert({"SpotLightBlock", spot_light_uniform_buffer});
+
+
     }
+
 
     RayHitInfo DawnEngine::RayCastDetection(Ray ray) {
         std::map<float, RayHitInfo> hit_info_queue;
@@ -351,6 +412,8 @@ namespace dawn_engine {
         return hit_info_queue.begin()->second;
     }
 
+
+
     GameObject *DawnEngine::FindGameObjectByName(std::string name) {
         for(auto game_obj : this->game_object_ptrs){
             if(game_obj->GetName() == name){
@@ -358,6 +421,136 @@ namespace dawn_engine {
             }
         }
         return nullptr;
+    }
+
+    GameObject *DawnEngine::CreatePrimitive(PrimitiveType pType) {
+        switch (pType) {
+            case BoxPrimitive: {
+                std::vector<float> positionRaw = {
+                        -0.5f, -0.5f, -0.5f, // face 1: left
+                        -0.5f, -0.5f, 0.5f,
+                        -0.5f, 0.5f, -0.5f,
+                        -0.5f, 0.5f, 0.5f, // indices_: {0 1 2} {1 3 2}
+                        0.5f, -0.5f, -0.5f, // face 2: right
+                        0.5f, -0.5f, 0.5f,
+                        0.5f, 0.5f, -0.5f,
+                        0.5f, 0.5f, 0.5f, // indices_: {4 6 5} {5 6 7}
+                        -0.5f, -0.5f, -0.5f, // face 3: bottom
+                        -0.5f, -0.5f, 0.5f,
+                        0.5f, -0.5f, -0.5f,
+                        0.5f, -0.5f, 0.5f, // indices_: {8 10 9} {9 10 11}
+                        -0.5f, 0.5f, -0.5f, // face 4: top
+                        -0.5f, 0.5f, 0.5f,
+                        0.5f, 0.5f, -0.5f,
+                        0.5f, 0.5f, 0.5f, // indices_: {12 13 14} {13 15 14}
+                        -0.5f, -0.5f, 0.5f, // face 5: front
+                        -0.5f, 0.5f, 0.5f,
+                        0.5f, -0.5f, 0.5f,
+                        0.5f, 0.5f, 0.5f, // indices_: {16 18 17} {17 18 19}
+                        -0.5f, -0.5f, -0.5f, // face 6: back
+                        -0.5f, 0.5f, -0.5f,
+                        0.5f, -0.5f, -0.5f,
+                        0.5f, 0.5f, -0.5f, // indices_: {20 21 22} {21 23 22}
+                };
+                std::vector<float> normalRaw = {-1.0f, 0.0f, 0.0f,
+                                                -1.0f, 0.0f, 0.0f,
+                                                -1.0f, 0.0f, 0.0f,
+                                                -1.0f, 0.0f, 0.0f,
+                                                1.0f, 0.0f, 0.0f,
+                                                1.0f, 0.0f, 0.0f,
+                                                1.0f, 0.0f, 0.0f,
+                                                1.0f, 0.0f, 0.0f,
+                                                0.0f, -1.0f, 0.0f,
+                                                0.0f, -1.0f, 0.0f,
+                                                0.0f, -1.0f, 0.0f,
+                                                0.0f, -1.0f, 0.0f,
+                                                0.0f, 1.0f, 0.0f,
+                                                0.0f, 1.0f, 0.0f,
+                                                0.0f, 1.0f, 0.0f,
+                                                0.0f, 1.0f, 0.0f,
+                                                0.0f, 0.0f, 1.0f,
+                                                0.0f, 0.0f, 1.0f,
+                                                0.0f, 0.0f, 1.0f,
+                                                0.0f, 0.0f, 1.0f,
+                                                0.0f, 0.0f, -1.0f,
+                                                0.0f, 0.0f, -1.0f,
+                                                0.0f, 0.0f, -1.0f,
+                                                0.0f, 0.0f, -1.0f,
+                };
+                std::vector<float> texCoordsRaw = {0.0f, 0.0f,
+                                                   0.0f, 1.0f,
+                                                   1.0f, 0.0f,
+                                                   1.0f, 1.0f,
+                                                   0.0f, 0.0f,
+                                                   0.0f, 1.0f,
+                                                   1.0f, 0.0f,
+                                                   1.0f, 1.0f,
+                                                   0.0f, 0.0f,
+                                                   0.0f, 1.0f,
+                                                   1.0f, 0.0f,
+                                                   1.0f, 1.0f,
+                                                   0.0f, 0.0f,
+                                                   0.0f, 1.0f,
+                                                   1.0f, 0.0f,
+                                                   1.0f, 1.0f,
+                                                   0.0f, 0.0f,
+                                                   0.0f, 1.0f,
+                                                   1.0f, 0.0f,
+                                                   1.0f, 1.0f,
+                                                   0.0f, 0.0f,
+                                                   0.0f, 1.0f,
+                                                   1.0f, 0.0f,
+                                                   1.0f, 1.0f};
+                int num_vertices = 24;  // 6 faces * 4 vertex on each face (2 triangles on each face)
+                std::vector<DawnVertex> vertices;
+                for (int i = 0; i < num_vertices; ++i) {
+                    DawnVertex tmpV = {};
+                    tmpV.position = glm::vec3(positionRaw[i * 3], positionRaw[i * 3 + 1], positionRaw[i * 3 + 2]);
+                    tmpV.normal = glm::vec3(normalRaw[i * 3], normalRaw[i * 3 + 1], normalRaw[i * 3 + 2]);
+                    tmpV.texCoords = glm::vec2(texCoordsRaw[i * 2], texCoordsRaw[i * 2 + 1]);
+                    vertices.push_back(tmpV);
+                }
+                std::vector<unsigned int> indices = {0, 1, 2, 1, 3, 2,
+                                                     4, 6, 5, 5, 6, 7,
+                                                     8, 10, 9, 9, 10, 11,
+                                                     12, 13, 14, 13, 15, 14,
+                                                     16, 18, 17, 17, 18, 19,
+                                                     20, 21, 22, 21, 23, 22
+                };
+                DawnMesh mesh = DawnMesh(vertices, indices, std::make_shared<DawnMaterial>(this->material_map.at("default")));
+                auto *cubePrimitive(new GameObject("New Cube Primitive", true));
+                DawnModel model({mesh});
+                cubePrimitive->AddModule<RendererModule>(model);
+                return cubePrimitive;
+                break;
+            }
+            default:
+                break;
+        }
+        return nullptr;
+    }
+
+    void DawnEngine::AddMaterial(const std::string & name, const DawnMaterial& material) {
+        this->material_map.insert({name,material});
+
+    }
+
+    void DawnEngine::AddShaderProgram(const std::string &name, GLShaderProgram *shader_program) {
+        this->shader_program_map.insert({name, shader_program});
+    }
+
+    GLShaderProgram *DawnEngine::GetShaderProgram(const std::string &name) {
+        if(this->shader_program_map.count(name) == 0){
+            throw std::runtime_error(fmt::format("shader program: {} not exists in table",name));
+        }
+        return this->shader_program_map.at(name);
+    }
+
+    DawnMaterial DawnEngine::GetMaterial(const std::string &name) {
+        if(this->material_map.count(name) == 0){
+            throw std::runtime_error(fmt::format("material : {} not exists in table",name));
+        }
+        return this->material_map.at(name);
     }
 
 

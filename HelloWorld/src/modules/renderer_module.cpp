@@ -22,31 +22,34 @@ namespace dawn_engine {
             auto mesh = this->model_.GetMeshesRef()[i];
             auto gl_obj = AllocateGLVertexData(mesh.GetVerticesRef(), mesh.GetIndicesRef());
 
-            if (mesh.GetMaterial().GetMaterialType() == DawnMaterialType::Texture2D) {
-                std::vector<unsigned int> diffuse_gl_texture_ids = AllocateGLTextureDataFiltered(texture_id_map, mesh.GetMaterial().GetDiffuseTextures());
-                std::vector<unsigned int> specular_gl_texture_ids = AllocateGLTextureDataFiltered(texture_id_map, mesh.GetMaterial().GetSpecularTextures());
-                std::vector<unsigned int> normal_gl_texture_ids = AllocateGLTextureDataFiltered(texture_id_map, mesh.GetMaterial().GetNormalTextures());
+            if (mesh.GetMaterialPtr()->GetMaterialType() == DawnMaterialType::Texture2D) {
+                std::vector<unsigned int> diffuse_gl_texture_ids = AllocateGLTextureDataFiltered(texture_id_map,
+                                                                                                 mesh.GetMaterialPtr()->GetDiffuseTextures());
+                std::vector<unsigned int> specular_gl_texture_ids = AllocateGLTextureDataFiltered(texture_id_map,
+                                                                                                  mesh.GetMaterialPtr()->GetSpecularTextures());
+                std::vector<unsigned int> normal_gl_texture_ids = AllocateGLTextureDataFiltered(texture_id_map,
+                                                                                                mesh.GetMaterialPtr()->GetNormalTextures());
 //                this->gl_render_objects.push_back(
 //                        std::make_shared<GLRenderObject>(gl_obj[0], gl_obj[1], gl_obj[2],
 //                                                         mesh.GetIndicesNum(),
 //                                                         diffuse_gl_texture_ids, specular_gl_texture_ids, normal_gl_texture_ids,
-//                                                         mesh.GetMaterial().GetShaderInfo()));
+//                                                         mesh.GetMaterialPtr().GetShaderInfo()));
                 this->render_obj_map.insert({i, std::make_shared<GLRenderObject>(gl_obj[0], gl_obj[1], gl_obj[2],
                                                                                  mesh.GetIndicesNum(),
                                                                                  diffuse_gl_texture_ids, specular_gl_texture_ids, normal_gl_texture_ids,
-                                                                                 mesh.GetMaterial().GetShaderInfo())});
-            } else if (mesh.GetMaterial().GetMaterialType() == DawnMaterialType::Phong) {
+                                                                                 mesh.GetMaterialPtr()->GetShaderInfo())});
+            } else if (mesh.GetMaterialPtr()->GetMaterialType() == DawnMaterialType::Phong) {
                 this->render_obj_map.insert(
                         {i, std::make_shared<GLRenderObject>(gl_obj[0], gl_obj[1], gl_obj[2],
                                                              mesh.GetIndicesNum(),
-                                                             mesh.GetMaterial().GetShaderInfo())});
-            } else if (mesh.GetMaterial().GetMaterialType() == DawnMaterialType::CubeMap) {
-                unsigned int cube_map_gl_texture_id = LoadCubeMap2GL(mesh.GetMaterial().GetCubeMapTextures());
+                                                             mesh.GetMaterialPtr()->GetShaderInfo())});
+            } else if (mesh.GetMaterialPtr()->GetMaterialType() == DawnMaterialType::CubeMap) {
+                unsigned int cube_map_gl_texture_id = LoadCubeMap2GL(mesh.GetMaterialPtr()->GetCubeMapTextures());
                 this->render_obj_map.insert({i, std::make_shared<GLRenderObject>(gl_obj[0], gl_obj[1], gl_obj[2],
                                                                                  mesh.GetIndicesNum(),
                                                                                  cube_map_gl_texture_id,
-                                                                                 mesh.GetMaterial().GetShaderInfo())});
-            } else if (mesh.GetMaterial().GetMaterialType() == DawnMaterialType::Pure) {
+                                                                                 mesh.GetMaterialPtr()->GetShaderInfo())});
+            } else if (mesh.GetMaterialPtr()->GetMaterialType() == DawnMaterialType::Pure) {
                 GLRenderElement render_element = GLRenderElement::TRIANGLE;
                 if (mesh.GetIndicesNum() == 2) {
                     render_element = GLRenderElement::LINE;
@@ -59,7 +62,7 @@ namespace dawn_engine {
                                                              gl_obj[1],
                                                              gl_obj[2],
                                                              mesh.GetIndicesNum(),
-                                                             mesh.GetMaterial().GetShaderInfo())});
+                                                             mesh.GetMaterialPtr()->GetShaderInfo())});
             }
         }
     }
@@ -84,7 +87,7 @@ namespace dawn_engine {
 //        shaderProgram->activate();
 //        for (unsigned int meshIdx = 0; meshIdx < this->meshes.size(); ++meshIdx) {
 //            if (this->activations[meshIdx]) {
-//                shaderProgram->setUniform("model_mat", this->GetAttachedGameObject()->GetModule<TransformModule>()->GetModelMat4());
+//                shaderProgram->SetUniform("model_mat", this->GetAttachedGameObject()->GetModule<TransformModule>()->GetModelMat4());
 //                this->meshes[meshIdx].render(shaderProgram);
 //            }
 //        }
@@ -180,7 +183,7 @@ namespace dawn_engine {
 
 //    std::vector<float> RendererModule::getVertexData() const { return this->vertexData; }
 //
-//    Material RendererModule::GetMaterial() const { return this->material; }
+//    Material RendererModule::GetMaterialPtr() const { return this->material; }
 //
 //    Material &RendererModule::GetMaterialRef() { return this->material; }
 //

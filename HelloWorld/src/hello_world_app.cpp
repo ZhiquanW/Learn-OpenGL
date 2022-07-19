@@ -2,13 +2,13 @@
 #include <memory>
 #include "core/dawn_ui_system.h"
 #include "helloworld_ui_system.h"
-
+using namespace dawn_engine;
 namespace helloworld {
 
     HelloWorldApp::HelloWorldApp(uint width, uint height) : DawnEngine(width, height,
                                                                        "hello world") {
         auto *uiSystemPtr = new HelloWorldUISystem(430);
-        this->mountUISystem(static_cast<dawn_engine::DawnUISystem *>(uiSystemPtr));
+        this->MountUISystem(static_cast<dawn_engine::DawnUISystem *>(uiSystemPtr));
         // renderEngine = std::make_shared<dawn_engine::DawnEngine>(width, height, "hello world");
     }
 
@@ -27,24 +27,12 @@ namespace helloworld {
 //    }
 
     void HelloWorldApp::awake() {
+        auto line_material_ptr = std::make_shared<dawn_engine::DawnMaterial>();
+        this->AddMaterial("line_material",{glm::vec3(1.0f,1.0f,0.0f)});
 
     }
 
     void HelloWorldApp::start() {
-        auto v0 = glm::vec3(1, 2, 3);
-        auto v1 = glm::vec3(1.5, 2.5, 1.5);
-        std::cout << glm::to_string(glm::min(v0, v1)) << std::endl;
-
-        // std::shared_ptr<dawn_engine::PointLight> pLight(
-        //     new dawn_engine::PointLight(glm::vec3(1.0f), glm::vec3(0.9f), glm::vec3(0.9f), glm::vec3(0.9f)));
-        // this->addLight(pLight);
-        // this->AddGameObject(dawn_engine::GameObject::CreatePrimitive(dawn_engine::BoxPrimitive));
-        // load resource
-
-
-
-        // tmpLight->GetModule<dawn_engine::DirectionalLightModule>()->SetAmbientColor(glm::vec3(1.0f, 0.0f, 0.0));
-        // tmpLight->GetModule<dawn_engine::DirectionalLightModule>()->setDiffuseColor(glm::vec3(1.0f, 0.0f, 0.0));
         this->AddDefaultLight();
         this->AddDemoObjs();
     }
@@ -62,12 +50,14 @@ namespace helloworld {
                                                                });
         this->AddSkybox(skyboxObj);
         auto *game_obj = new dawn_engine::GameObject("Ray Line");
-        std::vector<dawn_engine::DawnVertex> vertices = {dawn_engine::DawnVertex(glm::vec3(0.0f)), dawn_engine::DawnVertex(glm::vec3(0.0f, 1.0f, 0.0f))};
-        auto line_mesh = dawn_engine::DawnMesh(vertices, {0, 1}, dawn_engine::DawnMaterial(glm::vec3(1.0f, 1.0f, 0.0f)));
+        std::vector<dawn_engine::DawnVertex> vertices = {dawn_engine::DawnVertex(glm::vec3(0.0f)), dawn_engine::DawnVertex(glm::vec3(1.0f, 1.0f, 1.0f))};
+        auto line_mesh = dawn_engine::DawnMesh(vertices, {0, 1}, std::make_shared<DawnMaterial>(this->GetMaterial("line_material")));
         game_obj->AddModule<dawn_engine::RendererModule>(dawn_engine::DawnModel({line_mesh}));
         dawn_engine::DawnEngine::instance->AddGameObject(game_obj);
-        auto box = dawn_engine::GameObject::CreatePrimitive(dawn_engine::BoxPrimitive);
+        auto box = this->CreatePrimitive(dawn_engine::BoxPrimitive);
         box->AddModule<dawn_engine::ColliderModule>(ColliderBox(box->GetModule<dawn_engine::TransformModule>()->GetPosition(), glm::vec3(1.0f)));
+        box->GetModule<dawn_engine::RendererModule>()->GetMesh(0).SetMaterialPtr(std::make_shared<dawn_engine::DawnMaterial>(this->material_map.at("depth")));
+        std::cout << box->GetModule<dawn_engine::RendererModule>()->GetMesh(0).GetMaterialPtr()->GetShaderInfo().name << std::endl;
         dawn_engine::DawnEngine::instance->AddGameObject(box);
 
 //        dawn_engine::DawnModel backpackModel = dawn_engine::DawnModel("../assets/backpack/backpack.obj");

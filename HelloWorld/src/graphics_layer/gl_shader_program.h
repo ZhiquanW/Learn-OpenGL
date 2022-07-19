@@ -28,33 +28,33 @@ namespace dawn_engine {
 
         unsigned int GetID() const;
 
-        void activate() const;
+        void Activate() const;
 
         void Reload();
 
         [[nodiscard]] std::string getName() const;
 
-        void setBool(const std::string &name, bool value) const;
+        void SetBool(const std::string &name, bool value) const;
 
-        void setInt(const std::string &name, int value) const;
+        void SetInt(const std::string &name, int value) const;
 
-        void setFloat(const std::string &name, float value) const;
+        void SetFloat(const std::string &name, float value) const;
 
-        void setMatrix4fv(const std::string &name, glm::mat4 value) const;
+        void SetMatrix4fv(const std::string &name, glm::mat4 value) const;
 
-        void setVec3fv(const std::string &name, glm::vec3 value) const;
+        void SetVec3fv(const std::string &name, glm::vec3 value) const;
 
-        void setUniform(const std::string &, glm::vec3 value) const;
+        void SetUniform(const std::string &name, glm::vec3 value) const;
 
-        void setUniform(const std::string &, bool value) const;
+        void SetUniform(const std::string &name, bool value) const;
 
-        void setUniform(const std::string &, int value) const;
+        void SetUniform(const std::string &name, int value) const;
 
-        void setUniform(const std::string &, float value) const;
+        void SetUniform(const std::string &name, float value) const;
 
-        void setUniform(const std::string &, glm::mat4 value) const;
+        void SetUniform(const std::string &name, glm::mat4 value) const;
 
-        void GetUniforms(const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms) const;
+        void SetUniforms(const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms) const;
 
     };
 

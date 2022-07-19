@@ -141,26 +141,26 @@ namespace helloworld {
                     ImGui::Text("%s", materialModeStr.c_str());
                     std::string CheckboxLabel = fmt::format("mesh activation##{}", meshIdx);
                     ImGui::Checkbox(CheckboxLabel.c_str(), &meshModule->getActivationsRef()[meshIdx]);
-                    selectedTransparencyTypeStr = meshOpaqueOptions[int(!tmpMesh.GetMaterialRef().GetOpaque())];
+                    selectedTransparencyTypeStr = meshOpaqueOptions[int(!tmpMesh.GetMaterialPtr()->GetOpaque())];
                     if (ImGui::BeginCombo("Transparency Type", selectedTransparencyTypeStr.c_str())) {
                         for (int i = 0; i < 2; ++i) {
                             bool isSelected = selectedTransparencyTypeStr.c_str() == meshOpaqueOptions[i].c_str();
                             if (ImGui::Selectable(meshOpaqueOptions[i].c_str(), isSelected)) {
                                 selectedTransparencyTypeStr = meshOpaqueOptions[i];
-                                tmpMesh.GetMaterialRef().SetOpaque(!bool(i));
+                                tmpMesh.GetMaterialPtr()->SetOpaque(!bool(i));
                             }
                         }
                         ImGui::EndCombo();
                     }
-                    if (!tmpMesh.GetMaterialRef().GetOpaque()) {
-                        ImGui::DragFloat("transparency", &tmpMesh.GetMaterialRef().getTransparencyRef(), this->defaultDragSpeed, 0.0f, 1.0f);
+                    if (!tmpMesh.GetMaterialPtr()->GetOpaque()) {
+                        ImGui::DragFloat("transparency", &tmpMesh.GetMaterialPtr()->getTransparencyRef(), this->defaultDragSpeed, 0.0f, 1.0f);
                     }
-                    ImGui::ColorEdit3("ambient", &tmpMesh.GetMaterialRef().GetAmbientColorRef()[0]);
+                    ImGui::ColorEdit3("ambient", &tmpMesh.GetMaterialPtr()->GetAmbientColorRef()[0]);
                     if (!enabledLightingMaps) {
-                        ImGui::ColorEdit3("diffuse", &tmpMesh.GetMaterialRef().GetDiffuseColorRef()[0]);
-                        ImGui::ColorEdit3("specular", &tmpMesh.GetMaterialRef().GetSpecularColorRef()[0]);
+                        ImGui::ColorEdit3("diffuse", &tmpMesh.GetMaterialPtr()->GetDiffuseColorRef()[0]);
+                        ImGui::ColorEdit3("specular", &tmpMesh.GetMaterialPtr()->GetSpecularColorRef()[0]);
                     }
-                    ImGui::DragFloat("shininess", &tmpMesh.GetMaterialRef().GetShininessRef(), this->defaultDragSpeed, 0.0f, this->defaultMaxValue);
+                    ImGui::DragFloat("shininess", &tmpMesh.GetMaterialPtr()->GetShininessRef(), this->defaultDragSpeed, 0.0f, this->defaultMaxValue);
                     ImGui::TreePop();
                 }
             }
@@ -246,7 +246,7 @@ namespace helloworld {
     void HelloWorldUISystem::UpdateCreationPopup(dawn_engine::DawnEngine *engine_ptr) {
         if (ImGui::BeginPopup("CreationPopup")) {
             if (ImGui::Button("Cube")) {
-                engine_ptr->AddGameObject(dawn_engine::GameObject::CreatePrimitive(dawn_engine::BoxPrimitive));
+                engine_ptr->AddGameObject(engine_ptr->CreatePrimitive(dawn_engine::BoxPrimitive));
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
@@ -281,17 +281,18 @@ namespace helloworld {
             auto *game_obj = new dawn_engine::GameObject("Ray Line", true);
 //            std::vector<dawn_engine::DawnVertex> vertices = {dawn_engine::DawnVertex(ray.GetOrigin()), dawn_engine::DawnVertex(ray.ToDirection(100))};
             std::vector<dawn_engine::DawnVertex> vertices = {dawn_engine::DawnVertex(ray.GetOrigin()), dawn_engine::DawnVertex(ray.ToDirection(100.0f))};
-            auto line_mesh = dawn_engine::DawnMesh(vertices, {0, 1}, dawn_engine::DawnMaterial(glm::vec3(1.0f, 1.0f, 0.0f)));
+            auto line_material = std::make_shared<dawn_engine::DawnMaterial>(glm::vec3(1.0f,1.0f,0.0f));
+            auto line_mesh = dawn_engine::DawnMesh(vertices, {0, 1}, line_material);
             game_obj->AddModule<dawn_engine::RendererModule>(dawn_engine::DawnModel({line_mesh}));
             dawn_engine::DawnEngine::instance->AddGameObject(game_obj);
 //            // collision detection on click
             auto hit_info = dawn_engine::DawnEngine::instance->RayCastDetection(ray);
             if (hit_info.any_hit) {
-                auto hit_point = dawn_engine::GameObject::CreatePrimitive(dawn_engine::PrimitiveType::BoxPrimitive);
+                auto hit_point = dawn_engine::DawnEngine::instance->CreatePrimitive(dawn_engine::PrimitiveType::BoxPrimitive);
                 auto transform_m = hit_point->GetModule<dawn_engine::TransformModule>();
                 transform_m->SetPosition(ray.ToDirection(hit_info.distance));
                 transform_m->SetScale(glm::vec3(0.1f));
-                hit_point->GetModule<dawn_engine::RendererModule>()->GetMesh(0).GetMaterialRef().SetAmbientColor(glm::vec3(1.0f, 0.0f, 0.0f));
+                hit_point->GetModule<dawn_engine::RendererModule>()->GetMesh(0).GetMaterialPtr()->SetAmbientColor(glm::vec3(1.0f, 0.0f, 0.0f));
                 dawn_engine::DawnEngine::instance->AddGameObject(hit_point);
             } else {
                 std::cout << " no hit" << std::endl;

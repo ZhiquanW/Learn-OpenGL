@@ -87,7 +87,7 @@ namespace dawn_engine {
                 indices.push_back(face.mIndices[j]);
             }
         }
-        // store material
+        // store material_ptr
         std::vector<std::shared_ptr<DawnTexture>> diffuse_textures = {};
         std::vector<std::shared_ptr<DawnTexture>> specular_textures = {};
         std::vector<std::shared_ptr<DawnTexture>> normal_textures = {};
@@ -97,8 +97,8 @@ namespace dawn_engine {
             specular_textures = this->loadMaterialTextures(meshMaterial, aiTextureType_SPECULAR);
             normal_textures = this->loadMaterialTextures(meshMaterial, aiTextureType_HEIGHT);
         }
-        DawnMaterial material = {diffuse_textures, specular_textures, normal_textures};
-        return {vertices, indices, material};
+        auto material_ptr = std::make_shared<DawnMaterial>(diffuse_textures, specular_textures, normal_textures);
+        return {vertices, indices, material_ptr};
     }
 
     std::vector<std::shared_ptr<DawnTexture>> DawnModel::loadMaterialTextures(aiMaterial *mat, aiTextureType type) {
@@ -141,13 +141,13 @@ namespace dawn_engine {
 
     void DawnModel::SetAllTransparent(float alpha) {
         for (auto &mesh: this->meshes_) {
-            mesh.GetMaterialRef().SetTransparency(alpha);
+            mesh.GetMaterialPtr()->SetTransparency(alpha);
         }
     }
 
     void DawnModel::EnableAllTransparent() {
         for (auto &mesh: this->meshes_) {
-            mesh.GetMaterialRef().SetOpaque(false);
+            mesh.GetMaterialPtr()->SetOpaque(false);
         }
     }
 

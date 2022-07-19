@@ -23,7 +23,7 @@ float linearize_depth(float depth) {
     return (2.0 * main_camera.z_near * main_camera.z_far) / (main_camera.z_far + main_camera.z_near - z * (main_camera.z_far - main_camera.z_near))/main_camera.z_far;	
 }
 void main() { 
-    // out_color =vec4( vec3(linearize_depth(gl_FragCoord.z)),1.0f);
-    out_color =vec4( 1.0f);
+    out_color =vec4( vec3(linearize_depth(gl_FragCoord.z)),1.0f);
+    // out_color =vec4( 1.0f);
 
 }

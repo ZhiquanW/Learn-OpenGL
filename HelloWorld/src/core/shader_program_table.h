@@ -21,6 +21,7 @@ namespace dawn_engine {
         inline static ShaderInfo skybox_shader_info{"skybox", "../shaders/skybox.vert", "../shaders/skybox.frag"};
         inline static ShaderInfo pure_shader_info{"pure", "../shaders/line_renderer.vert", "../shaders/line_renderer.frag"};
         inline static ShaderInfo blinn_phong_info{"blinn_phong_info", "../shaders/default_rendering.vert", "../shaders/blinn_phong_rendering.frag"};
+        inline static ShaderInfo simple_depth_shader_info{"simple_depth", "../shaders/simple_depth_map.vert", "../shaders/simple_depth_map.frag"};
 
     };
 

@@ -19,7 +19,6 @@ namespace dawn_engine {
         void initGameObject();
 
     public:
-        static GameObject *CreatePrimitive(PrimitiveType pType);
 
         static GameObject *CreateLight(LightType lType);
 
