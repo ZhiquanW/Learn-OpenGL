@@ -1,7 +1,7 @@
 #include "shader_uniform_variable.h"
 
 namespace dawn_engine {
-    std::string ShaderUniformVariableBase::getName() const { return this->name; }
+    std::string ShaderUniformVariableBase::GetName() const { return this->name; }
 
     std::size_t ShaderUniformVariableBase::GetTypeHash() const { return this->type_hash; }
 

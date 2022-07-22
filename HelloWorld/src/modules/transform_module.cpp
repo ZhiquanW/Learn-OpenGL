@@ -27,7 +27,7 @@ namespace dawn_engine {
         return glm::scale(scaleMat, this->scale);
     }
 
-    glm::mat4 TransformModule::GetModelMat4() const {
+    glm::mat4 TransformModule::GetModelMat() const {
         glm::mat4 modelMat = glm::mat4(1.0f);
         return this->GetTranslationMat() * this->GetRotationMat() * this->GetScaleMat();
     }
@@ -48,7 +48,7 @@ namespace dawn_engine {
         return this->rotation;
     }
 
-    [[maybe_unused]] glm::vec3 TransformModule::getScale() const {
+    [[maybe_unused]] glm::vec3 TransformModule::GetScale() const {
         return this->scale;
     }
 
@@ -71,6 +71,10 @@ namespace dawn_engine {
 
     glm::mat4 TransformModule::GetTransformMat() const {
         return GetTranslationMat() * GetRotationMat() * GetScaleMat();
+    }
+
+    glm::mat4 TransformModule::GetInvModelMat() const {
+        return glm::inverse(this->GetModelMat());
     }
 
 

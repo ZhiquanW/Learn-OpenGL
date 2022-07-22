@@ -20,14 +20,16 @@ namespace dawn_engine {
 
     void GameObject::initGameObject() {
         nextGameObjectID += 1;
-        this->moduleDict = {};
+        this->module_dict_ = {};
         if (this->isEntity) {
             this->AddModule<TransformModule>();
         }
+        DawnEngine::instance->AddGameObject(this);
+
     }
 
     GameObject::~GameObject() {
-        for (auto dictPair: this->moduleDict) {
+        for (auto dictPair: this->module_dict_) {
             for (auto module: dictPair.second) {
                 delete module;
             }
@@ -37,7 +39,7 @@ namespace dawn_engine {
 
     uint32_t GameObject::getModuleNum() const {
         uint32_t module_num = 0;
-        for (std::pair<std::size_t, std::vector<BaseModule *>> element: this->moduleDict) {
+        for (std::pair<std::size_t, std::vector<BaseModule *>> element: this->module_dict_) {
             module_num += element.second.size();
         }
         return module_num;
@@ -153,8 +155,8 @@ namespace dawn_engine {
         this->name = std::move(objName);
     }
 
-    std::unordered_map<std::size_t, std::vector<BaseModule *>> GameObject::getModules() const {
-        return this->moduleDict;
+    std::unordered_map<std::size_t, std::vector<BaseModule *>> GameObject::GetAllModules() const {
+        return this->module_dict_;
     }
 
 } // namespace dawn_engine

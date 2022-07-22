@@ -46,6 +46,10 @@ set(ASSIMP_PROJECT_ROOT_LOCAL ${CMAKE_CURRENT_SOURCE_DIR}/assimp)
 set(ASSIMP_INCLUDE_DIR_LOCAL ${ASSIMP_PROJECT_ROOT_LOCAL}/include)
 add_subdirectory(${ASSIMP_PROJECT_ROOT_LOCAL})
 
+# ================ nlohmann_json ================
+set(JSON_PROJECT_ROOT_LOCAL ${CMAKE_CURRENT_SOURCE_DIR}/nlohmann_json)
+set(JSON_INCLUDE_DIR_LOCAL ${ASSIMP_PROJECT_ROOT_LOCAL}/nlohmann_json)
+
 # ================ summarize variables ================
 set(DEPS_INCLUDE_DIRS_LOCAL
         ${GLFW_INCLUDE_DIR_LOCAL}
@@ -53,7 +57,8 @@ set(DEPS_INCLUDE_DIRS_LOCAL
         ${GLM_INCLUDE_DIR_LOCAL}
         ${IMGUI_INCLUDE_DIR_LOCAL}
         ${FMT_INCLUDE_DIR_LOCAL}
-        ${ASSIMP_INCLUDE_DIR_LOCAL})
+        ${ASSIMP_INCLUDE_DIR_LOCAL}
+        ${JSON_INCLUDE_DIR_LOCAL})
 
 set(DEPS_SRC_FILES_LOCAL
         ${GLAD_SRC_FILES_LOCAL}

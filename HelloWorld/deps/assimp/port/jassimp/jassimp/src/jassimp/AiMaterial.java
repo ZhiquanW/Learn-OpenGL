@@ -522,7 +522,7 @@ public final class AiMaterial {
      * 
      * @return the name
      */
-    public String getName() {
+    public String GetName() {
         return getTyped(PropertyKey.NAME, String.class);
     }
     

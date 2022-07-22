@@ -21,7 +21,6 @@ namespace dawn_engine {
     public:
         static const std::size_t type;
 
-        friend class GameObject;
 
         BaseModule();
 

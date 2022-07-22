@@ -10,14 +10,12 @@ namespace dawn_engine {
         const char *vertexPath;
         const char *fragmentPath;
         unsigned int id = -1;
-
         void checkCompileErrors(unsigned int, std::string);
 
         int createShaderProgram();
 
     public:
 
-        static std::vector<std::shared_ptr<ShaderUniformVariableBase>> global_uniforms;
 
         GLShaderProgram(const char *name, const char *vertexPath, const char *fragmentPath);
 
@@ -55,7 +53,7 @@ namespace dawn_engine {
         void SetUniform(const std::string &name, glm::mat4 value) const;
 
         void SetUniforms(const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms) const;
-
+        void SetUniforms(const std::map<std::string,std::shared_ptr<ShaderUniformVariableBase>> &uniforms) const;
     };
 
 } // namespace dawn_engine

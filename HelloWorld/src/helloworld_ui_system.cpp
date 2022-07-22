@@ -10,24 +10,26 @@ namespace helloworld {
     }
 
     void HelloWorldUISystem::start(dawn_engine::DawnEngine *enginePtr) {
-        this->initGameObjectTracker(enginePtr->GetGameObjectPtrs());
-        this->initGameObjectMonitors(enginePtr->GetGameObjectPtrs());
-        this->initGlobalSettingsPanel(enginePtr);
+        this->InitGameObjectTracker(enginePtr->GetGameObjectPtrs());
+        this->InitGameObjectMonitors(enginePtr->GetGameObjectPtrs());
+        this->InitGlobalSettingsPanel(enginePtr);
+        this->InitPrefabManager();
     }
 
     void HelloWorldUISystem::update(dawn_engine::DawnEngine *enginePtr) {
         this->OnMouseClicked();
-        this->updateGlobalSettingsPanel(enginePtr);
-        this->updateGameObjectTracker(enginePtr->GetGameObjectPtrs());
-        this->updateGameObjectMonitors(enginePtr->GetGameObjectPtrs());
+        this->UpdateGlobalSettingsPanel(enginePtr);
+        this->UpdateGameObjectTracker(enginePtr->GetGameObjectPtrs());
+        this->UpdateGameObjectMonitors(enginePtr->GetGameObjectPtrs());
+        this->UpdatePrefabManager(enginePtr->GetPrefabPaths());
         this->UpdateCreationPopup(enginePtr);
     }
 
-    void HelloWorldUISystem::initGlobalSettingsPanel(dawn_engine::DawnEngine *enginePtr) {
+    void HelloWorldUISystem::InitGlobalSettingsPanel(dawn_engine::DawnEngine *enginePtr) {
         this->selected_shader_str = enginePtr->GetShaderProgramMapMeta().begin()->first;
     }
 
-    void HelloWorldUISystem::updateGlobalSettingsPanel(dawn_engine::DawnEngine *engine_ptr) {
+    void HelloWorldUISystem::UpdateGlobalSettingsPanel(dawn_engine::DawnEngine *engine_ptr) {
         ImGui::Begin("Global Settings");
         // shader program selection
         if (ImGui::CollapsingHeader("Shaders", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -49,22 +51,27 @@ namespace helloworld {
         // main camera properties
         if (ImGui::CollapsingHeader("Main Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
             dawn_engine::Camera &camMeta = engine_ptr->GetMainCameraRef();
-            ImGui::DragFloat("move speed", &camMeta.getMoveSpeedMeta(), this->defaultDragSpeed, 0.0f, this->defaultMaxValue);
+            ImGui::DragFloat("move speed", &camMeta.getMoveSpeedMeta(), this->defaultDragSpeed, 0.0f,
+                             this->defaultMaxValue);
             ImGui::DragFloat("sensitivity", &camMeta.getMouseSensitivityMeta(), this->defaultDragSpeed, 0.0f, 1.0f);
-            ImGui::DragFloat("field of view", &camMeta.getFovMeta(), this->defaultDragSpeed, 0.0f, this->defaultMaxValue);
-            ImGui::DragFloat("zNear", &engine_ptr->GetMainCameraRef().getZNearMeta(), this->defaultDragSpeed, 0.001f, engine_ptr->GetMainCameraRef().GetZFar());
-            ImGui::DragFloat("zFar", &engine_ptr->GetMainCameraRef().getZFarMeta(), this->defaultDragSpeed, engine_ptr->GetMainCameraRef().getZNearMeta(),
+            ImGui::DragFloat("field of view", &camMeta.getFovMeta(), this->defaultDragSpeed, 0.0f,
+                             this->defaultMaxValue);
+            ImGui::DragFloat("zNear", &engine_ptr->GetMainCameraRef().getZNearMeta(), this->defaultDragSpeed, 0.001f,
+                             engine_ptr->GetMainCameraRef().GetZFar());
+            ImGui::DragFloat("zFar", &engine_ptr->GetMainCameraRef().getZFarMeta(), this->defaultDragSpeed,
+                             engine_ptr->GetMainCameraRef().getZNearMeta(),
                              this->defaultMaxValue);
         }
         ImGui::End();
 
     }
 
-    void HelloWorldUISystem::initGameObjectTracker(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs) {
+
+    void HelloWorldUISystem::InitGameObjectTracker(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs) {
         this->gameObjectTrackerSelectionTable.resize(gameObjectPtrs.size());
     }
 
-    void HelloWorldUISystem::updateGameObjectTracker(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs) {
+    void HelloWorldUISystem::UpdateGameObjectTracker(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs) {
         if (gameObjectPtrs.size() > this->gameObjectTrackerSelectionTable.size()) {
             this->gameObjectTrackerSelectionTable.resize(gameObjectPtrs.size());
         }
@@ -93,15 +100,15 @@ namespace helloworld {
 
     }
 
-    void HelloWorldUISystem::initGameObjectMonitors(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs) {}
+    void HelloWorldUISystem::InitGameObjectMonitors(const std::vector<dawn_engine::GameObject *> &game_obj_ptrs) {}
 
-    void HelloWorldUISystem::updateGameObjectMonitors(const std::vector<dawn_engine::GameObject *> &game_objs) {
+    void HelloWorldUISystem::UpdateGameObjectMonitors(const std::vector<dawn_engine::GameObject *> &game_objs) {
         uint32_t gameObjectNum = game_objs.size();
         for (int i = 0; i < gameObjectNum; ++i) {
             if (this->gameObjectTrackerSelectionTable[i]) {
                 std::string indexed_name = fmt::format("{}: {}", i, game_objs[i]->GetName().c_str());
                 ImGui::Begin(indexed_name.c_str());
-                for (const auto &modulesPair: game_objs[i]->getModules()) {
+                for (const auto &modulesPair: game_objs[i]->GetAllModules()) {
                     for (const auto &module_ptr: modulesPair.second) {
                         this->EmbedModuleMonitor(module_ptr);
                     }
@@ -111,12 +118,21 @@ namespace helloworld {
         }
     }
 
+    void HelloWorldUISystem::UpdateBehaviourModule(dawn_engine::BehaviourModule *behaviour_module) {
+        if (ImGui::CollapsingHeader(behaviour_module->GetName().c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::Checkbox("module activation", &behaviour_module->GetActivationMeta());
+            behaviour_module->UpdateModuleMonitor();
+        }
+    }
 
     void HelloWorldUISystem::UpdateTransformModuleMonitor(dawn_engine::TransformModule *const transformModule) const {
         if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::DragFloat3("position", &transformModule->getPositionMeta()[0], this->defaultDragSpeed, this->defaultMinValue, this->defaultMaxValue);
-            ImGui::DragFloat3("rotation", &transformModule->getRotationMeta()[0], this->defaultDragSpeed, this->defaultMinValue, this->defaultMaxValue);
-            ImGui::DragFloat3("scale", &transformModule->getScaleMeta()[0], this->defaultDragSpeed, this->defaultMinValue, this->defaultMaxValue);
+            ImGui::DragFloat3("position", &transformModule->getPositionMeta()[0], this->defaultDragSpeed,
+                              this->defaultMinValue, this->defaultMaxValue);
+            ImGui::DragFloat3("rotation", &transformModule->getRotationMeta()[0], this->defaultDragSpeed,
+                              this->defaultMinValue, this->defaultMaxValue);
+            ImGui::DragFloat3("scale", &transformModule->getScaleMeta()[0], this->defaultDragSpeed,
+                              this->defaultMinValue, this->defaultMaxValue);
         }
 
     }
@@ -153,14 +169,16 @@ namespace helloworld {
                         ImGui::EndCombo();
                     }
                     if (!tmpMesh.GetMaterialPtr()->GetOpaque()) {
-                        ImGui::DragFloat("transparency", &tmpMesh.GetMaterialPtr()->getTransparencyRef(), this->defaultDragSpeed, 0.0f, 1.0f);
+                        ImGui::DragFloat("transparency", &tmpMesh.GetMaterialPtr()->getTransparencyRef(),
+                                         this->defaultDragSpeed, 0.0f, 1.0f);
                     }
                     ImGui::ColorEdit3("ambient", &tmpMesh.GetMaterialPtr()->GetAmbientColorRef()[0]);
                     if (!enabledLightingMaps) {
                         ImGui::ColorEdit3("diffuse", &tmpMesh.GetMaterialPtr()->GetDiffuseColorRef()[0]);
                         ImGui::ColorEdit3("specular", &tmpMesh.GetMaterialPtr()->GetSpecularColorRef()[0]);
                     }
-                    ImGui::DragFloat("shininess", &tmpMesh.GetMaterialPtr()->GetShininessRef(), this->defaultDragSpeed, 0.0f, this->defaultMaxValue);
+                    ImGui::DragFloat("shininess", &tmpMesh.GetMaterialPtr()->GetShininessRef(), this->defaultDragSpeed,
+                                     0.0f, this->defaultMaxValue);
                     ImGui::TreePop();
                 }
             }
@@ -177,24 +195,28 @@ namespace helloworld {
 
     }
 
-    void HelloWorldUISystem::UpdatePointLightModuleMonitor(dawn_engine::PointLightModule *const pointLightModule) const {
+    void
+    HelloWorldUISystem::UpdatePointLightModuleMonitor(dawn_engine::PointLightModule *const pointLightModule) const {
         if (ImGui::CollapsingHeader("Point Light", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Checkbox("activation", &pointLightModule->GetActivationMeta());
             this->EmbedBaseLightMonitor(pointLightModule);
             ImGui::Separator();
-            ImGui::DragFloat("constant", &pointLightModule->constant, this->defaultDragSpeed, 0.0f, this->defaultMaxValue);
+            ImGui::DragFloat("constant", &pointLightModule->constant, this->defaultDragSpeed, 0.0f,
+                             this->defaultMaxValue);
             ImGui::DragFloat("linear", &pointLightModule->linear, this->defaultDragSpeed, 0.0f, this->defaultMaxValue);
-            ImGui::DragFloat("quadratic", &pointLightModule->quadratic, this->defaultDragSpeed, 0.0f, this->defaultMaxValue);
+            ImGui::DragFloat("quadratic", &pointLightModule->quadratic, this->defaultDragSpeed, 0.0f,
+                             this->defaultMaxValue);
         }
     }
 
-
-    void HelloWorldUISystem::UpdateDirectionLightModuleMonitor(dawn_engine::DirectionalLightModule *const directionalLightModule) const {
+    void HelloWorldUISystem::UpdateDirectionLightModuleMonitor(
+            dawn_engine::DirectionalLightModule *const directionalLightModule) const {
         if (ImGui::CollapsingHeader("Directional Light", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Checkbox("activation", &directionalLightModule->GetActivationMeta());
             this->EmbedBaseLightMonitor(directionalLightModule);
             ImGui::Separator();
-            ImGui::DragFloat3("direction", &directionalLightModule->getDirectionMeta()[0], this->defaultDragSpeed, this->defaultMinValue, this->defaultMaxValue);
+            ImGui::DragFloat3("direction", &directionalLightModule->GetDirectionMeta()[0], this->defaultDragSpeed,
+                              this->defaultMinValue, this->defaultMaxValue);
         }
     }
 
@@ -203,12 +225,18 @@ namespace helloworld {
             ImGui::Checkbox("activation", &spotLightModule->GetActivationMeta());
             this->EmbedBaseLightMonitor(spotLightModule);
             ImGui::Separator();
-            ImGui::DragFloat("constant", &spotLightModule->getQuadraticMeta(), this->defaultDragSpeed, 0.0f, this->defaultMaxValue);
-            ImGui::DragFloat("linear", &spotLightModule->getLinearMeta(), this->defaultDragSpeed, 0.0f, this->defaultMaxValue);
-            ImGui::DragFloat("quadratic", &spotLightModule->getQuadraticMeta(), this->defaultDragSpeed, 0.0f, this->defaultMaxValue);
-            ImGui::DragFloat3("direction", &spotLightModule->getDirectionMeta()[0], this->defaultDragSpeed, this->defaultMinValue, this->defaultMaxValue);
-            ImGui::DragFloat("inner range", &spotLightModule->getInnerRangeMeta(), this->defaultDragSpeed, 0.0f, spotLightModule->getOuterRange());
-            ImGui::DragFloat("outer range", &spotLightModule->getOuterRangeMeta(), this->defaultDragSpeed, spotLightModule->getInnerRange(), 180.0f);
+            ImGui::DragFloat("constant", &spotLightModule->getQuadraticMeta(), this->defaultDragSpeed, 0.0f,
+                             this->defaultMaxValue);
+            ImGui::DragFloat("linear", &spotLightModule->getLinearMeta(), this->defaultDragSpeed, 0.0f,
+                             this->defaultMaxValue);
+            ImGui::DragFloat("quadratic", &spotLightModule->getQuadraticMeta(), this->defaultDragSpeed, 0.0f,
+                             this->defaultMaxValue);
+            ImGui::DragFloat3("direction", &spotLightModule->getDirectionMeta()[0], this->defaultDragSpeed,
+                              this->defaultMinValue, this->defaultMaxValue);
+            ImGui::DragFloat("inner range", &spotLightModule->getInnerRangeMeta(), this->defaultDragSpeed, 0.0f,
+                             spotLightModule->getOuterRange());
+            ImGui::DragFloat("outer range", &spotLightModule->getOuterRangeMeta(), this->defaultDragSpeed,
+                             spotLightModule->getInnerRange(), 180.0f);
         }
     }
 
@@ -230,30 +258,32 @@ namespace helloworld {
             this->UpdateDirectionLightModuleMonitor(dynamic_cast<dawn_engine::DirectionalLightModule *>(targetModule));
         } else if (dynamic_cast<dawn_engine::RendererModule *> (targetModule)) {
             this->UpdateMeshModuleMonitor(dynamic_cast<dawn_engine::RendererModule *> (targetModule));
-        } else if (static_cast<dawn_engine::ColliderModule *>(targetModule)) {
+        } else if (dynamic_cast<dawn_engine::ColliderModule *>(targetModule)) {
             this->UpdateColliderModuleMonitor(dynamic_cast<dawn_engine::ColliderModule *> (targetModule));
-
+        } else if (dynamic_cast<dawn_engine::BehaviourModule *> (targetModule)) {
+            this->UpdateBehaviourModule(dynamic_cast<dawn_engine::BehaviourModule *> (targetModule));
         } else {
-            std::cout << "unknown module" << std::endl;
+            throw std::runtime_error("Unknown Module Type");
         }
-//        ImGui::End();
     }
 
-    void HelloWorldUISystem::InitCreationPopup(dawn_engine::DawnEngine *engine_ptr) {
-
-    }
 
     void HelloWorldUISystem::UpdateCreationPopup(dawn_engine::DawnEngine *engine_ptr) {
         if (ImGui::BeginPopup("CreationPopup")) {
-            if (ImGui::Button("Cube")) {
-                engine_ptr->AddGameObject(engine_ptr->CreatePrimitive(dawn_engine::BoxPrimitive));
+            if (ImGui::Button("Box Link")) {
+                auto box_block = engine_ptr->CreatePrimitive(dawn_engine::BoxPrimitive);
+                box_block->AddModule<BoxBlock>(box_block->GetModule<TransformModule>()->GetScale());
+//                engine_ptr->AddGameObject(engine_ptr->CreatePrimitive(dawn_engine::BoxPrimitive));
+
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
     }
 
-    Ray HelloWorldUISystem::GenRayOnClick(glm::vec3 start_pos, glm::vec3 cam_front, glm::vec3 cam_up, glm::vec3 cam_right, float fov, glm::vec2 win_size, glm::vec2 mouse_pos) {
+    Ray
+    HelloWorldUISystem::GenRayOnClick(glm::vec3 start_pos, glm::vec3 cam_front, glm::vec3 cam_up, glm::vec3 cam_right,
+                                      float fov, glm::vec2 win_size, glm::vec2 mouse_pos) {
         glm::vec2 win_center = win_size / 2.0f;
         float plane_z = win_center.y / glm::tan(glm::radians(fov) / 2);
         glm::vec2 offset2center = mouse_pos - win_center;
@@ -278,22 +308,19 @@ namespace helloworld {
                                     camera.GetFov(),
                                     win_size,
                                     glm::vec2(io.MousePos.x, io.MousePos.y));
-            auto *game_obj = new dawn_engine::GameObject("Ray Line", true);
-//            std::vector<dawn_engine::DawnVertex> vertices = {dawn_engine::DawnVertex(ray.GetOrigin()), dawn_engine::DawnVertex(ray.ToDirection(100))};
-            std::vector<dawn_engine::DawnVertex> vertices = {dawn_engine::DawnVertex(ray.GetOrigin()), dawn_engine::DawnVertex(ray.ToDirection(100.0f))};
-            auto line_material = std::make_shared<dawn_engine::DawnMaterial>(glm::vec3(1.0f,1.0f,0.0f));
-            auto line_mesh = dawn_engine::DawnMesh(vertices, {0, 1}, line_material);
-            game_obj->AddModule<dawn_engine::RendererModule>(dawn_engine::DawnModel({line_mesh}));
-            dawn_engine::DawnEngine::instance->AddGameObject(game_obj);
+//            auto *game_obj = new dawn_engine::GameObject("Ray Line", true);
+//            std::vector<dawn_engine::DawnVertex> vertices = {dawn_engine::DawnVertex(ray.GetOrigin()),
+//                                                             dawn_engine::DawnVertex(ray.ToDirection(100.0f))};
+//            auto line_material = std::make_shared<dawn_engine::DawnMaterial>(glm::vec3(1.0f, 1.0f, 0.0f));
+//            auto line_mesh = dawn_engine::DawnMesh(vertices, {0, 1}, line_material);
+//            game_obj->AddModule<dawn_engine::RendererModule>(dawn_engine::DawnModel({line_mesh}));
+//            dawn_engine::DawnEngine::instance->AddGameObject(game_obj);
 //            // collision detection on click
             auto hit_info = dawn_engine::DawnEngine::instance->RayCastDetection(ray);
             if (hit_info.any_hit) {
-                auto hit_point = dawn_engine::DawnEngine::instance->CreatePrimitive(dawn_engine::PrimitiveType::BoxPrimitive);
-                auto transform_m = hit_point->GetModule<dawn_engine::TransformModule>();
-                transform_m->SetPosition(ray.ToDirection(hit_info.distance));
-                transform_m->SetScale(glm::vec3(0.1f));
-                hit_point->GetModule<dawn_engine::RendererModule>()->GetMesh(0).GetMaterialPtr()->SetAmbientColor(glm::vec3(1.0f, 0.0f, 0.0f));
-                dawn_engine::DawnEngine::instance->AddGameObject(hit_point);
+                hit_info.game_object_ptr->GetModule<BoxBlock>()->AddAttachPoint(hit_info.local_pos,
+                                                                                glm::vec3(hit_info.local_normal));
+
             } else {
                 std::cout << " no hit" << std::endl;
             }
@@ -303,6 +330,45 @@ namespace helloworld {
             ImGui::OpenPopup("CreationPopup");
 
         }
+    }
+
+    void HelloWorldUISystem::UpdatePrefabManager(const std::set<std::string> &prefab_paths) {
+        if (prefab_paths.size() > this->prefab_selection_table.size()) {
+            this->prefab_selection_table.resize(prefab_paths.size());
+        }
+        ImGui::Begin("Prefab Manager");
+        uint32_t selection_idx = 0;
+        for (auto prefab_name:prefab_paths) {
+            std::string indexed_name = fmt::format("{}: {}", selection_idx, prefab_name.c_str());
+            if (ImGui::Selectable(indexed_name.c_str(),
+                                  (bool) this->prefab_selection_table[selection_idx],
+                                  ImGuiSelectableFlags_AllowDoubleClick)) {
+                if (ImGui::IsMouseDoubleClicked(0)) {
+                    DawnEngine::instance->LoadPrefab(prefab_name);
+                }
+                memset(this->gameObjectTrackerSelectionTable.data(), 0,
+                       sizeof(int) * this->gameObjectTrackerSelectionTable.size());
+                this->prefab_selection_table[selection_idx] ^= 1;
+            }
+
+            selection_idx += 1;
+        }
+        ImGui::End();
+
+    }
+
+    void HelloWorldUISystem::InitPrefabManager() {
+        namespace fs = std::filesystem;
+        const fs::path target_path{"../prefabs"};
+        for (const auto &entry : fs::directory_iterator(target_path)) {
+            const auto file_name = entry.path().filename().string();
+            if (entry.is_regular_file()) {
+                size_t lastindex = file_name.find_last_of(".");
+                std::string raw_name = file_name.substr(0, lastindex);
+                DawnEngine::instance->AddPrefabName(raw_name);
+            }
+        }
+
     }
 
 

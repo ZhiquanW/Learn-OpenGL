@@ -54,7 +54,7 @@ import java.util.Set;
  * 
  * <h3>General Notes and Pitfalls</h3>
  * Due to the loading via JNI, strings (for example as returned by the 
- * <code>getName()</code> methods) are not interned. You should therefore 
+ * <code>GetName()</code> methods) are not interned. You should therefore
  * compare strings the way it should be done, i.e, via <code>equals()</code>. 
  * Pointer comparison will fail.
  */

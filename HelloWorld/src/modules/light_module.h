@@ -6,15 +6,19 @@
 #include "../../include/shader_uniform_variable.h"
 #include "transform_module.h"
 #include "core/game_object.h"
+#include "graphics_layer/gl_texture.h"
+#include "graphics_layer/gl_allocator.h"
 
 namespace dawn_engine {
     class LightModule : public BaseModule {
 
     private:
     protected:
+        const glm::vec2 DEPTH_MAP_SIZE{1024};
         glm::vec3 ambient_;
         glm::vec3 diffuse_;
         glm::vec3 specular_;
+        GLTexture depth_map_ = {};
     public:
         static const std::size_t type;
 
@@ -48,6 +52,8 @@ namespace dawn_engine {
 
         [[nodiscard]] virtual std::vector<std::shared_ptr<ShaderUniformVariableBase>>
         getUniforms(const std::string &name) const;
+
+        GLTexture GetDepthMapTexture() const;
     };
 
     class DirectionalLightModule : public LightModule {
@@ -55,8 +61,14 @@ namespace dawn_engine {
     private:
 
     protected:
+        glm::vec3 direction_ = {1.0f, 0.0f, 0.0f};
+        float left_ = -1;
+        float right_ = 1;
+        float bottom_ = -1;
+        float top_ = 1;
+        float z_near_ = 0.001f;
+        float z_far_ = 10.0f;
     public:
-        glm::vec3 direction;
 
         static const std::size_t type;
 
@@ -64,9 +76,19 @@ namespace dawn_engine {
 
         explicit DirectionalLightModule(glm::vec3 dir);
 
-        DirectionalLightModule(glm::vec3 dir, glm::vec3 color);
+        DirectionalLightModule(glm::vec3 dir,  glm::vec3 color);
 
-        DirectionalLightModule(glm::vec3 dir, glm::vec3 ambient, glm::vec3 diffuse,
+        DirectionalLightModule(glm::vec3 dir,  glm::vec3 ambient, glm::vec3 diffuse,
+                               glm::vec3 specular);
+
+        explicit DirectionalLightModule(glm::vec3 dir, float left, float right, float bottom, float top, float z_near,
+                                        float z_far);
+
+        DirectionalLightModule(glm::vec3 dir, float left, float right, float bottom, float top, float z_near,
+                               float z_far, glm::vec3 color);
+
+        DirectionalLightModule(glm::vec3 dir, float left, float right, float bottom, float top, float z_near,
+                               float z_far, glm::vec3 ambient, glm::vec3 diffuse,
                                glm::vec3 specular);
 
         ~DirectionalLightModule() override;
@@ -77,9 +99,21 @@ namespace dawn_engine {
 
         [[maybe_unused]] [[nodiscard]] glm::vec3 GetDirection() const;
 
-        glm::vec3 &getDirectionMeta();
+        glm::vec3 &GetDirectionMeta();
 
-        void setDirection(const glm::vec3 &dir);
+        void SetDirection(const glm::vec3 &dir);
+
+        float GetLeft() const;
+
+        float GetRight() const;
+
+        float GetBottom() const;
+
+        float GetTop() const;
+
+        float GetZNear() const;
+
+        float GetZFar() const;
     };
 
     class PointLightModule : public LightModule {
@@ -139,7 +173,8 @@ namespace dawn_engine {
 
         SpotLightModule(glm::vec3 dir, float innerRange, float outerRange);
 
-        SpotLightModule(glm::vec3 dir, float innerRange, float outerRange, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular);
+        SpotLightModule(glm::vec3 dir, float innerRange, float outerRange, glm::vec3 ambient, glm::vec3 diffuse,
+                        glm::vec3 specular);
 
         [[maybe_unused]] [[nodiscard]] glm::vec3 getDirection() const;
 

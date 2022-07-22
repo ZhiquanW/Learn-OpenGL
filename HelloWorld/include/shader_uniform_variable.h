@@ -14,7 +14,7 @@ namespace dawn_engine {
 
         ShaderUniformVariableBase(const std::string &name) : name(name), type_hash(0) {}
 
-        std::string getName() const;
+        std::string GetName() const;
 
         std::size_t GetTypeHash() const;
 

@@ -33,7 +33,7 @@ namespace dawn_engine {
 
         [[maybe_unused]] void SetScale(const glm::vec3 &s);
 
-        [[maybe_unused]] [[nodiscard]] glm::vec3 getScale() const;
+        [[maybe_unused]] [[nodiscard]] glm::vec3 GetScale() const;
 
         [[maybe_unused]] [[nodiscard]] glm::vec3 &getScaleMeta();
 
@@ -43,7 +43,9 @@ namespace dawn_engine {
 
         [[maybe_unused]] [[nodiscard]] glm::mat4 GetRotationMat() const;
 
-        [[maybe_unused]] [[nodiscard]] glm::mat4 GetModelMat4() const;
+        [[maybe_unused]] [[nodiscard]] glm::mat4 GetModelMat() const;
+
+        glm::mat4 GetInvModelMat() const;
 
         glm::mat4 GetTransformMat() const;
     };

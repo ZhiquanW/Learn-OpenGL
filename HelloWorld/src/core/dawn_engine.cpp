@@ -23,7 +23,15 @@ namespace dawn_engine {
         this->InitShaderPrograms();
         this->InitMaterials();
         // TMP: generate depth texture and framebuffer
-        this->depth_fbo = AllocateGLDepthMap(glm::vec2(1024));
+        this->depth_texture = AllocateGLTexture(glm::vec2(1024));
+        glBindTexture(GL_TEXTURE_2D, this->depth_texture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        float borderColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+        this->depth_fbo = AllocateGLDepthMap(this->depth_texture);
+
+
     }
 
 
@@ -34,29 +42,43 @@ namespace dawn_engine {
         }
     }
 
-    void DawnEngine::launch() {
-        this->awake();
-        this->start();
+    void DawnEngine::RenderAwake() {
+
+    }
+
+    void DawnEngine::RenderStart() {
         if (this->ui_system_ != nullptr) {
             this->ui_system_->start(this);
         }
         this->InitGlobalUniformBlocks();
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
+    }
+
+    void DawnEngine::RenderUpdate() {
+
+        this->render();
+        if (ui_system_ != nullptr) {
+            this->ui_system_->render(this);
+        }
+        this->render_window_->swap_buffers();
+    }
+
+    void DawnEngine::launch() {
+        {
+            // Awake
+            this->LogicAwake();
+            this->RenderAwake();
+        }
+        {
+            // Start
+            this->LogicAwake();
+            this->RenderStart();
+        }
+        // Update
         while (!this->render_window_->should_close()) {
-            glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            auto currentTime = static_cast<GLfloat>(glfwGetTime());
-            this->deltaTime = currentTime - this->lastTime;
-            this->lastTime = currentTime;
-            // Start the Dear ImGui frame
-            this->render_window_->process_inputs(&this->main_camera_, this->deltaTime);
-            this->update();
-            this->render();
-            if (ui_system_ != nullptr) {
-                this->ui_system_->render(this);
-            }
-            this->render_window_->swap_buffers();
+            this->LogicUpdate();
+            this->RenderUpdate();
             glfwPollEvents();
 
         }
@@ -68,9 +90,11 @@ namespace dawn_engine {
 
     void DawnEngine::RefreshGlobalUniformBlocks() {
         std::vector<std::string> targetShaderPrograms = {ShaderTable::default_shader_info.name,
-                                                         ShaderTable::depth_shader_info.name, ShaderTable::skybox_shader_info.name};
+                                                         ShaderTable::depth_shader_info.name,
+                                                         ShaderTable::skybox_shader_info.name};
         // update camera uniforms
-        this->uniform_buffer_map.at("CameraBlock").RefreshData(0, ExtractUniforms("main_camera", this->main_camera_, this->render_window_->GetWinWidth(),
+        this->uniform_buffer_map.at("CameraBlock").RefreshData(0, ExtractUniforms("main_camera", this->main_camera_,
+                                                                                  this->render_window_->GetWinWidth(),
                                                                                   this->render_window_->GetWinHeight()));
         this->uniform_buffer_map.at("CameraBlock").SyncGLData();
         size_t dir_lights_uniform_idx = 1;
@@ -78,6 +102,7 @@ namespace dawn_engine {
         size_t spot_lights_uniform_idx = 1;
         for (auto gObj: this->game_object_ptrs) {
             auto dir_light_m = gObj->GetModule<DirectionalLightModule>();
+            // todo Render Depth Map Here
             if (dir_light_m != nullptr) {
                 auto tmp_uniforms = ExtractUniforms("", dir_light_m);
                 this->uniform_buffer_map.at("DirLightBlock").RefreshData(1, tmp_uniforms);
@@ -106,162 +131,149 @@ namespace dawn_engine {
     }
 
 
+    void DawnEngine::render_scene(GLShaderProgram *target_shader_program_ptr,
+                                  const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &global_uniforms,
+                                  const std::vector<unsigned int> &global_texture_ids) {
+        std::vector<std::shared_ptr<GLRenderObject>> opaque_render_queue = {};
+        std::map<float, std::shared_ptr<GLRenderObject>> transparent_render_queue = {};
+        if (target_shader_program_ptr) {
+            target_shader_program_ptr->Activate();
+            target_shader_program_ptr->SetUniforms(global_uniforms);
+        }
+        for (auto g_obj: this->game_object_ptrs) {
+            if (g_obj->GetModule<RendererModule>() != nullptr and g_obj->GetModule<RendererModule>()->GetActivation()) {
+                float distance2cam = glm::length(
+                        g_obj->GetModule<TransformModule>()->GetPosition() - this->main_camera_.GetPosition());
+                auto render_pairs = g_obj->GetModule<RendererModule>()->GetGLRenderObjectMap();
+                for (const auto &render_pair: render_pairs) {
+                    auto mesh = g_obj->GetModule<RendererModule>()->GetMesh(render_pair.first);
+                    auto transform_uniforms = ExtractUniforms("model_mat", g_obj->GetModule<TransformModule>());
+                    std::vector<std::shared_ptr<ShaderUniformVariableBase>> uniforms = global_uniforms;
+                    uniforms.insert(uniforms.begin(), transform_uniforms.begin(), transform_uniforms.end());
+
+                    if (mesh.GetMaterialPtr()->GetShaderInfo().name == ShaderTable::pure_shader_info.name) {
+                        auto material_uniforms = ExtractUniforms("material", mesh.GetMaterialPtr());
+                        uniforms.insert(uniforms.begin(), material_uniforms.begin(), material_uniforms.end());
+
+                    } else if (mesh.GetMaterialPtr()->GetShaderInfo().name == ShaderTable::default_shader_info.name) {
+                        auto material_uniforms = ExtractTexUniforms("material", mesh.GetMaterialPtr());
+                        uniforms.insert(uniforms.begin(), material_uniforms.begin(), material_uniforms.end());
+
+                    }
+                    if (target_shader_program_ptr != nullptr) {
+                        render_pair.second->RefreshShaderProgram(target_shader_program_ptr);
+                    } else {
+                        render_pair.second->RefreshShaderProgram(
+                                this->shader_program_map.at(mesh.GetMaterialPtr()->GetShaderInfo().name));
+                    }
+                    auto depth_unit_id = render_pair.second->AppendGLTexture(this->depth_texture);
+                    uniforms.push_back(std::make_shared<ShaderUniformVariable<int>>("shadow_map",
+                                                                                    depth_unit_id));
+                    render_pair.second->RefreshUniforms(uniforms);
+
+                    if (mesh.GetMaterialPtr()->GetOpaque()) {
+                        opaque_render_queue.push_back(render_pair.second);
+                    } else {
+                        transparent_render_queue.insert({distance2cam, render_pair.second});
+                    }
+                }
+            }
+        }
+        // render opaque objects
+        for (const auto &render_obj: opaque_render_queue) {
+            render_obj->render();
+        }
+        // render transparent objects
+        for (const auto &render_obj_pair: transparent_render_queue) {
+            render_obj_pair.second->render();
+        }
+
+    }
+
     /*  render depth of scene to texture (from light's perspective)
      * 1. set light uniform
      * 2. activate light depth shader
      * 3. set light uniforms
      * 4. render
     */
-    void DawnEngine::render_depth_map() {
-        auto light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, main_camera_.GetZNear(),main_camera_.GetZFar());
-        auto dir_light = this->FindGameObjectByName("dir_light");
-        auto light_view = glm::lookAt(glm::vec3(10.0f), glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-        auto light_space_mat = light_projection * light_view;
+    void DawnEngine::render_depth_map(glm::mat4 light_space_mat) {
+
+        for (auto obj_ptr : this->game_object_ptrs) {
+
+        }
         auto depth_shader = this->shader_program_map.at("simple_depth");
         glViewport(0, 0, 1024, 1024);
         glBindFramebuffer(GL_FRAMEBUFFER, this->depth_fbo);
         glClear(GL_DEPTH_BUFFER_BIT);
-        std::vector<std::shared_ptr<GLRenderObject>> opaque_render_queue = {};
-        std::map<float, std::shared_ptr<GLRenderObject>> transparent_render_queue = {};
-        for (auto g_obj: this->game_object_ptrs) {
-            if (g_obj->GetModule<RendererModule>() != nullptr) {
-                float distance2cam = glm::length(g_obj->GetModule<TransformModule>()->GetPosition() - this->main_camera_.GetPosition());
-                auto render_pairs = g_obj->GetModule<RendererModule>()->GetGLRenderObjectMap();
-                for (const auto& render_pair: render_pairs) {
-                    auto mesh = g_obj->GetModule<RendererModule>()->GetMesh(render_pair.first);
-
-                    std::vector<std::shared_ptr<ShaderUniformVariableBase>> uniforms = {std::make_shared<ShaderUniformVariable<glm::mat4 >>("light_space_mat", light_space_mat)};
-                    auto transform_uniforms = ExtractUniforms("model_mat", g_obj->GetModule<TransformModule>());
-                    uniforms.insert(uniforms.begin(), transform_uniforms.begin(), transform_uniforms.end());
-                    render_pair.second->RefreshShaderProgram(depth_shader);
-                    render_pair.second->RefreshUniforms(uniforms);
-
-                    if (mesh.GetMaterialPtr()->GetOpaque()) {
-                        opaque_render_queue.push_back(render_pair.second);
-                    } else {
-                        transparent_render_queue.insert({distance2cam, render_pair.second});
-                    }
-                }
-            }
-        }
-        // render opaque objects
-        for (const auto &render_obj: opaque_render_queue) {
-            render_obj->render();
-        }
-        // render transparent objects
-        for (const auto &render_obj_pair: transparent_render_queue) {
-            render_obj_pair.second->render();
-        }
+        this->render_scene(depth_shader,
+                           {std::make_shared<ShaderUniformVariable<glm::mat4>>("light_space_mat", light_space_mat)},
+                           {});
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     }
+
     void DawnEngine::render() {
         this->RefreshGlobalUniformBlocks();
-        this->render_depth_map();
+        auto light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, main_camera_.GetZNear(),
+                                           main_camera_.GetZFar());
+        auto dir_light = this->FindGameObjectByName("dir_light");
+        auto light_view = glm::lookAt(dir_light->GetModule<TransformModule>()->GetPosition(), glm::vec3(0.0f),
+                                      glm::vec3(0.0, 1.0, 0.0));
+        auto light_space_mat = light_projection * light_view;
+        this->render_depth_map(light_space_mat);
         // main render
-        // reset viewport
+        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glViewport(0, 0, (GLsizei) this->render_window_->GetWinWidth(),
                    (GLsizei) this->render_window_->GetWinHeight());
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        std::vector<std::shared_ptr<GLRenderObject>> opaque_render_queue = {};
-        std::map<float, std::shared_ptr<GLRenderObject>> transparent_render_queue = {};
-        for (auto g_obj: this->game_object_ptrs) {
-            if (g_obj->GetModule<RendererModule>() != nullptr) {
-                float distance2cam = glm::length(g_obj->GetModule<TransformModule>()->GetPosition() - this->main_camera_.GetPosition());
-                auto render_pairs = g_obj->GetModule<RendererModule>()->GetGLRenderObjectMap();
-                for (const auto& render_pair: render_pairs) {
-                    auto mesh = g_obj->GetModule<RendererModule>()->GetMesh(render_pair.first);
-                    std::vector<std::shared_ptr<ShaderUniformVariableBase>> uniforms = {};
-                    auto transform_uniforms = ExtractUniforms("model_mat", g_obj->GetModule<TransformModule>());
-                    uniforms.insert(uniforms.begin(), transform_uniforms.begin(), transform_uniforms.end());
-                    if (mesh.GetMaterialPtr()->GetShaderInfo().name == ShaderTable::default_shader_info.name ||
-                            mesh.GetMaterialPtr()->GetShaderInfo().name == ShaderTable::pure_shader_info.name) {
-                        auto material_uniforms = ExtractUniforms("material", mesh.GetMaterialPtr());
-                        uniforms.insert(uniforms.begin(), material_uniforms.begin(), material_uniforms.end());
-                    }
-                    render_pair.second->RefreshUniforms(uniforms);
-                    render_pair.second->RefreshShaderProgram(this->shader_program_map.at(mesh.GetMaterialPtr()->GetShaderInfo().name));
-                    if (mesh.GetMaterialPtr()->GetOpaque()) {
-                        opaque_render_queue.push_back(render_pair.second);
-                    } else {
-                        transparent_render_queue.insert({distance2cam, render_pair.second});
-                    }
-                }
-            }
-        }
-        // render opaque objects
-        for (const auto &render_obj: opaque_render_queue) {
-            render_obj->render();
-        }
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        this->render_scene(nullptr,
+                           {std::make_shared<ShaderUniformVariable<glm::mat4>>("light_space_mat", light_space_mat)},
+                           {this->depth_texture});
 
         // render skybox
         if (this->skybox_ptr_ != nullptr) {
-            glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+            glDepthFunc(
+                    GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
             skybox_ptr_->GetModule<RendererModule>()->render();
             glDepthMask(GL_TRUE);
 
 
         }
-        // render transparent objects
-        for (const auto &render_obj_pair: transparent_render_queue) {
-            render_obj_pair.second->render();
-        }
-        // render opaque_ object
-//        this->activeShader = this->shader_program_map.at("default");
-//        for (auto gObj: this->game_object_ptrs) {
-//            auto *rendererM = gObj->GetModule<RendererModule>();
-////            rendererM->render();
-//            auto modelMat = gObj->GetModule<TransformModule>()->GetModelMat4();
-//            auto pos = gObj->GetModule<TransformModule>()->GetPosition();
-//            float zDis = glm::length(this->main_camera_.GetPosition() - pos);
-//            this->activeShader->activate();
-//            if (rendererM and rendererM->GetActivation()) {
-//                for (const auto &mesh: rendererM->getMeshesRef()) {
-//                    if (mesh.GetMaterialPtr().GetOpaque()) {
-//                        // render opaque_ object
-//                        this->activeShader->SetUniform("model_mat", gObj->GetModule<TransformModule>()->GetModelMat4());
-//                        mesh.render(this->activeShader);
-//                    } else {
-//                        // insert transparent object for sorting
-//                        transparentRenderMap.insert({zDis, {mesh, modelMat}});
-//                    }
-//                }
-//            }
-//        }
-        // render transparent object
-//        for (auto it = transparentRenderMap.rbegin(); it != transparentRenderMap.rend(); ++it) {
-//            this->activeShader->SetUniform("model_mat", it->second.modelMat);
-//            it->second.mesh.render(this->activeShader);
-//        }
-
 
     }
 
     void DawnEngine::InitShaderPrograms() {
-        shader_program_map.insert({ShaderTable::default_shader_info.name, new GLShaderProgram(ShaderTable::default_shader_info.name.c_str(),
-                                                                                              ShaderTable::blinn_phong_info.vert_path.c_str(),
-                                                                                              ShaderTable::blinn_phong_info.frag_path.c_str())});
-        shader_program_map.insert({ShaderTable::depth_shader_info.name, new GLShaderProgram(ShaderTable::depth_shader_info.name.c_str(),
-                                                                                            ShaderTable::depth_shader_info.vert_path.c_str(),
-                                                                                            ShaderTable::depth_shader_info.frag_path.c_str())});
-        shader_program_map.insert({ShaderTable::skybox_shader_info.name, new GLShaderProgram(ShaderTable::skybox_shader_info.name.c_str(),
-                                                                                             ShaderTable::skybox_shader_info.vert_path.c_str(),
-                                                                                             ShaderTable::skybox_shader_info.frag_path.c_str())});
-        shader_program_map.insert({ShaderTable::pure_shader_info.name, new GLShaderProgram(ShaderTable::pure_shader_info.name.c_str(),
-                                                                                           ShaderTable::pure_shader_info.vert_path.c_str(),
-                                                                                           ShaderTable::pure_shader_info.frag_path.c_str())});
-        shader_program_map.insert({ShaderTable::blinn_phong_info.name, new GLShaderProgram(ShaderTable::blinn_phong_info.name.c_str(),
-                                                                                           ShaderTable::blinn_phong_info.vert_path.c_str(),
-                                                                                           ShaderTable::blinn_phong_info.frag_path.c_str())});
-        shader_program_map.insert({ShaderTable::simple_depth_shader_info.name,new GLShaderProgram(ShaderTable::simple_depth_shader_info.name.c_str(),
-                                                                                             ShaderTable::simple_depth_shader_info.vert_path.c_str(),
-                                                                                             ShaderTable::simple_depth_shader_info.frag_path.c_str())});
+        shader_program_map.insert({ShaderTable::default_shader_info.name,
+                                   new GLShaderProgram(ShaderTable::default_shader_info.name.c_str(),
+                                                       ShaderTable::default_shader_info.vert_path.c_str(),
+                                                       ShaderTable::default_shader_info.frag_path.c_str())});
+        shader_program_map.insert(
+                {ShaderTable::depth_shader_info.name, new GLShaderProgram(ShaderTable::depth_shader_info.name.c_str(),
+                                                                          ShaderTable::depth_shader_info.vert_path.c_str(),
+                                                                          ShaderTable::depth_shader_info.frag_path.c_str())});
+        shader_program_map.insert(
+                {ShaderTable::skybox_shader_info.name, new GLShaderProgram(ShaderTable::skybox_shader_info.name.c_str(),
+                                                                           ShaderTable::skybox_shader_info.vert_path.c_str(),
+                                                                           ShaderTable::skybox_shader_info.frag_path.c_str())});
+        shader_program_map.insert(
+                {ShaderTable::pure_shader_info.name, new GLShaderProgram(ShaderTable::pure_shader_info.name.c_str(),
+                                                                         ShaderTable::pure_shader_info.vert_path.c_str(),
+                                                                         ShaderTable::pure_shader_info.frag_path.c_str())});
+        shader_program_map.insert(
+                {ShaderTable::blinn_phong_info.name, new GLShaderProgram(ShaderTable::blinn_phong_info.name.c_str(),
+                                                                         ShaderTable::blinn_phong_info.vert_path.c_str(),
+                                                                         ShaderTable::blinn_phong_info.frag_path.c_str())});
+        shader_program_map.insert({ShaderTable::simple_depth_shader_info.name,
+                                   new GLShaderProgram(ShaderTable::simple_depth_shader_info.name.c_str(),
+                                                       ShaderTable::simple_depth_shader_info.vert_path.c_str(),
+                                                       ShaderTable::simple_depth_shader_info.frag_path.c_str())});
 
     }
 
     void DawnEngine::InitMaterials() {
         this->material_map.insert({"default", DawnMaterial()});
-        this->material_map.insert({"depth",DawnMaterial(ShaderTable::depth_shader_info)});
+        this->material_map.insert({"depth", DawnMaterial(ShaderTable::depth_shader_info)});
     }
 
     void DawnEngine::EnableGLFeatures() {
@@ -271,7 +283,6 @@ namespace dawn_engine {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_CULL_FACE);
         glEnable(GL_MULTISAMPLE);
-
 
 
     }
@@ -287,7 +298,7 @@ namespace dawn_engine {
     }
 
 
-    bool DawnEngine::enabledDepthRendering() const {
+    bool DawnEngine::EnabledDepthRendering() const {
         return this->enableDepthRendering;
     }
 
@@ -304,7 +315,8 @@ namespace dawn_engine {
         return this->main_camera_;
     }
 
-    void DawnEngine::SetUniformInShaderPrograms(const std::vector<std::string>& shader_program_names, const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms) {
+    void DawnEngine::SetUniformInShaderPrograms(const std::vector<std::string> &shader_program_names,
+                                                const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms) {
         for (const auto &name: shader_program_names) {
             auto shaderProgramPtr = this->shader_program_map.at(name);
             if (shaderProgramPtr != nullptr) {
@@ -321,17 +333,49 @@ namespace dawn_engine {
 
     }
 
-    void DawnEngine::awake() {
-        this->InitGlobalUniformBlocks();
-
+    void DawnEngine::LogicAwake() {
+        this->BehaviourAwake();
     }
 
-    void DawnEngine::start() {
-
+    void DawnEngine::LogicStart() {
+        this->BehaviourStart();
     }
 
-    void DawnEngine::update() {
+    void DawnEngine::LogicUpdate() {
+        auto currentTime = static_cast<GLfloat>(glfwGetTime());
+        this->deltaTime = currentTime - this->lastTime;
+        this->lastTime = currentTime;
+        // Start the Dear ImGui frame
+        this->render_window_->process_inputs(&this->main_camera_, this->deltaTime);
+        this->BehaviourUpdate();
+    }
 
+    void DawnEngine::BehaviourAwake() {
+//        this->InitGlobalUniformBlocks();
+        for (const auto &g_obj : this->game_object_ptrs) {
+            auto bh_module = g_obj->GetModule<BehaviourModule>();
+            if (bh_module != nullptr) {
+                bh_module->Awake();
+            }
+        }
+    }
+
+    void DawnEngine::BehaviourStart() {
+        for (const auto &g_obj : this->game_object_ptrs) {
+            auto bh_module = g_obj->GetModule<BehaviourModule>();
+            if (bh_module != nullptr) {
+                bh_module->Start();
+            }
+        }
+    }
+
+    void DawnEngine::BehaviourUpdate() {
+        for (const auto &g_obj : this->game_object_ptrs) {
+            auto bh_module = g_obj->GetModule<BehaviourModule>();
+            if (bh_module != nullptr) {
+                bh_module->Update();
+            }
+        }
     }
 
     void DawnEngine::InitGlobalUniformBlocks() {
@@ -348,9 +392,12 @@ namespace dawn_engine {
         int dir_lights_num = 0;
         int point_lights_num = 0;
         int spot_lights_num = 0;
-        dir_light_uniform_buffer.AppendUniform(std::make_shared<ShaderUniformVariable<int>>("dir_lights_num", dir_lights_num));
-        point_light_uniform_buffer.AppendUniform(std::make_shared<ShaderUniformVariable<int>>("point_lights_num", point_lights_num));
-        spot_light_uniform_buffer.AppendUniform(std::make_shared<ShaderUniformVariable<int>>("spot_lights_num", spot_lights_num));
+        dir_light_uniform_buffer.AppendUniform(
+                std::make_shared<ShaderUniformVariable<int>>("dir_lights_num", dir_lights_num));
+        point_light_uniform_buffer.AppendUniform(
+                std::make_shared<ShaderUniformVariable<int>>("point_lights_num", point_lights_num));
+        spot_light_uniform_buffer.AppendUniform(
+                std::make_shared<ShaderUniformVariable<int>>("spot_lights_num", spot_lights_num));
         for (auto gObj: this->game_object_ptrs) {
             auto dir_light_m = gObj->GetModule<DirectionalLightModule>();
             if (dir_light_m != nullptr) {
@@ -373,9 +420,12 @@ namespace dawn_engine {
             }
         }
 
-        dir_light_uniform_buffer.RefreshData(0, {std::make_shared<ShaderUniformVariable<int>>("dir_lights_num", dir_lights_num)});
-        point_light_uniform_buffer.RefreshData(0, {std::make_shared<ShaderUniformVariable<int>>("point_lights_num", point_lights_num)});
-        spot_light_uniform_buffer.RefreshData(0, {std::make_shared<ShaderUniformVariable<int>>("spot_lights_num", spot_lights_num)});
+        dir_light_uniform_buffer.RefreshData(0, {std::make_shared<ShaderUniformVariable<int>>("dir_lights_num",
+                                                                                              dir_lights_num)});
+        point_light_uniform_buffer.RefreshData(0, {std::make_shared<ShaderUniformVariable<int>>("point_lights_num",
+                                                                                                point_lights_num)});
+        spot_light_uniform_buffer.RefreshData(0, {std::make_shared<ShaderUniformVariable<int>>("spot_lights_num",
+                                                                                               spot_lights_num)});
         // create uniform buffer
         // pre-compute uniform block size
         dir_light_uniform_buffer.GenBuffer();
@@ -404,19 +454,28 @@ namespace dawn_engine {
                 auto hit_info = CollisionDetection(transformed_ray,
                                                    collider_m->GetColliderShape(),
                                                    game_obj->GetModule<TransformModule>()->GetScaleMat());
+
                 if (hit_info.any_hit) {
+                    hit_info.game_object_ptr = collider_m->GetAttachedGameObject();
+                    hit_info.global_pos = ray.ToDirection(hit_info.distance);
+                    hit_info.global_normal = glm::vec3(
+                            transform_m->GetTranslationMat() * transform_m->GetRotationMat() *
+                            glm::vec4(hit_info.local_normal, 0.0f));
                     hit_info_queue.insert({hit_info.distance, hit_info});
                 }
             }
         }
-        return hit_info_queue.begin()->second;
+        if (!hit_info_queue.empty()) {
+            return hit_info_queue.begin()->second;
+        } else {
+            return RayHitInfo();
+        }
     }
 
 
-
     GameObject *DawnEngine::FindGameObjectByName(std::string name) {
-        for(auto game_obj : this->game_object_ptrs){
-            if(game_obj->GetName() == name){
+        for (auto game_obj : this->game_object_ptrs) {
+            if (game_obj->GetName() == name) {
                 return game_obj;
             }
         }
@@ -517,7 +576,8 @@ namespace dawn_engine {
                                                      16, 18, 17, 17, 18, 19,
                                                      20, 21, 22, 21, 23, 22
                 };
-                DawnMesh mesh = DawnMesh(vertices, indices, std::make_shared<DawnMaterial>(this->material_map.at("default")));
+                DawnMesh mesh = DawnMesh(vertices, indices,
+                                         std::make_shared<DawnMaterial>(this->material_map.at("default")));
                 auto *cubePrimitive(new GameObject("New Cube Primitive", true));
                 DawnModel model({mesh});
                 cubePrimitive->AddModule<RendererModule>(model);
@@ -530,8 +590,8 @@ namespace dawn_engine {
         return nullptr;
     }
 
-    void DawnEngine::AddMaterial(const std::string & name, const DawnMaterial& material) {
-        this->material_map.insert({name,material});
+    void DawnEngine::AddMaterial(const std::string &name, const DawnMaterial &material) {
+        this->material_map.insert({name, material});
 
     }
 
@@ -540,18 +600,51 @@ namespace dawn_engine {
     }
 
     GLShaderProgram *DawnEngine::GetShaderProgram(const std::string &name) {
-        if(this->shader_program_map.count(name) == 0){
-            throw std::runtime_error(fmt::format("shader program: {} not exists in table",name));
+        if (this->shader_program_map.count(name) == 0) {
+            throw std::runtime_error(fmt::format("shader program: {} not exists in table", name));
         }
         return this->shader_program_map.at(name);
     }
 
     DawnMaterial DawnEngine::GetMaterial(const std::string &name) {
-        if(this->material_map.count(name) == 0){
-            throw std::runtime_error(fmt::format("material : {} not exists in table",name));
+        if (this->material_map.count(name) == 0) {
+            throw std::runtime_error(fmt::format("material : {} not exists in table", name));
         }
         return this->material_map.at(name);
     }
+
+    std::set<std::string> DawnEngine::GetPrefabPaths() const {
+        return this->prefab_paths_;
+    }
+
+    void DawnEngine::AddPrefabName(std::string path) {
+        this->prefab_paths_.insert(path);
+
+    }
+
+    void DawnEngine::LoadPrefab(std::string name) {
+        std::ifstream f(fmt::format("../prefabs/{}.json", name));
+        nlohmann::json data = nlohmann::json::parse(f);
+        auto prefab_obj = new GameObject();
+        auto box_block = this->CreatePrimitive(dawn_engine::BoxPrimitive);
+        box_block->SetName("box block");
+        glm::vec3 scale = {data["size"][0], data["size"][1], data["size"][2]};
+        box_block->GetModule<TransformModule>()->SetScale(scale);
+        box_block->AddModule<dawn_engine::ColliderModule>(
+                ColliderBox(box_block->GetModule<dawn_engine::TransformModule>()->GetPosition(), scale));
+        box_block->AddModule<BoxBlock>(box_block->GetModule<TransformModule>()->GetScale());
+        std::cout << "LOAD" << std::endl;
+
+    }
+
+
+
+
+
+
+//    void DawnEngine::Initialize() {
+//        std::cout << "Dawn Ini" << std::endl;
+//    }
 
 
 } // namespace dawn_engine

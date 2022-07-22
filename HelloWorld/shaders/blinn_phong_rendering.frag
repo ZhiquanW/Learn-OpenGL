@@ -58,6 +58,7 @@ in vec3 frag_normal;
 in vec3 frag_pos;
 in vec2 frag_tex_coord;
 uniform Material material;
+uniform sampler2D shadow_map;
 
 layout(std140,binding = 0) uniform CameraBlock{
     Camera main_camera;

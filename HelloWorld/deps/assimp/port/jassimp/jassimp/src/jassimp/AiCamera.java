@@ -117,7 +117,7 @@ public final class AiCamera {
      *  This node specifies the position of the camera in the scene
      *  hierarchy and can be animated.
      */
-    public String getName() {
+    public String GetName() {
         return m_name;
     }
     

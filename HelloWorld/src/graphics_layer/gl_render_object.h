@@ -18,18 +18,20 @@ namespace dawn_engine {
     };
 
 
-    class  GLRenderObject {
+    class GLRenderObject {
     private:
         GLRenderElement render_element_ = GLRenderElement::TRIANGLE;
         unsigned int vao_ = 0;
         unsigned int vbo_ = 0;
         unsigned int ebo_ = 0;
         unsigned int indices_num_ = 0;
-        std::vector<unsigned int> diffuse_tex_ids_ = {};
-        std::vector<unsigned int> specular_tex_ids_ = {};
-        std::vector<unsigned int> normal_tex_ids_ = {};
-        unsigned int cube_map_tex_id_ = 0;
-        std::vector<std::shared_ptr<ShaderUniformVariableBase>> uniforms_ = {};
+        unsigned int texture_counter_ = 0;
+        std::map<unsigned int,unsigned int> texture2d_id_map_ = {}; // 0: depth texture 1: cube map texture
+        std::map<std::string, std::shared_ptr<ShaderUniformVariableBase>> uniform_map_ = {};
+//        std::vector<unsigned int> diffuse_tex_ids_ = {};
+//        std::vector<unsigned int> specular_tex_ids_ = {};
+//        std::vector<unsigned int> normal_tex_ids_ = {};
+        int cube_map_tex_id_ = -1;
         GLShaderProgram *linked_shader_ = nullptr;
 
         void BindGLData() const;
@@ -37,6 +39,7 @@ namespace dawn_engine {
         void UnbindGLData() const;
 
     public:
+//        int depth_map_tex_id = -1;
         GLRenderObject() = default;
 
         explicit GLRenderObject(unsigned int vao,
@@ -56,9 +59,9 @@ namespace dawn_engine {
                                 unsigned int vbo,
                                 unsigned int ebo,
                                 unsigned int indices_num,
-                                std::vector<unsigned int> diffuse_tex_ids,
-                                std::vector<unsigned int> specular_tex_ids,
-                                std::vector<unsigned int> normal_tex_ids,
+                                const std::vector<unsigned int>& diffuse_tex_ids,
+                                const std::vector<unsigned int>& specular_tex_ids,
+                                const std::vector<unsigned int>& normal_tex_ids,
                                 const ShaderInfo &shader_info);
 
         explicit GLRenderObject(unsigned int vao,
@@ -75,9 +78,15 @@ namespace dawn_engine {
 
         void RefreshUniforms(std::vector<std::shared_ptr<ShaderUniformVariableBase>> uniforms);
 
-        void RefreshShaderProgram(GLShaderProgram * shader_program);
+        void RefreshShaderProgram(GLShaderProgram *shader_program);
 
         void render() const;
+
+        unsigned int ApplyTextureIdx();
+
+        unsigned int AppendGLTexture(unsigned int texture_id);
+
+        void SetDepthTexture(unsigned int texture_id);
 
 //        DawnMesh *GetLinkedMesh() const;
     };

@@ -4852,7 +4852,7 @@ public:
     void setAuthor(std::string author);
     std::string getDescription();
     void setDescription(std::string desc);
-    float getScale();
+    float GetScale();
     void setScale(float scale);
     std::vector<unsigned char> getPreview();
     std::vector<uint32_t> getColorMap();

@@ -8,6 +8,7 @@
 #include "core/dawn_engine.h"
 #include "core/dawn_ui_system.h"
 #include "render_window.h"
+#include "behaviour_modules/box_block.h"
 
 namespace helloworld {
 
@@ -15,6 +16,7 @@ namespace helloworld {
         const std::vector<std::string> meshOpaqueOptions = {"Opaque", "Transparency"};
     private:
         std::vector<int> gameObjectTrackerSelectionTable;
+        std::vector<int> prefab_selection_table{};
         std::string selected_shader_str;
         std::string selectedTransparencyTypeStr;
 
@@ -22,23 +24,27 @@ namespace helloworld {
         float defaultMaxValue = FLT_MAX;
         float defaultDragSpeed = 0.01f;
 
-        void updateGlobalSettingsPanel(dawn_engine::DawnEngine *engine_ptr);
+        void InitGlobalSettingsPanel(dawn_engine::DawnEngine *enginePtr);
 
-        void initGlobalSettingsPanel(dawn_engine::DawnEngine *enginePtr);
+        void UpdateGlobalSettingsPanel(dawn_engine::DawnEngine *engine_ptr);
 
-        void initGameObjectTracker(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs);
+        void InitPrefabManager();
 
-        void updateGameObjectTracker(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs);
+        void UpdatePrefabManager(const std::set<std::string> &prefab_paths);
 
-        void initGameObjectMonitors(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs);
+        void InitGameObjectTracker(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs);
 
-        void updateGameObjectMonitors(const std::vector<dawn_engine::GameObject *> &game_objs);
+        void UpdateGameObjectTracker(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs);
 
-        void InitCreationPopup(dawn_engine::DawnEngine *engine_ptr);
+        void InitGameObjectMonitors(const std::vector<dawn_engine::GameObject *> &game_obj_ptrs);
+
+        void UpdateGameObjectMonitors(const std::vector<dawn_engine::GameObject *> &game_objs);
 
         void UpdateCreationPopup(dawn_engine::DawnEngine *engine_ptr);
 
         void EmbedModuleMonitor(dawn_engine::BaseModule *targetModule);
+
+        void UpdateBehaviourModule(dawn_engine::BehaviourModule *behaviour_module);
 
         void UpdateTransformModuleMonitor(dawn_engine::TransformModule *const transformModule) const;
 
@@ -54,7 +60,8 @@ namespace helloworld {
 
         void UpdateColliderModuleMonitor(dawn_engine::ColliderModule *const collider_module) const;
 
-        Ray GenRayOnClick(glm::vec3 start_pos, glm::vec3 cam_front, glm::vec3 cam_up, glm::vec3 cam_right, float fov, glm::vec2 win_size, glm::vec2 mouse_pos);
+        Ray GenRayOnClick(glm::vec3 start_pos, glm::vec3 cam_front, glm::vec3 cam_up, glm::vec3 cam_right, float fov,
+                          glm::vec2 win_size, glm::vec2 mouse_pos);
 
         void OnMouseClicked();
 

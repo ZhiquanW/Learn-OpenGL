@@ -11,13 +11,20 @@
 #include "utils/glsl_utils.h"
 #include "graphics_layer/gl_render_object.h"
 #include "graphics_layer/gl_uniform_buffer.h"
+#include "behaviour_modules/behaviour_module.h"
+#include "behaviour_modules/box_block.h"
 
 namespace dawn_engine {
     class DawnEngine {
     private:
         DawnUISystem *ui_system_;
 
-        void render_depth_map();
+        void render_depth_map(glm::mat4 light_space_mat);
+
+        void render_scene(GLShaderProgram *target_shader_program_ptr,
+                          const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &global_uniforms,
+                          const std::vector<unsigned int> &global_texture_ids);
+
         // customized data
         void render();
 
@@ -29,25 +36,41 @@ namespace dawn_engine {
         std::unordered_map<std::string, DawnModel> modelMap = {};
         std::unordered_map<std::string, GLShaderProgram *> shader_program_map = {};
         std::unordered_map<std::string, DawnMaterial> material_map = {};
+        std::set<std::string> prefab_paths_{};
+
         GLfloat deltaTime;
         GLfloat lastTime;
         std::vector<GameObject *> game_object_ptrs;
-        GameObject *skybox_ptr_;
+        GameObject *skybox_ptr_ = nullptr;
         unsigned int depth_fbo = 0;
+        unsigned int depth_texture = 0;
 
         void MountUISystem(DawnUISystem *ui_system);
 
-        virtual void awake();
-
-        virtual void start();
-
-        virtual void update();
-
-        virtual void InitGlobalUniformBlocks();
-
-        virtual void RefreshGlobalUniformBlocks();
+        virtual void Initialize() = 0;
 
 
+        void LogicAwake();
+
+        void LogicStart();
+
+        void LogicUpdate();
+
+        void BehaviourAwake();
+
+        void BehaviourStart();
+
+        void BehaviourUpdate();
+
+        void RenderAwake();
+
+        void RenderStart();
+
+        void RenderUpdate();
+
+        void InitGlobalUniformBlocks();
+
+        void RefreshGlobalUniformBlocks();
 
 
     public:
@@ -55,9 +78,13 @@ namespace dawn_engine {
 
         static DawnEngine *instance;
 
-        DawnEngine(uint32_t win_width, uint32_t win_height, const std::string &name);
+        DawnEngine(uint32_t
+                   win_width, uint32_t
+                   win_height,
+                   const std::string &name);
 
-        DawnEngine(const DawnEngine &) = delete;
+        DawnEngine(
+                const DawnEngine &) = delete;
 
         DawnEngine &operator=(const DawnEngine &) = delete;
 
@@ -76,11 +103,19 @@ namespace dawn_engine {
 
         void EnableGLFeatures();
 
-        void SetUniformInShaderPrograms(const std::vector<std::string>& shader_program_names, const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms);
+        void SetUniformInShaderPrograms(const std::vector<std::string> &shader_program_names,
+                                        const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms);
 
         std::vector<GameObject *> GetGameObjectPtrs() const;
 
-        bool enabledDepthRendering() const;
+        std::set<std::string> GetPrefabPaths() const;
+
+        void LoadPrefab(std::string name);
+
+        void AddPrefabName(std::string path);
+
+
+        bool EnabledDepthRendering() const;
 
         bool &getDepthRenderingSwitchMeta();
 
@@ -90,17 +125,17 @@ namespace dawn_engine {
 
         RayHitInfo RayCastDetection(Ray ray);
 
-        GameObject * FindGameObjectByName(std::string name);
+        GameObject *FindGameObjectByName(std::string name);
 
-        GameObject  * CreatePrimitive(PrimitiveType pType) ;
+        GameObject *CreatePrimitive(PrimitiveType pType);
 
-        void AddMaterial(const std::string & name, const DawnMaterial& material) ;
+        void AddMaterial(const std::string &name, const DawnMaterial &material);
 
-        DawnMaterial GetMaterial(const std::string & name);
+        DawnMaterial GetMaterial(const std::string &name);
 
-        void AddShaderProgram(const std::string & name, GLShaderProgram * shader_program);
+        void AddShaderProgram(const std::string &name, GLShaderProgram *shader_program);
 
-        GLShaderProgram * GetShaderProgram(const std::string & name);
+        GLShaderProgram *GetShaderProgram(const std::string &name);
     };
 
 } // namespace dawn_engine

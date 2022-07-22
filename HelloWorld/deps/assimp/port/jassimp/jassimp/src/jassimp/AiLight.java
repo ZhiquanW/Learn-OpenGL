@@ -100,7 +100,7 @@ public final class AiLight {
      * 
      * @return the name
      */
-    public String getName() {
+    public String GetName() {
         return m_name;
     }
     

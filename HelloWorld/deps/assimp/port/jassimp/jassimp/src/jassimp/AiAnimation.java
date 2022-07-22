@@ -96,7 +96,7 @@ public final class AiAnimation {
      * 
      * @return the name
      */
-    public String getName() {
+    public String GetName() {
         return m_name;
     }
     

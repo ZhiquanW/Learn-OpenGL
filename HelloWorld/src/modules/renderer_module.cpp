@@ -87,7 +87,7 @@ namespace dawn_engine {
 //        shaderProgram->activate();
 //        for (unsigned int meshIdx = 0; meshIdx < this->meshes.size(); ++meshIdx) {
 //            if (this->activations[meshIdx]) {
-//                shaderProgram->SetUniform("model_mat", this->GetAttachedGameObject()->GetModule<TransformModule>()->GetModelMat4());
+//                shaderProgram->SetUniform("model_mat", this->GetAttachedGameObject()->GetModule<TransformModule>()->GetModelMat());
 //                this->meshes[meshIdx].render(shaderProgram);
 //            }
 //        }

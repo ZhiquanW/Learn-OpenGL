@@ -14,10 +14,7 @@ namespace helloworld {
     public:
         HelloWorldApp(uint width, uint height);
 
-        void awake() override;
+        void Initialize() override;
 
-        void start() override;
-
-        void update() override;
     };
 } // namespace helloworld

@@ -44,8 +44,19 @@ public:
 struct RayHitInfo {
     bool any_hit = false;
     float distance = 0.0f;
+    glm::vec3 local_pos{};
+    glm::vec3 global_pos{};
+    glm::vec3 local_normal{};
+    glm::vec3 global_normal{};
+    dawn_engine::GameObject *game_object_ptr = nullptr;
 
     RayHitInfo() = default;
+
+    RayHitInfo(bool any_hit, float distance, glm::vec3 local_pos, glm::vec3 local_normal) : any_hit(any_hit),
+                                                                                            distance(distance),
+                                                                                            local_pos(local_pos),
+                                                                                            local_normal(local_normal) {
+    }
 };
 
 struct ColliderBox {
@@ -123,7 +134,21 @@ inline RayHitInfo CollisionDetection(Ray ray, ColliderBox box, glm::mat4 scale_m
     glm::vec3 dis_max = glm::max(min_xyz, max_xyz);
     float t_near = glm::max(glm::max(dis_min.x, dis_min.y), dis_min.z);
     float t_far = glm::min(glm::min(dis_max.x, dis_max.y), dis_max.z);
-    return {t_near < t_far, t_near};
+    auto half_dims = box.dims / 2.0f;
+    auto hit_pos = ray.ToDirection(t_near);
+    glm::vec3 normals[] = {glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)};
+    auto normal = glm::vec3(0.0f);
+    for (int i = 0; i < 3; ++i) {
+        if (abs(hit_pos[i] - half_dims[i]) < 0.001f) {
+            normal = normals[i];
+            break;
+        }
+        if (abs(hit_pos[i] + half_dims[i]) < 0.001f) {
+            normal = -normals[i];
+            break;
+        }
+    }
+    return {t_near < t_far, t_near, hit_pos, normal};
 }
 
 // uncompleted

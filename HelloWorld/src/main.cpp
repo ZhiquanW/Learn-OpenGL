@@ -26,6 +26,7 @@ void testCodes() {
 void helloapp() {
     dawn_engine::DawnUISystem *b = new dawn_engine::DawnUISystem(430);
     helloworld::HelloWorldApp app(1600, 1600);
+    app.Initialize();
     app.launch();
 }
 

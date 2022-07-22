@@ -57,7 +57,9 @@ struct SpotLight{
 in vec3 frag_normal;
 in vec3 frag_pos;  
 in vec2 frag_tex_coord;
+in vec4 frag_pos_in_light_space;
 uniform Material material;
+uniform sampler2D shadow_map;
 // uniform DirectionalLight directional_lights[MAX_DIR_LIGHT_NUM];
 // uniform PointLight point_lights[MAX_POINT_LIGHT_NUM];
 // uniform SpotLight spot_lights[MAX_SPOT_LIGHT_NUM];
@@ -68,7 +70,6 @@ uniform Material material;
 layout(std140,binding = 0) uniform CameraBlock{
     Camera main_camera;
 };
-
 
 layout(std140,binding = 1) uniform DirectionalLightBlock{
     int dir_lights_num;
@@ -86,19 +87,24 @@ layout(std140,binding=3) uniform SpotLightBlock{
 };
 out vec4 out_color; 
 
-vec3 compute_directional_light(DirectionalLight dir_light,vec3 normal,vec3 view_dir,vec3 m_diffuse,vec3 m_specular){
+vec3 compute_directional_light(DirectionalLight dir_light,
+                                vec3 normal,
+                                vec3 view_dir,
+                                vec3 m_diffuse,
+                                vec3 m_specular,
+                                float in_shadow){
     if (dir_light.activation){
         vec3 light_dir = normalize(dir_light.direction);
         vec3 ambient = dir_light.ambient * material.ambient;
         vec3 diffuse = dir_light.diffuse * m_diffuse *  max(dot(normal,-light_dir),0.0);
         vec3 reflect_dir = reflect(light_dir,normal);
         vec3 specular = dir_light.specular * m_specular * pow(max(dot(view_dir,reflect_dir),0.0),material.shininess);
-        return ambient + diffuse + specular;    
+        return ambient +(1-in_shadow) * (diffuse + specular);    
     }
     return vec3(0.0);
 }
 
-vec3 compute_point_light(PointLight point_light,vec3 normal,vec3 view_dir,vec3 m_diffuse,vec3 m_specular){
+vec3 compute_point_light(PointLight point_light,vec3 normal,vec3 view_dir,vec3 m_diffuse,vec3 m_specular,float in_shadow){
     if(point_light.activation){
         float distance = length(point_light.position-frag_pos);
         float attenuation = 1.0/(point_light.constant + point_light.linear * distance + point_light.quadratic*distance*distance);
@@ -107,12 +113,12 @@ vec3 compute_point_light(PointLight point_light,vec3 normal,vec3 view_dir,vec3 m
         vec3 diffuse = point_light.diffuse * m_diffuse *max(dot(normal,to_light_dir),0.0);
         vec3 reflect_dir = reflect(-to_light_dir,normal);
         vec3 specular = point_light.specular * vec3(1.0)  * pow(max(dot(view_dir,reflect_dir),0.0),material.shininess);
-        return ambient + diffuse + specular;
+        return ambient + (1-in_shadow) *(diffuse + specular);
     }
     return vec3(0.0);
 }
 
-vec3 compute_spot_light(SpotLight spot_light,vec3 normal,vec3 view_dir,vec3 m_diffuse,vec3 m_specular){
+vec3 compute_spot_light(SpotLight spot_light,vec3 normal,vec3 view_dir,vec3 m_diffuse,vec3 m_specular,float in_shadow){
     if(spot_light.activation){
         float distance = length(spot_light.position-frag_pos);
         float attenuation = 1.0/(spot_light.constant + spot_light.linear * distance + spot_light.quadratic*distance*distance);
@@ -126,9 +132,38 @@ vec3 compute_spot_light(SpotLight spot_light,vec3 normal,vec3 view_dir,vec3 m_di
         vec3 diffuse = spot_light.diffuse * m_diffuse *  max(dot(normal,to_light_dir),0.0);
         vec3 reflect_dir = reflect(-to_light_dir,normal);
         vec3 specular =   spot_light.specular * m_specular * pow(max(dot(view_dir,reflect_dir),0.0),material.shininess);
-        return attenuation*(ambient + intensity*(diffuse + specular));
+        return attenuation*(ambient + (1-in_shadow) *intensity*(diffuse + specular));
     }
     return vec3(0.0);
+}
+
+float shadow_calculation(vec4 frag_pos_in_light_space,vec3 normal,vec3 light_dir)
+{
+    // perform perspective divide
+    vec3 proj_coords = frag_pos_in_light_space.xyz / frag_pos_in_light_space.w;
+    // transform to [0,1] range
+    proj_coords = proj_coords * 0.5 + 0.5;
+    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closest_depth = texture(shadow_map, proj_coords.xy).r; 
+    // get depth of current fragment from light's perspective
+    float current_depth = proj_coords.z;
+    // check whether current frag pos is in shadow
+    float bias = max(0.001* (1.0 - dot(normal, light_dir)), 0.005);  
+
+    float shadow = 0.0;
+    vec2 texel_size = 1.0 / textureSize(shadow_map, 0);
+    for(int x = -1; x <= 1; ++x){
+        for(int y = -1; y <= 1; ++y){
+            float pcf_depth = texture(shadow_map, proj_coords.xy + vec2(x, y) * texel_size).r; 
+            shadow += (current_depth - bias) > pcf_depth ? 1.0 : 0.0;        
+        }    
+    }
+    shadow /= 9.0;
+    if(proj_coords.z > 1.0){
+        shadow = 0.0;
+    }
+
+    return shadow;
 }
 float near = 0.001f;
 float far = 100.0f;
@@ -151,15 +186,18 @@ void main() {
         material_specular = material.specular;
     }
     vec3 shader_color = vec3(0.0);
+    float in_shadow = shadow_calculation(frag_pos_in_light_space,normal,directional_lights[0].direction);                      
+
     for (int i = 0;i < dir_lights_num;++ i){
-        shader_color += compute_directional_light(directional_lights[i],normal,view_dir,material_diffuse,material_specular);
+        shader_color += compute_directional_light(directional_lights[i],normal,view_dir,material_diffuse,material_specular,in_shadow);
     }
     for(int i = 0;i < point_lights_num;++ i){
-        shader_color+= compute_point_light(point_lights[i],normal,view_dir,material_diffuse,material_specular);
+        shader_color+= compute_point_light(point_lights[i],normal,view_dir,material_diffuse,material_specular,in_shadow);
     }
     for(int i = 0;i < spot_lights_num;++ i){
-        shader_color+= compute_spot_light(spot_lights[i],normal,view_dir,material_diffuse,material_specular);
+        shader_color+= compute_spot_light(spot_lights[i],normal,view_dir,material_diffuse,material_specular,in_shadow);
     }
     float alpha = 1.0f-material.transparency;
+
     out_color =vec4(shader_color,alpha);
 }

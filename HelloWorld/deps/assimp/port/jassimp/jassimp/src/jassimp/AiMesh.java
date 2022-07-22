@@ -483,7 +483,7 @@ public final class AiMesh {
      * 
      * @return the name or an empty string if no name is set
      */
-    public String getName() {
+    public String GetName() {
         return m_name;
     }
     

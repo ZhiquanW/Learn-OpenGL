@@ -80,33 +80,83 @@ namespace dawn_engine {
 
     }
 
+    GLTexture LightModule::GetDepthMapTexture() const {
+        return this->depth_map_;
+    }
+
 
 // direction light
     DirectionalLightModule::DirectionalLightModule()
-            : LightModule(glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(1.0f)), direction(glm::vec3(-1.0f)) {}
+            : LightModule(glm::vec3(0.0f),
+                          glm::vec3(1.0f),
+                          glm::vec3(1.0f)),
+              direction_(glm::vec3(-1.0f)) {
+        this->depth_map_ = {AllocateGLTexture(this->DEPTH_MAP_SIZE), GLTextureType::Texture2D};
+    }
 
     DirectionalLightModule::DirectionalLightModule(glm::vec3 dir)
-            : LightModule(glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(1.0f)), direction(dir) {}
+            : LightModule(glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(1.0f)), direction_(dir) {
+        this->depth_map_ = {AllocateGLTexture(this->DEPTH_MAP_SIZE), GLTextureType::Texture2D};
+
+
+    }
 
     DirectionalLightModule::DirectionalLightModule(glm::vec3 direction, glm::vec3 color)
-            : LightModule(color), direction(direction) {}
+            : LightModule(color), direction_(direction) {
+        this->depth_map_ = {AllocateGLTexture(this->DEPTH_MAP_SIZE), GLTextureType::Texture2D};
+
+    }
 
     DirectionalLightModule::DirectionalLightModule(glm::vec3 direction, glm::vec3 ambient,
                                                    glm::vec3 diffuse,
                                                    glm::vec3 specular)
-            : LightModule(ambient, diffuse, specular), direction(direction) {}
+            : LightModule(ambient, diffuse, specular), direction_(direction) {
+        this->depth_map_ = {AllocateGLTexture(this->DEPTH_MAP_SIZE), GLTextureType::Texture2D};
+
+    }
+
+    DirectionalLightModule::DirectionalLightModule(glm::vec3 dir, float left, float right, float bottom, float top,
+                                                   float z_near, float z_far)
+            : LightModule(glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(1.0f)),
+              direction_(dir),
+              left_(left),
+              right_(right),
+              bottom_(bottom),
+              top_(top) {
+        this->depth_map_ = {AllocateGLTexture(this->DEPTH_MAP_SIZE), GLTextureType::Texture2D};
+    }
+
+    DirectionalLightModule::DirectionalLightModule(glm::vec3 dir, float left, float right, float bottom, float top,
+                                                   float z_near, float z_far, glm::vec3 color) :
+            LightModule(color),
+            direction_(dir),
+            left_(left),
+            right_(right),
+            bottom_(bottom),
+            top_(top) {
+    }
+
+    DirectionalLightModule::DirectionalLightModule(glm::vec3 dir, float left, float right, float bottom, float top,
+                                                   float z_near, float z_far, glm::vec3 ambient, glm::vec3 diffuse,
+                                                   glm::vec3 specular) : LightModule(ambient, diffuse, specular),
+                                                                         direction_(dir),
+                                                                         left_(left),
+                                                                         right_(right),
+                                                                         bottom_(bottom),
+                                                                         top_(top) {
+    }
 
 
     DirectionalLightModule::~DirectionalLightModule() = default;;
 
-    glm::vec3 DirectionalLightModule::GetDirection() const { return glm::normalize(this->direction); }
+    glm::vec3 DirectionalLightModule::GetDirection() const { return glm::normalize(this->direction_); }
 
-    glm::vec3 &DirectionalLightModule::getDirectionMeta() {
-        this->direction = glm::normalize(this->direction);
-        return this->direction;
+    glm::vec3 &DirectionalLightModule::GetDirectionMeta() {
+        this->direction_ = glm::normalize(this->direction_);
+        return this->direction_;
     }
 
-    void DirectionalLightModule::setDirection(const glm::vec3 &dir) { this->direction = dir; }
+    void DirectionalLightModule::SetDirection(const glm::vec3 &dir) { this->direction_ = dir; }
 
     std::vector<std::shared_ptr<ShaderUniformVariableBase>>
     DirectionalLightModule::getUniforms(const uint32_t idx) const {
@@ -115,8 +165,32 @@ namespace dawn_engine {
                 indexed_name);
         light_uniforms.emplace_back(
                 std::make_shared<ShaderUniformVariable<glm::vec3>>(indexed_name + ".direction",
-                                                                   this->direction));
+                                                                   this->direction_));
         return light_uniforms;
+    }
+
+    float DirectionalLightModule::GetLeft() const {
+        return this->left_;
+    }
+
+    float DirectionalLightModule::GetRight() const {
+        return this->right_;
+    }
+
+    float DirectionalLightModule::GetBottom() const {
+        return this->bottom_;
+    }
+
+    float DirectionalLightModule::GetTop() const {
+        return this->top_;
+    }
+
+    float DirectionalLightModule::GetZNear() const {
+        return this->z_near_;
+    }
+
+    float DirectionalLightModule::GetZFar() const {
+        return this->z_far_;
     }
 
 
@@ -192,10 +266,12 @@ namespace dawn_engine {
     }
 
 
-    SpotLightModule::SpotLightModule() : PointLightModule(), direction(glm::vec3(-1.0f)), innerRange(15), outerRange(30) {
+    SpotLightModule::SpotLightModule()
+            : PointLightModule(), direction(glm::vec3(-1.0f)), innerRange(15), outerRange(30) {
     }
 
-    SpotLightModule::SpotLightModule(glm::vec3 dir, float innerRange, float outerRange) : PointLightModule(), direction(dir), innerRange(innerRange), outerRange(outerRange) {
+    SpotLightModule::SpotLightModule(glm::vec3 dir, float innerRange, float outerRange)
+            : PointLightModule(), direction(dir), innerRange(innerRange), outerRange(outerRange) {
     }
 
     std::vector<std::shared_ptr<ShaderUniformVariableBase>>

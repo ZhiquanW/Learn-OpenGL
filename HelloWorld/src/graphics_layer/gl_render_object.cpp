@@ -40,18 +40,24 @@ namespace dawn_engine {
                                    unsigned int vbo,
                                    unsigned int ebo,
                                    unsigned int indices_num,
-                                   std::vector<unsigned int> diffuse_tex_ids,
-                                   std::vector<unsigned int> specular_tex_ids,
-                                   std::vector<unsigned int> normal_tex_ids,
+                                   const std::vector<unsigned int>& diffuse_tex_ids,
+                                   const std::vector<unsigned int>& specular_tex_ids,
+                                   const std::vector<unsigned int>& normal_tex_ids,
                                    const ShaderInfo &shader_info)
             : vao_(vao),
               vbo_(vbo),
               ebo_(ebo),
               indices_num_(indices_num),
-              diffuse_tex_ids_(std::move(diffuse_tex_ids)),
-              specular_tex_ids_(std::move(specular_tex_ids)),
-              normal_tex_ids_(std::move(normal_tex_ids)),
               linked_shader_(DawnEngine::instance->GetShaderProgramMapMeta().at(shader_info.name)) {
+        for(auto texture_id : diffuse_tex_ids){
+            this->AppendGLTexture(texture_id);
+        }
+        for(auto texture_id : specular_tex_ids){
+            this->AppendGLTexture(texture_id);
+        }
+        for(auto texture_id : normal_tex_ids){
+            this->AppendGLTexture(texture_id);
+        }
     }
 
     GLRenderObject::GLRenderObject(unsigned int vao,
@@ -83,21 +89,19 @@ namespace dawn_engine {
     void GLRenderObject::BindGLData() const {
         glBindVertexArray(this->vao_);
         // bind textures
-        int texture_unit_idx = 0;
-        for (auto tex_id: this->diffuse_tex_ids_) {
-            glActiveTexture(GL_TEXTURE0 + texture_unit_idx++);
-            glBindTexture(GL_TEXTURE_2D, tex_id);
+        for(auto pair: this->texture2d_id_map_){
+            glActiveTexture(GL_TEXTURE0+pair.second);
+            glBindTexture(GL_TEXTURE_2D, pair.first);
         }
-        for (auto tex_id: this->specular_tex_ids_) {
-            glActiveTexture(GL_TEXTURE0 + texture_unit_idx++);
-            glBindTexture(GL_TEXTURE_2D, tex_id);
+        unsigned int common_texture_num = this->texture_counter_;
+        if(this->cube_map_tex_id_ !=-1){
+            glActiveTexture(GL_TEXTURE0 + common_texture_num++);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, this->cube_map_tex_id_);
         }
-        for (auto tex_id: this->normal_tex_ids_) {
-            glActiveTexture(GL_TEXTURE0 + texture_unit_idx++);
-            glBindTexture(GL_TEXTURE_2D, tex_id);
-        }
-        glActiveTexture(GL_TEXTURE0 + texture_unit_idx++);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, this->cube_map_tex_id_);
+//        if(this->depth_map_tex_id != -1){
+//            glActiveTexture(GL_TEXTURE0 + common_texture_num++);
+//            glBindTexture(GL_TEXTURE_2D, this->depth_map_tex_id);
+//        }
     }
 
     void GLRenderObject::UnbindGLData() const {
@@ -113,8 +117,7 @@ namespace dawn_engine {
 //        uniforms.insert(uniforms.end(), transform_uniforms.begin(), transform_uniforms.end());
 //        uniforms.insert(uniforms.end(), tex_uniforms.begin(), tex_uniforms.end());
         this->linked_shader_->Activate();
-        this->linked_shader_->SetUniforms(this->uniforms_);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, 1);
+        this->linked_shader_->SetUniforms(this->uniform_map_);
         this->BindGLData();
         switch (this->render_element_) {
             case GLRenderElement::TRIANGLE:
@@ -131,13 +134,36 @@ namespace dawn_engine {
     }
 
     void GLRenderObject::RefreshUniforms(std::vector<std::shared_ptr<ShaderUniformVariableBase>> uniforms) {
-        this->uniforms_ = std::move(uniforms);
+//        this->uniforms_ = std::move(uniforms);
+        for (const auto &uniform : uniforms) {
+            if (this->uniform_map_.count(uniform->GetName()) == 0) {
+                this->uniform_map_.insert({uniform->GetName(), uniform});
+            } else {
+                this->uniform_map_.at(uniform->GetName()) = uniform;
+            }
+        }
 
     }
 
     void GLRenderObject::RefreshShaderProgram(GLShaderProgram *shader_program) {
         this->linked_shader_ = shader_program;
     }
+
+    unsigned int GLRenderObject::ApplyTextureIdx()  {
+        return this->texture_counter_++;
+    }
+
+    unsigned int GLRenderObject::AppendGLTexture(unsigned int texture_id) {
+        if(this->texture2d_id_map_.count(texture_id) > 0){
+            return this->texture2d_id_map_.at(texture_id);
+        }
+         this->texture2d_id_map_.insert({texture_id, this->texture_counter_,});
+         return this->texture_counter_++;
+    }
+
+//    void GLRenderObject::SetDepthTexture(unsigned int texture_id) {
+//        this->depth_map_tex_id = texture_id;
+//    }
 
 
 //    void GLRenderObject::AllocateGLData(std::vector<DawnVertex> vertices, std::vector<unsigned int> indices) {

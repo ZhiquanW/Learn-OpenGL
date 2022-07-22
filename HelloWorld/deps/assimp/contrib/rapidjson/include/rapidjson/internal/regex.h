@@ -505,7 +505,7 @@ private:
                     GetRange(current).next = r;
                 }
                 if (negate)
-                    GetRange(start).start |= kRangeNegationFlag;
+                    GetRange(start).Start |= kRangeNegationFlag;
                 *range = start;
                 return true;
 

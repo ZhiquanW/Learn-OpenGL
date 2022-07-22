@@ -12,6 +12,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <memory>
+#include <numeric>
 #include <unordered_map>
 #include <cmath>
 #include <vector>
@@ -22,6 +23,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <filesystem>
 #include "stb_image.h"
 #include <fmt/core.h>
 #include "imgui.h"
@@ -32,6 +34,8 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include <numeric>
 
+#include "deps/nlohmann_json/json.hpp"
+
+#include "deps/cista.h"
 #define quote(x) #x

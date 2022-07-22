@@ -24,14 +24,18 @@ layout (location = 2) in vec2 tex_coord;
 
 // out vec3 vColor;
 uniform mat4 model_mat;
+uniform mat4 light_space_mat;
+
 // uniform Camera main_camera;
 out vec3 frag_normal;
 out vec3 frag_pos;  
 out vec2 frag_tex_coord;
+out vec4 frag_pos_in_light_space;
 void main() { 
     frag_normal = transpose(inverse(mat3(model_mat)))* normal;
     frag_pos = vec3(model_mat * vec4(pos, 1.0));
     frag_tex_coord = tex_coord;
+    frag_pos_in_light_space =  light_space_mat * model_mat * vec4(pos, 1.0);
     gl_Position = main_camera.projection * main_camera.view * model_mat * vec4(pos, 1.0);
     // gl_Position = projection * view * model_mat * vec4(pos, 1.0);
 }
