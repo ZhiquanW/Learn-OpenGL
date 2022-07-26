@@ -1598,7 +1598,7 @@ void FBXExporter::WriteObjects ()
     }
 
     // Textures
-    // referenced by material_index/texture_type pairs.
+    // referenced by material_index/target pairs.
     std::map<std::pair<size_t,size_t>,int64_t> texture_uids;
     const std::map<aiTextureType,std::string> prop_name_by_tt = {
         {aiTextureType_DIFFUSE,      "DiffuseColor"},

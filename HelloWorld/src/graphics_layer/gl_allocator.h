@@ -7,9 +7,13 @@
 
 #include "core/dawn_vertex.h"
 #include "core/camera.h"
-#include "core/game_object.h"
 #include "utils/resource_loader.h"
+
 namespace dawn_engine {
+    enum GLTextureFormat {
+        RGB = GL_RGB,
+        DepthComponent = GL_DEPTH_COMPONENT,
+    };
 
     inline std::vector<unsigned int>
     AllocateGLVertexData(std::vector<DawnVertex> vertices, std::vector<unsigned int> indices) {
@@ -54,28 +58,39 @@ namespace dawn_engine {
     }
 
 
-    inline unsigned int AllocateGLTexture(glm::vec2 size) {
+    inline unsigned int AllocateGLTexture(GLTextureFormat format, glm::vec2 size, bool repeat = false) {
         unsigned int tex_id;
         glGenTextures(1, &tex_id);
         glBindTexture(GL_TEXTURE_2D, tex_id);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, size.x, size.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, size.x, size.y, 0, format, GL_FLOAT, nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        if (repeat) {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        } else {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+            float color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+            glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, color);
+        }
         return tex_id;
     }
 
-    inline unsigned int AllocateGLDepthMap(unsigned int texture_id) {
+    inline unsigned int GenGLDepthFramebuffer() {
         unsigned int fbo;
         glGenFramebuffers(1, &fbo);
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture_id, 0);
         glDrawBuffer(GL_NONE);
         glReadBuffer(GL_NONE);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
         return fbo;
+    }
+
+    inline void BindTexture2Framebuffer(unsigned int fbo, GLTexture texture) {
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, texture.attachment, texture.target, texture.id, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     inline std::vector<unsigned int>

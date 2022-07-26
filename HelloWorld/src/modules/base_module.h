@@ -7,9 +7,6 @@ namespace dawn_engine {
     enum PrimitiveType {
         BoxPrimitive, SpherePrimitiveType
     };
-    enum LightType {
-        DirectionalLightType, PointLightType, SpotLightType
-    };
 
     class GameObject;
 

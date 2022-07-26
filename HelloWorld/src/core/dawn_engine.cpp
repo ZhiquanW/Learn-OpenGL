@@ -23,15 +23,9 @@ namespace dawn_engine {
         this->InitShaderPrograms();
         this->InitMaterials();
         // TMP: generate depth texture and framebuffer
-        this->depth_texture = AllocateGLTexture(glm::vec2(1024));
-        glBindTexture(GL_TEXTURE_2D, this->depth_texture);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-        float borderColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
-        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-        this->depth_fbo = AllocateGLDepthMap(this->depth_texture);
+        // todo: bug here
 
-
+        this->depth_fbo = GenGLDepthFramebuffer();
     }
 
 
@@ -42,11 +36,11 @@ namespace dawn_engine {
         }
     }
 
-    void DawnEngine::RenderAwake() {
+    void DawnEngine::RenderLayerAwake() {
 
     }
 
-    void DawnEngine::RenderStart() {
+    void DawnEngine::RenderLayerStart() {
         if (this->ui_system_ != nullptr) {
             this->ui_system_->start(this);
         }
@@ -55,7 +49,7 @@ namespace dawn_engine {
 
     }
 
-    void DawnEngine::RenderUpdate() {
+    void DawnEngine::RenderLayerUpdate() {
 
         this->render();
         if (ui_system_ != nullptr) {
@@ -67,18 +61,18 @@ namespace dawn_engine {
     void DawnEngine::launch() {
         {
             // Awake
-            this->LogicAwake();
-            this->RenderAwake();
+            this->LogicLayerAwake();
+            this->RenderLayerAwake();
         }
         {
             // Start
-            this->LogicAwake();
-            this->RenderStart();
+            this->LogicLayerAwake();
+            this->RenderLayerStart();
         }
         // Update
         while (!this->render_window_->should_close()) {
-            this->LogicUpdate();
-            this->RenderUpdate();
+            this->LogicLayerUpdate();
+            this->RenderLayerUpdate();
             glfwPollEvents();
 
         }
@@ -140,6 +134,10 @@ namespace dawn_engine {
             target_shader_program_ptr->Activate();
             target_shader_program_ptr->SetUniforms(global_uniforms);
         }
+        // todo: add multiple lights shadow instead of a fixe directional light
+        // todo: add texture uniform to structure
+        auto dir_light_module = this->FindGameObjectByName("dir_light")->GetModule<DirectionalLightModule>();
+
         for (auto g_obj: this->game_object_ptrs) {
             if (g_obj->GetModule<RendererModule>() != nullptr and g_obj->GetModule<RendererModule>()->GetActivation()) {
                 float distance2cam = glm::length(
@@ -166,7 +164,7 @@ namespace dawn_engine {
                         render_pair.second->RefreshShaderProgram(
                                 this->shader_program_map.at(mesh.GetMaterialPtr()->GetShaderInfo().name));
                     }
-                    auto depth_unit_id = render_pair.second->AppendGLTexture(this->depth_texture);
+                    auto depth_unit_id = render_pair.second->AppendGLTexture(dir_light_module->GetShadowMapTexture().id);
                     uniforms.push_back(std::make_shared<ShaderUniformVariable<int>>("shadow_map",
                                                                                     depth_unit_id));
                     render_pair.second->RefreshUniforms(uniforms);
@@ -198,18 +196,37 @@ namespace dawn_engine {
     */
     void DawnEngine::render_depth_map(glm::mat4 light_space_mat) {
 
-        for (auto obj_ptr : this->game_object_ptrs) {
-
-        }
         auto depth_shader = this->shader_program_map.at("simple_depth");
-        glViewport(0, 0, 1024, 1024);
+        glViewport(0, 0, 512, 512);
         glBindFramebuffer(GL_FRAMEBUFFER, this->depth_fbo);
         glClear(GL_DEPTH_BUFFER_BIT);
+
         this->render_scene(depth_shader,
                            {std::make_shared<ShaderUniformVariable<glm::mat4>>("light_space_mat", light_space_mat)},
                            {});
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+    }
+
+    void DawnEngine::RenderDepthMap(GLShaderProgram *depth_shader_program_ptr, LightModule *light_module) {
+        glm::vec2 shadow_map_resolution = light_module->GetShadowMapTexture().resolution;
+        if (light_module-> GetLightType() == LightType::DirectionalLight) {
+            auto light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, main_camera_.GetZNear(),
+                                               main_camera_.GetZFar());
+            auto light_view = glm::lookAt(light_module->GetAttachedGameObject()->GetModule<TransformModule>()->GetPosition(), glm::vec3(0.0f),
+                                          glm::vec3(0.0, 1.0, 0.0));
+            auto light_space_mat = light_projection * light_view;
+            std::cout << this->depth_fbo << std::endl;
+
+            glViewport(0, 0, shadow_map_resolution.x, shadow_map_resolution.y);
+            BindTexture2Framebuffer(this->depth_fbo,light_module->GetShadowMapTexture());
+            glBindFramebuffer(GL_FRAMEBUFFER, this->depth_fbo);
+            glClear(GL_DEPTH_BUFFER_BIT);
+            this->render_scene(depth_shader_program_ptr,
+                               {std::make_shared<ShaderUniformVariable<glm::mat4>>("light_space_mat", light_space_mat)},
+                               {});
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        }
     }
 
     void DawnEngine::render() {
@@ -220,7 +237,9 @@ namespace dawn_engine {
         auto light_view = glm::lookAt(dir_light->GetModule<TransformModule>()->GetPosition(), glm::vec3(0.0f),
                                       glm::vec3(0.0, 1.0, 0.0));
         auto light_space_mat = light_projection * light_view;
-        this->render_depth_map(light_space_mat);
+//        this->render_depth_map(light_space_mat);
+        auto depth_shader = this->shader_program_map.at("simple_depth");
+        this->RenderDepthMap(depth_shader,dir_light->GetModule<DirectionalLightModule>());
         // main render
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glViewport(0, 0, (GLsizei) this->render_window_->GetWinWidth(),
@@ -229,7 +248,7 @@ namespace dawn_engine {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         this->render_scene(nullptr,
                            {std::make_shared<ShaderUniformVariable<glm::mat4>>("light_space_mat", light_space_mat)},
-                           {this->depth_texture});
+                           {});
 
         // render skybox
         if (this->skybox_ptr_ != nullptr) {
@@ -333,15 +352,15 @@ namespace dawn_engine {
 
     }
 
-    void DawnEngine::LogicAwake() {
+    void DawnEngine::LogicLayerAwake() {
         this->BehaviourAwake();
     }
 
-    void DawnEngine::LogicStart() {
+    void DawnEngine::LogicLayerStart() {
         this->BehaviourStart();
     }
 
-    void DawnEngine::LogicUpdate() {
+    void DawnEngine::LogicLayerUpdate() {
         auto currentTime = static_cast<GLfloat>(glfwGetTime());
         this->deltaTime = currentTime - this->lastTime;
         this->lastTime = currentTime;

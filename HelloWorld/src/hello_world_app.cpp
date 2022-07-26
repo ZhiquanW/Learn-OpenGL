@@ -95,7 +95,7 @@ namespace helloworld {
 
     void HelloWorldApp::AddDefaultLight() {
         auto tmpLight = dawn_engine::GameObject::CreateLight(
-                dawn_engine::LightType::DirectionalLightType);
+                dawn_engine::LightType::DirectionalLight);
         tmpLight->SetName("dir_light");
         tmpLight->GetModule<dawn_engine::DirectionalLightModule>()->SetDirection(
                 glm::vec3(-1.0, -1.0, -1.0));

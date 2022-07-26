@@ -1,13 +1,17 @@
 #pragma once
 
 #include "common_includes.h"
-#include "modules/transform_module.h"
-#include "modules/renderer_module.h"
 #include "modules/light_module.h"
+#include "modules/renderer_module.h"
 #include "utils/resource_loader.h"
 
 namespace dawn_engine {
+
     class DawnEngine;
+
+    /**
+     *
+     */
     class GameObject {
     protected:
         static uint32_t nextGameObjectID;
@@ -19,10 +23,17 @@ namespace dawn_engine {
         void initGameObject();
 
     public:
+        /**
+         * Creates a game object with attached light module.
+         * The properties of the light module is defined by the light type.
+         * If the input light type is unknown, return nullptr.
+         * @param light_type
+         * @return The returned object is owned by DawnEngine and will be freed when engine shuts down.
+         */
+        static GameObject *CreateLight(LightType light_type);
 
-        static GameObject *CreateLight(LightType lType);
 
-        static GameObject *CreateSkybox(std::vector<std::string> facesPaths);
+        static GameObject *CreateSkybox(std::vector<std::string> faces_paths);
 
         static GameObject *CreateLine(glm::vec3 start_pos, glm::vec3 end_pos);
 

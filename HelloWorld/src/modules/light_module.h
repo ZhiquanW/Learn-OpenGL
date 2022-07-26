@@ -1,33 +1,41 @@
 #pragma once
 
+#include "common_includes.h"
 #include "base_module.h"
 
-#include "../../include/common_includes.h"
-#include "../../include/shader_uniform_variable.h"
+#include "shader_uniform_variable.h"
 #include "transform_module.h"
-#include "core/game_object.h"
 #include "graphics_layer/gl_texture.h"
 #include "graphics_layer/gl_allocator.h"
 
 namespace dawn_engine {
+    enum LightType {
+        AbstractLight,
+        DirectionalLight,
+        PointLight,
+        SpotLight,
+    };
+
     class LightModule : public BaseModule {
 
     private:
     protected:
-        const glm::vec2 DEPTH_MAP_SIZE{1024};
+        // todo: move below to GLTexture and delete depracted part
+        const glm::vec2 DEPTH_MAP_SIZE{4096};
         glm::vec3 ambient_;
         glm::vec3 diffuse_;
         glm::vec3 specular_;
         GLTexture depth_map_ = {};
+        LightType light_type_ = LightType::AbstractLight;
     public:
         static const std::size_t type;
 
 
-        LightModule();
+        explicit LightModule(LightType light_type);
 
-        explicit LightModule(glm::vec3 color);
+        explicit LightModule(LightType light_type, glm::vec3 color);
 
-        LightModule(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular);
+        LightModule(LightType light_type, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular);
 
         ~LightModule() override;
 
@@ -53,7 +61,9 @@ namespace dawn_engine {
         [[nodiscard]] virtual std::vector<std::shared_ptr<ShaderUniformVariableBase>>
         getUniforms(const std::string &name) const;
 
-        GLTexture GetDepthMapTexture() const;
+        GLTexture GetShadowMapTexture() const;
+
+        LightType GetLightType() const;
     };
 
     class DirectionalLightModule : public LightModule {
@@ -156,7 +166,7 @@ namespace dawn_engine {
 
         float &getQuadraticMeta();
 
-        void setQuadratic(const float &q);
+        void SetQuadratic(const float &q);
     };
 
     class SpotLightModule : public PointLightModule {

@@ -14,7 +14,7 @@ namespace dawn_engine {
                                std::vector<std::shared_ptr<DawnTexture>> specular_textures,
                                std::vector<std::shared_ptr<DawnTexture>> normal_textures)
             : diffuse_textures_(std::move(diffuse_textures)), specular_textures_(std::move(specular_textures)), normal_textures_(std::move(normal_textures)),
-              material_type_(DawnMaterialType::Texture2D), shader_info_(ShaderTable::default_shader_info) {
+              material_type_(DawnMaterialType::Texture), shader_info_(ShaderTable::default_shader_info) {
     }
 
     DawnMaterial::DawnMaterial(glm::vec3 pure_color)

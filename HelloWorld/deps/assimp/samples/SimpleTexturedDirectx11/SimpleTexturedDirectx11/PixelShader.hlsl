@@ -1,4 +1,4 @@
-Texture2D diffTexture;
+Texture diffTexture;
 SamplerState SampleType;
 
 float4 main(float4 pos : SV_POSITION, float2 texcoord : TEXCOORD) : SV_TARGET

@@ -22,7 +22,7 @@ namespace dawn_engine {
             auto mesh = this->model_.GetMeshesRef()[i];
             auto gl_obj = AllocateGLVertexData(mesh.GetVerticesRef(), mesh.GetIndicesRef());
 
-            if (mesh.GetMaterialPtr()->GetMaterialType() == DawnMaterialType::Texture2D) {
+            if (mesh.GetMaterialPtr()->GetMaterialType() == DawnMaterialType::Texture) {
                 std::vector<unsigned int> diffuse_gl_texture_ids = AllocateGLTextureDataFiltered(texture_id_map,
                                                                                                  mesh.GetMaterialPtr()->GetDiffuseTextures());
                 std::vector<unsigned int> specular_gl_texture_ids = AllocateGLTextureDataFiltered(texture_id_map,

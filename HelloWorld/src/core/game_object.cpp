@@ -47,7 +47,7 @@ namespace dawn_engine {
 
 
 
-    GameObject *GameObject::CreateSkybox(std::vector<std::string> facesPaths) {
+    GameObject *GameObject::CreateSkybox(std::vector<std::string> faces_paths) {
         std::vector<float> positionRaw = {
                 // positions
                 -1.0f, 1.0f, -1.0f,
@@ -105,7 +105,7 @@ namespace dawn_engine {
                 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
         };
         std::vector<std::shared_ptr<DawnTexture>> cube_map_textures = {};
-        for (const auto &path: facesPaths) {
+        for (const auto &path: faces_paths) {
             cube_map_textures.emplace_back(std::make_shared<DawnTexture>(path));
         }
         auto  skybox_material = std::make_shared<DawnMaterial>(cube_map_textures);
@@ -116,22 +116,22 @@ namespace dawn_engine {
         return skybox;
     }
 
-    GameObject *GameObject::CreateLight(LightType lType) {
-        switch (lType) {
-            case DirectionalLightType: {
+    GameObject *GameObject::CreateLight(LightType light_type) {
+        switch (light_type) {
+            case DirectionalLight: {
                 auto *lightObj(new GameObject("New Directional Light", true));
                 lightObj->AddModule<DirectionalLightModule>(glm::vec3(1, 0, 0));
                 return lightObj;
                 break;
             }
-            case PointLightType: {
+            case PointLight: {
                 auto *lightObj(new GameObject("New Point Light", true));
                 lightObj->AddModule<PointLightModule>(glm::vec3(0.2f, 0.5, 0.5f), 1.0, 0.1,
                                                       0.08);
                 return lightObj;
                 break;
             }
-            case SpotLightType: {
+            case SpotLight: {
                 auto *lightObj(new GameObject("New Spot Light", true));
                 lightObj->AddModule<SpotLightModule>(glm::vec3(1.0, 0, 0), 15, 30);
                 return lightObj;

@@ -5,23 +5,31 @@
 #ifndef HELLOWORLD_GL_TEXTURE_H
 #define HELLOWORLD_GL_TEXTURE_H
 
-enum GLTextureType {
-    None,
-    Texture2D,
-    CubeMap
+enum GLTextureTarget {
+    Texture2D = GL_TEXTURE_2D,
+    CubeMap = GL_TEXTURE_CUBE_MAP,
+};
+enum GLTextureAttachment{
+    ColorAttachment = GL_COLOR_ATTACHMENT0,
+    DepthAttachment = GL_DEPTH_ATTACHMENT,
 };
 
 class GLTexture {
 public:
+    GLTextureTarget target = GLTextureTarget::Texture2D;
+    GLTextureAttachment attachment = GLTextureAttachment::ColorAttachment;
     unsigned int id = 0;
-    GLTextureType type = None;
-    unsigned int unit_idx = 0;
-    GLTexture() = default;
-    GLTexture(unsigned int id, GLTextureType type) :
-            id(id),
-            type(type) {
+    glm::vec2 resolution{};
 
+    GLTexture() = default;
+
+    GLTexture(GLTextureTarget target, GLTextureAttachment attachment, unsigned int id, glm::vec2 resolution = glm::vec2(4096)) :
+            id(id),
+            target(target),
+            attachment(attachment),
+            resolution(resolution) {
     }
+
 };
 
 

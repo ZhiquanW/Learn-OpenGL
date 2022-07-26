@@ -43,18 +43,17 @@ namespace dawn_engine {
         std::vector<GameObject *> game_object_ptrs;
         GameObject *skybox_ptr_ = nullptr;
         unsigned int depth_fbo = 0;
-        unsigned int depth_texture = 0;
 
         void MountUISystem(DawnUISystem *ui_system);
 
         virtual void Initialize() = 0;
 
 
-        void LogicAwake();
+        void LogicLayerAwake();
 
-        void LogicStart();
+        void LogicLayerStart();
 
-        void LogicUpdate();
+        void LogicLayerUpdate();
 
         void BehaviourAwake();
 
@@ -62,15 +61,17 @@ namespace dawn_engine {
 
         void BehaviourUpdate();
 
-        void RenderAwake();
+        void RenderLayerAwake();
 
-        void RenderStart();
+        void RenderLayerStart();
 
-        void RenderUpdate();
+        void RenderLayerUpdate();
 
         void InitGlobalUniformBlocks();
 
         void RefreshGlobalUniformBlocks();
+
+        void RenderDepthMap(GLShaderProgram * depth_shader_program_ptr,LightModule * light_module);
 
 
     public:

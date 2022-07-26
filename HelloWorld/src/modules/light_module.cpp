@@ -1,5 +1,5 @@
 #include "light_module.h"
-
+#include "core/game_object.h"
 #include <cmath>
 
 namespace dawn_engine {
@@ -13,15 +13,15 @@ namespace dawn_engine {
             quote(SpotLightModule));
 
 
-    LightModule::LightModule()
-            : BaseModule(), ambient_(glm::vec3(0.1f)), diffuse_(glm::vec3(1.0f)),
+    LightModule::LightModule(LightType light_type)
+            : BaseModule(), light_type_(light_type), ambient_(glm::vec3(0.1f)), diffuse_(glm::vec3(1.0f)),
               specular_(glm::vec3(1.0f)) {}
 
-    LightModule::LightModule(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular)
-            : BaseModule(), ambient_(ambient), diffuse_(diffuse), specular_(specular) {}
+    LightModule::LightModule(LightType light_type, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular)
+            : BaseModule(), light_type_(light_type), ambient_(ambient), diffuse_(diffuse), specular_(specular) {}
 
-    LightModule::LightModule(glm::vec3 color)
-            : BaseModule(), ambient_(color), diffuse_(color), specular_(color) {}
+    LightModule::LightModule(LightType light_type, glm::vec3 color)
+            : BaseModule(), light_type_(light_type), ambient_(color), diffuse_(color), specular_(color) {}
 
     LightModule::~LightModule() = default;
 
@@ -80,70 +80,82 @@ namespace dawn_engine {
 
     }
 
-    GLTexture LightModule::GetDepthMapTexture() const {
+    GLTexture LightModule::GetShadowMapTexture() const {
         return this->depth_map_;
+    }
+
+    LightType LightModule::GetLightType() const {
+        return this->light_type_;
     }
 
 
 // direction light
     DirectionalLightModule::DirectionalLightModule()
-            : LightModule(glm::vec3(0.0f),
+            : LightModule(LightType::DirectionalLight,
+                          glm::vec3(0.0f),
                           glm::vec3(1.0f),
                           glm::vec3(1.0f)),
               direction_(glm::vec3(-1.0f)) {
-        this->depth_map_ = {AllocateGLTexture(this->DEPTH_MAP_SIZE), GLTextureType::Texture2D};
+        this->depth_map_ = {GLTextureTarget::Texture2D, GLTextureAttachment::DepthAttachment,AllocateGLTexture(GLTextureFormat::DepthComponent,this->DEPTH_MAP_SIZE), this->DEPTH_MAP_SIZE};
     }
 
     DirectionalLightModule::DirectionalLightModule(glm::vec3 dir)
-            : LightModule(glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(1.0f)), direction_(dir) {
-        this->depth_map_ = {AllocateGLTexture(this->DEPTH_MAP_SIZE), GLTextureType::Texture2D};
+            : LightModule(LightType::DirectionalLight, glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(1.0f)),
+              direction_(dir) {
+        this->depth_map_ = {GLTextureTarget::Texture2D, GLTextureAttachment::DepthAttachment,AllocateGLTexture(GLTextureFormat::DepthComponent,this->DEPTH_MAP_SIZE), this->DEPTH_MAP_SIZE};
 
 
     }
 
     DirectionalLightModule::DirectionalLightModule(glm::vec3 direction, glm::vec3 color)
-            : LightModule(color), direction_(direction) {
-        this->depth_map_ = {AllocateGLTexture(this->DEPTH_MAP_SIZE), GLTextureType::Texture2D};
+            : LightModule(LightType::DirectionalLight, color), direction_(direction) {
+        this->depth_map_ = {GLTextureTarget::Texture2D,GLTextureAttachment::DepthAttachment, AllocateGLTexture(GLTextureFormat::DepthComponent,this->DEPTH_MAP_SIZE), this->DEPTH_MAP_SIZE};
 
     }
 
     DirectionalLightModule::DirectionalLightModule(glm::vec3 direction, glm::vec3 ambient,
                                                    glm::vec3 diffuse,
                                                    glm::vec3 specular)
-            : LightModule(ambient, diffuse, specular), direction_(direction) {
-        this->depth_map_ = {AllocateGLTexture(this->DEPTH_MAP_SIZE), GLTextureType::Texture2D};
+            : LightModule(LightType::DirectionalLight, ambient, diffuse, specular), direction_(direction) {
+        this->depth_map_ = {GLTextureTarget::Texture2D, GLTextureAttachment::DepthAttachment,AllocateGLTexture(GLTextureFormat::DepthComponent,this->DEPTH_MAP_SIZE), this->DEPTH_MAP_SIZE};
 
     }
 
     DirectionalLightModule::DirectionalLightModule(glm::vec3 dir, float left, float right, float bottom, float top,
                                                    float z_near, float z_far)
-            : LightModule(glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(1.0f)),
+            : LightModule(LightType::DirectionalLight, glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(1.0f)),
               direction_(dir),
               left_(left),
               right_(right),
               bottom_(bottom),
               top_(top) {
-        this->depth_map_ = {AllocateGLTexture(this->DEPTH_MAP_SIZE), GLTextureType::Texture2D};
+        this->depth_map_ = {GLTextureTarget::Texture2D,GLTextureAttachment::DepthAttachment, AllocateGLTexture(GLTextureFormat::DepthComponent,this->DEPTH_MAP_SIZE), this->DEPTH_MAP_SIZE};
+
     }
 
     DirectionalLightModule::DirectionalLightModule(glm::vec3 dir, float left, float right, float bottom, float top,
                                                    float z_near, float z_far, glm::vec3 color) :
-            LightModule(color),
+            LightModule(LightType::DirectionalLight, color),
             direction_(dir),
             left_(left),
             right_(right),
             bottom_(bottom),
             top_(top) {
+        this->depth_map_ = {GLTextureTarget::Texture2D, GLTextureAttachment::DepthAttachment, AllocateGLTexture(GLTextureFormat::DepthComponent,this->DEPTH_MAP_SIZE), this->DEPTH_MAP_SIZE};
+
     }
 
     DirectionalLightModule::DirectionalLightModule(glm::vec3 dir, float left, float right, float bottom, float top,
                                                    float z_near, float z_far, glm::vec3 ambient, glm::vec3 diffuse,
-                                                   glm::vec3 specular) : LightModule(ambient, diffuse, specular),
+                                                   glm::vec3 specular) : LightModule(LightType::DirectionalLight,
+                                                                                     ambient, diffuse, specular),
                                                                          direction_(dir),
                                                                          left_(left),
                                                                          right_(right),
                                                                          bottom_(bottom),
                                                                          top_(top) {
+        this->depth_map_ = {GLTextureTarget::Texture2D, GLTextureAttachment::DepthAttachment,AllocateGLTexture(GLTextureFormat::DepthComponent,this->DEPTH_MAP_SIZE), this->DEPTH_MAP_SIZE};
+
     }
 
 
@@ -195,17 +207,17 @@ namespace dawn_engine {
 
 
 // point light
-    PointLightModule::PointLightModule() : LightModule(), constant(1.0), linear(0.1), quadratic(0.08) {}
+    PointLightModule::PointLightModule() : LightModule(LightType::PointLight), constant(1.0), linear(0.1), quadratic(0.08) {}
 
     PointLightModule::PointLightModule(glm::vec3 color, float constant, float linear,
                                        float quadratic)
-            : LightModule(color), constant(constant), linear(linear), quadratic(quadratic) {}
+            : LightModule(LightType::PointLight, color), constant(constant), linear(linear), quadratic(quadratic) {}
 
     PointLightModule::PointLightModule(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular,
                                        float constant,
                                        float linear,
                                        float quadratic)
-            : LightModule(ambient, diffuse, specular), constant(constant), linear(linear),
+            : LightModule(LightType::PointLight, ambient, diffuse, specular), constant(constant), linear(linear),
               quadratic(quadratic) {}
 
     std::vector<std::shared_ptr<ShaderUniformVariableBase>>
@@ -261,7 +273,7 @@ namespace dawn_engine {
         return this->quadratic;
     }
 
-    void PointLightModule::setQuadratic(const float &q) {
+    void PointLightModule::SetQuadratic(const float &q) {
         this->quadratic = q;
     }
 

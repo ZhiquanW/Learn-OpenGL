@@ -15,7 +15,7 @@
 namespace dawn_engine {
 
     enum DawnMaterialType {
-        Phong, Texture2D, CubeMap, Pure
+        Phong, Texture, CubeMap, Pure
     };
 
     class DawnMaterial {
