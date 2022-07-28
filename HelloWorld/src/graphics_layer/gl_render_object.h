@@ -25,8 +25,7 @@ namespace dawn_engine {
         unsigned int vbo_ = 0;
         unsigned int ebo_ = 0;
         unsigned int indices_num_ = 0;
-        unsigned int texture_counter_ = 0;
-        std::map<unsigned int,unsigned int> texture2d_id_map_ = {}; // 0: depth texture 1: cube map texture
+        std::map<unsigned int,unsigned int> texture2d_id_map_ = {}; // 0: texture id 1: unit idx
         std::map<std::string, std::shared_ptr<ShaderUniformVariableBase>> uniform_map_ = {};
 //        std::vector<unsigned int> diffuse_tex_ids_ = {};
 //        std::vector<unsigned int> specular_tex_ids_ = {};

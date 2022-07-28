@@ -90,10 +90,10 @@ namespace dawn_engine {
         glBindVertexArray(this->vao_);
         // bind textures
         for(auto pair: this->texture2d_id_map_){
-            glActiveTexture(GL_TEXTURE0+pair.second);
-            glBindTexture(GL_TEXTURE_2D, pair.first);
+//            std::cout << "local " <<GLShaderProgram::GetGlobalTextureSpace() + pair.second <<" " << pair.first << std::endl;
+            GLShaderProgram::AllocateTexture(GLShaderProgram::GetGlobalTextureSpace() + pair.second,pair.first);
         }
-        unsigned int common_texture_num = this->texture_counter_;
+        unsigned int common_texture_num = GLShaderProgram::GetGlobalTextureSpace() + this->texture2d_id_map_.size();
         if(this->cube_map_tex_id_ !=-1){
             glActiveTexture(GL_TEXTURE0 + common_texture_num++);
             glBindTexture(GL_TEXTURE_CUBE_MAP, this->cube_map_tex_id_);
@@ -149,16 +149,14 @@ namespace dawn_engine {
         this->linked_shader_ = shader_program;
     }
 
-    unsigned int GLRenderObject::ApplyTextureIdx()  {
-        return this->texture_counter_++;
-    }
+
 
     unsigned int GLRenderObject::AppendGLTexture(unsigned int texture_id) {
         if(this->texture2d_id_map_.count(texture_id) > 0){
             return this->texture2d_id_map_.at(texture_id);
         }
-         this->texture2d_id_map_.insert({texture_id, this->texture_counter_,});
-         return this->texture_counter_++;
+         this->texture2d_id_map_.insert({texture_id, this->texture2d_id_map_.size(),});
+         return this->texture2d_id_map_.size()-1;
     }
 
 //    void GLRenderObject::SetDepthTexture(unsigned int texture_id) {

@@ -96,20 +96,26 @@ namespace dawn_engine {
                           glm::vec3(1.0f),
                           glm::vec3(1.0f)),
               direction_(glm::vec3(-1.0f)) {
-        this->depth_map_ = {GLTextureTarget::Texture2D, GLTextureAttachment::DepthAttachment,AllocateGLTexture(GLTextureFormat::DepthComponent,this->DEPTH_MAP_SIZE), this->DEPTH_MAP_SIZE};
+        this->depth_map_ = {GLTextureTarget::Texture2D, GLTextureAttachment::DepthAttachment,
+                            AllocateGLTexture(GLTextureFormat::DepthComponent, this->DEFAULT_DEPTH_MAP_SIZE),
+                            this->DEFAULT_DEPTH_MAP_SIZE};
     }
 
     DirectionalLightModule::DirectionalLightModule(glm::vec3 dir)
             : LightModule(LightType::DirectionalLight, glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(1.0f)),
               direction_(dir) {
-        this->depth_map_ = {GLTextureTarget::Texture2D, GLTextureAttachment::DepthAttachment,AllocateGLTexture(GLTextureFormat::DepthComponent,this->DEPTH_MAP_SIZE), this->DEPTH_MAP_SIZE};
+        this->depth_map_ = {GLTextureTarget::Texture2D, GLTextureAttachment::DepthAttachment,
+                            AllocateGLTexture(GLTextureFormat::DepthComponent, this->DEFAULT_DEPTH_MAP_SIZE),
+                            this->DEFAULT_DEPTH_MAP_SIZE};
 
 
     }
 
     DirectionalLightModule::DirectionalLightModule(glm::vec3 direction, glm::vec3 color)
             : LightModule(LightType::DirectionalLight, color), direction_(direction) {
-        this->depth_map_ = {GLTextureTarget::Texture2D,GLTextureAttachment::DepthAttachment, AllocateGLTexture(GLTextureFormat::DepthComponent,this->DEPTH_MAP_SIZE), this->DEPTH_MAP_SIZE};
+        this->depth_map_ = {GLTextureTarget::Texture2D, GLTextureAttachment::DepthAttachment,
+                            AllocateGLTexture(GLTextureFormat::DepthComponent, this->DEFAULT_DEPTH_MAP_SIZE),
+                            this->DEFAULT_DEPTH_MAP_SIZE};
 
     }
 
@@ -117,7 +123,9 @@ namespace dawn_engine {
                                                    glm::vec3 diffuse,
                                                    glm::vec3 specular)
             : LightModule(LightType::DirectionalLight, ambient, diffuse, specular), direction_(direction) {
-        this->depth_map_ = {GLTextureTarget::Texture2D, GLTextureAttachment::DepthAttachment,AllocateGLTexture(GLTextureFormat::DepthComponent,this->DEPTH_MAP_SIZE), this->DEPTH_MAP_SIZE};
+        this->depth_map_ = {GLTextureTarget::Texture2D, GLTextureAttachment::DepthAttachment,
+                            AllocateGLTexture(GLTextureFormat::DepthComponent, this->DEFAULT_DEPTH_MAP_SIZE),
+                            this->DEFAULT_DEPTH_MAP_SIZE};
 
     }
 
@@ -125,11 +133,11 @@ namespace dawn_engine {
                                                    float z_near, float z_far)
             : LightModule(LightType::DirectionalLight, glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(1.0f)),
               direction_(dir),
-              left_(left),
-              right_(right),
-              bottom_(bottom),
-              top_(top) {
-        this->depth_map_ = {GLTextureTarget::Texture2D,GLTextureAttachment::DepthAttachment, AllocateGLTexture(GLTextureFormat::DepthComponent,this->DEPTH_MAP_SIZE), this->DEPTH_MAP_SIZE};
+              box_range_{left, right, bottom, top},
+              z_range_{z_near, z_far} {
+        this->depth_map_ = {GLTextureTarget::Texture2D, GLTextureAttachment::DepthAttachment,
+                            AllocateGLTexture(GLTextureFormat::DepthComponent, this->DEFAULT_DEPTH_MAP_SIZE),
+                            this->DEFAULT_DEPTH_MAP_SIZE};
 
     }
 
@@ -137,11 +145,11 @@ namespace dawn_engine {
                                                    float z_near, float z_far, glm::vec3 color) :
             LightModule(LightType::DirectionalLight, color),
             direction_(dir),
-            left_(left),
-            right_(right),
-            bottom_(bottom),
-            top_(top) {
-        this->depth_map_ = {GLTextureTarget::Texture2D, GLTextureAttachment::DepthAttachment, AllocateGLTexture(GLTextureFormat::DepthComponent,this->DEPTH_MAP_SIZE), this->DEPTH_MAP_SIZE};
+            box_range_{left, right, bottom, top},
+            z_range_{z_near, z_far} {
+        this->depth_map_ = {GLTextureTarget::Texture2D, GLTextureAttachment::DepthAttachment,
+                            AllocateGLTexture(GLTextureFormat::DepthComponent, this->DEFAULT_DEPTH_MAP_SIZE),
+                            this->DEFAULT_DEPTH_MAP_SIZE};
 
     }
 
@@ -150,11 +158,11 @@ namespace dawn_engine {
                                                    glm::vec3 specular) : LightModule(LightType::DirectionalLight,
                                                                                      ambient, diffuse, specular),
                                                                          direction_(dir),
-                                                                         left_(left),
-                                                                         right_(right),
-                                                                         bottom_(bottom),
-                                                                         top_(top) {
-        this->depth_map_ = {GLTextureTarget::Texture2D, GLTextureAttachment::DepthAttachment,AllocateGLTexture(GLTextureFormat::DepthComponent,this->DEPTH_MAP_SIZE), this->DEPTH_MAP_SIZE};
+                                                                         box_range_{left, right, bottom, top},
+                                                                         z_range_{z_near, z_far} {
+        this->depth_map_ = {GLTextureTarget::Texture2D, GLTextureAttachment::DepthAttachment,
+                            AllocateGLTexture(GLTextureFormat::DepthComponent, this->DEFAULT_DEPTH_MAP_SIZE),
+                            this->DEFAULT_DEPTH_MAP_SIZE};
 
     }
 
@@ -163,9 +171,14 @@ namespace dawn_engine {
 
     glm::vec3 DirectionalLightModule::GetDirection() const { return glm::normalize(this->direction_); }
 
-    glm::vec3 &DirectionalLightModule::GetDirectionMeta() {
+    glm::vec3 &DirectionalLightModule::GetDirectionRef() {
         this->direction_ = glm::normalize(this->direction_);
         return this->direction_;
+    }
+
+    glm::vec3 DirectionalLightModule::GetTransformedDirection() const {
+        return glm::vec3(this->GetAttachedGameObject()->GetModule<TransformModule>()->GetRotationMat() *
+                         glm::vec4(this->GetDirection(), 1.0f));
     }
 
     void DirectionalLightModule::SetDirection(const glm::vec3 &dir) { this->direction_ = dir; }
@@ -182,32 +195,86 @@ namespace dawn_engine {
     }
 
     float DirectionalLightModule::GetLeft() const {
-        return this->left_;
+        return this->box_range_[0];
     }
 
     float DirectionalLightModule::GetRight() const {
-        return this->right_;
+        return this->box_range_[1];
+
     }
 
     float DirectionalLightModule::GetBottom() const {
-        return this->bottom_;
+        return this->box_range_[2];
     }
 
     float DirectionalLightModule::GetTop() const {
-        return this->top_;
+        return this->box_range_[3];
+
     }
 
     float DirectionalLightModule::GetZNear() const {
-        return this->z_near_;
+        return this->z_range_[0];
     }
 
     float DirectionalLightModule::GetZFar() const {
-        return this->z_far_;
+        return this->z_range_[1];
+    }
+
+    float &DirectionalLightModule::GetLeftRef() {
+        return this->box_range_[0];
+
+    }
+
+    float &DirectionalLightModule::GetRightRef() {
+        return this->box_range_[1];
+
+    }
+
+    float &DirectionalLightModule::GetBottomRef() {
+        return this->box_range_[2];
+
+    }
+
+    float &DirectionalLightModule::GetTopRef() {
+        return this->box_range_[3];
+
+    }
+
+    float &DirectionalLightModule::GetZNearRef() {
+        return this->z_range_[0];
+    }
+
+    float &DirectionalLightModule::GetZFarRef() {
+        return this->z_range_[1];
+    }
+
+    float *DirectionalLightModule::GetBoxRangeRef() {
+        return this->box_range_;
+    }
+
+    float *DirectionalLightModule::GetZRangeRef() {
+        return this->z_range_;
+    }
+
+    glm::mat4 DirectionalLightModule::GetLightSpaceTransformMat() const {
+        auto transform_module = this->owner_ptr_->GetModule<TransformModule>();
+        auto light_projection = glm::ortho(this->GetLeft(),
+                                           this->GetRight(),
+                                           this->GetBottom(),
+                                           this->GetTop(),
+                                           this->GetZNear(),
+                                           this->GetZFar());
+        auto light_view = glm::lookAt(
+                transform_module->GetPosition(),
+                transform_module->GetPosition() + this->GetTransformedDirection(),
+                glm::vec3(0.0, 1.0, 0.0));
+        return light_projection * light_view;
     }
 
 
 // point light
-    PointLightModule::PointLightModule() : LightModule(LightType::PointLight), constant(1.0), linear(0.1), quadratic(0.08) {}
+    PointLightModule::PointLightModule() : LightModule(LightType::PointLight), constant(1.0), linear(0.1),
+                                           quadratic(0.08) {}
 
     PointLightModule::PointLightModule(glm::vec3 color, float constant, float linear,
                                        float quadratic)
@@ -275,6 +342,10 @@ namespace dawn_engine {
 
     void PointLightModule::SetQuadratic(const float &q) {
         this->quadratic = q;
+    }
+
+    glm::mat4 PointLightModule::GetLightSpaceTransformMat() const {
+        return glm::mat4();
     }
 
 
@@ -346,6 +417,10 @@ namespace dawn_engine {
 
     void SpotLightModule::setOuterRange(const float &range) {
         this->outerRange = std::max(this->innerRange, range);
+    }
+
+    glm::mat4 SpotLightModule::GetLightSpaceTransformMat() const {
+        return glm::mat4();
     }
 
 

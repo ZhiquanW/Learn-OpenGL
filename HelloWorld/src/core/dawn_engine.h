@@ -19,8 +19,6 @@ namespace dawn_engine {
     private:
         DawnUISystem *ui_system_;
 
-        void render_depth_map(glm::mat4 light_space_mat);
-
         void render_scene(GLShaderProgram *target_shader_program_ptr,
                           const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &global_uniforms,
                           const std::vector<unsigned int> &global_texture_ids);
@@ -71,7 +69,7 @@ namespace dawn_engine {
 
         void RefreshGlobalUniformBlocks();
 
-        void RenderDepthMap(GLShaderProgram * depth_shader_program_ptr,LightModule * light_module);
+        std::vector<std::shared_ptr<ShaderUniformVariableBase>>  RenderShadowMap(GLShaderProgram * depth_shader_program_ptr);
 
 
     public:

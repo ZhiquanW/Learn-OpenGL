@@ -49,8 +49,8 @@ namespace dawn_engine {
 
     inline std::vector<std::shared_ptr<ShaderUniformVariableBase>> ExtractTexUniforms(const std::string &name,
                                                                                       std::shared_ptr<DawnMaterial> material_ptr) {
-        std::vector<std::shared_ptr<ShaderUniformVariableBase>> uniforms = ExtractUniforms(name,material_ptr);
-        unsigned int tex_unit_idx = 0;
+        std::vector<std::shared_ptr<ShaderUniformVariableBase>> uniforms = ExtractUniforms(name, material_ptr);
+        unsigned int tex_unit_idx = GLShaderProgram::GetGlobalTextureSpace();
         unsigned int diffuse_idx = 0;
         for (int i = 0; i < material_ptr->GetDiffuseTextures().size(); ++i) {
             std::string uniform_name = fmt::format("{}.diffuse_texture_{}", name, diffuse_idx++);
@@ -80,7 +80,8 @@ namespace dawn_engine {
                 std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".ambient_", lightModule->GetAmbient()),
                 std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".diffuse", lightModule->GetDiffuse()),
                 std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".specular", lightModule->GetSpecular())};
-
+//                std::make_shared<ShaderUniformVariable<int>>(name + ".shadow_map",
+//                                                             lightModule->GetShadowMapTexture().unit)};
         return light_uniforms;
     }
 
@@ -90,6 +91,9 @@ namespace dawn_engine {
                                                                                                  (LightModule *) lightModule);
         light_uniforms.emplace_back(
                 std::make_shared<ShaderUniformVariable<glm::vec3>>(name + ".direction", lightModule->GetDirection()));
+        light_uniforms.emplace_back(
+                std::make_shared<ShaderUniformVariable<glm::mat4>>(name + ".light_space_transform_mat",
+                                                                   lightModule->GetLightSpaceTransformMat()));
         return light_uniforms;
     }
 
@@ -135,7 +139,6 @@ namespace dawn_engine {
     ExtractUniforms(const std::string &name, TransformModule *transformModule) {
         return {std::make_shared<ShaderUniformVariable<glm::mat4>>(name, transformModule->GetModelMat())};
     }
-
 
 
 }

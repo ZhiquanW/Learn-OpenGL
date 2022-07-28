@@ -62,9 +62,9 @@ namespace helloworld {
         ground->GetModule<TransformModule>()->SetPosition(glm::vec3(0,-5,0));
 //        dawn_engine::DawnEngine::instance->AddGameObject(ground);
 //        box->GetModule<dawn_engine::RendererModule>()->GetMesh(0).SetMaterialPtr(std::make_shared<dawn_engine::DawnMaterial>(this->material_map.at("depth")));
-//        dawn_engine::DawnModel backpackModel = dawn_engine::DawnModel("../assets/backpack/backpack.obj");
-//        auto backpack_obj = new dawn_engine::GameObject();
-//        backpack_obj->AddModule<dawn_engine::RendererModule>(backpackModel);
+        dawn_engine::DawnModel backpackModel = dawn_engine::DawnModel("../assets/backpack/backpack.obj");
+        auto backpack_obj = new dawn_engine::GameObject();
+        backpack_obj->AddModule<dawn_engine::RendererModule>(backpackModel);
 //        this->AddGameObject(backpack_obj);
 ////         add game object
 //
@@ -94,14 +94,34 @@ namespace helloworld {
     }
 
     void HelloWorldApp::AddDefaultLight() {
-        auto tmpLight = dawn_engine::GameObject::CreateLight(
+        auto dir_light_0 = dawn_engine::GameObject::CreateLight(
                 dawn_engine::LightType::DirectionalLight);
-        tmpLight->SetName("dir_light");
-        tmpLight->GetModule<dawn_engine::DirectionalLightModule>()->SetDirection(
+        dir_light_0->SetName("dir_light_0");
+        dir_light_0->GetModule<dawn_engine::DirectionalLightModule>()->SetDirection(
                 glm::vec3(-1.0, -1.0, -1.0));
-        tmpLight->GetModule<TransformModule>()->SetPosition(glm::vec3(10.0f));
-        tmpLight->GetModule<dawn_engine::DirectionalLightModule>()->SetAmbient(glm::vec3(0.4f));
-//        this->AddGameObject(tmpLight);
+        dir_light_0->GetModule<dawn_engine::DirectionalLightModule>()->SetDiffuse(glm::vec3(1.0f,0.0f,0.0f));
+        dir_light_0->GetModule<TransformModule>()->SetPosition(glm::vec3(10.0f));
+        dir_light_0->GetModule<dawn_engine::DirectionalLightModule>()->SetAmbient(glm::vec3(0.4f));
+        auto dir_light_1 = dawn_engine::GameObject::CreateLight(
+                dawn_engine::LightType::DirectionalLight);
+        dir_light_1->SetName("dir_light_1");
+        dir_light_1->GetModule<dawn_engine::DirectionalLightModule>()->SetDirection(
+                glm::vec3(1.0, -1.0, -1.0));
+        dir_light_1->GetModule<dawn_engine::DirectionalLightModule>()->SetDiffuse(glm::vec3(0.0f,1.0f,0.0f));
+
+        dir_light_1->GetModule<TransformModule>()->SetPosition(glm::vec3(-10,10,10));
+        dir_light_1->GetModule<dawn_engine::DirectionalLightModule>()->SetAmbient(glm::vec3(0.4f));
+        auto dir_light_2 = dawn_engine::GameObject::CreateLight(
+                dawn_engine::LightType::DirectionalLight);
+        dir_light_2->SetName("dir_light_2");
+        dir_light_2->GetModule<dawn_engine::DirectionalLightModule>()->SetDirection(
+                glm::vec3(1.0, -1.0, 1.0));
+        dir_light_2->GetModule<dawn_engine::DirectionalLightModule>()->SetDiffuse(glm::vec3(0.0f,1.0f,0.0f));
+
+        dir_light_2->GetModule<TransformModule>()->SetPosition(glm::vec3(-10,10,-10));
+        dir_light_2->GetModule<dawn_engine::DirectionalLightModule>()->SetAmbient(glm::vec3(0.4f));
+//        this->AddGameObject(dir_light_0);
+//        this->AddGameObject(dir_light_0);
     }
 
 

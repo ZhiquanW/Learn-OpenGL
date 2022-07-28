@@ -57,7 +57,7 @@ namespace dawn_engine {
         } else if (uniform->GetTypeHash() == typeid(glm::vec3).hash_code()) {
             return 16;
         } else if (uniform->GetTypeHash() == typeid(glm::mat4).hash_code()) {
-            return 64;
+            return 16;
         } else {
             throw std::runtime_error("unknown shader uniform variable type");
         }

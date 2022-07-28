@@ -10,12 +10,14 @@ namespace dawn_engine {
         const char *vertexPath;
         const char *fragmentPath;
         unsigned int id = -1;
+
         void checkCompileErrors(unsigned int, std::string);
 
         int createShaderProgram();
 
+        static unsigned int global_texture_counter;
+        static unsigned int global_texture_space;
     public:
-
 
         GLShaderProgram(const char *name, const char *vertexPath, const char *fragmentPath);
 
@@ -53,7 +55,20 @@ namespace dawn_engine {
         void SetUniform(const std::string &name, glm::mat4 value) const;
 
         void SetUniforms(const std::vector<std::shared_ptr<ShaderUniformVariableBase>> &uniforms) const;
-        void SetUniforms(const std::map<std::string,std::shared_ptr<ShaderUniformVariableBase>> &uniforms) const;
+
+        void SetUniforms(const std::map<std::string, std::shared_ptr<ShaderUniformVariableBase>> &uniforms) const;
+
+        static void AllocateTexture(unsigned int unit_idx, unsigned int texture_id);
+
+        static unsigned int GetGlobalTextureCount();
+
+        static unsigned int AppendGlobalTexture(unsigned int texture_id);
+
+        static void ClearGlobalTextureUnit();
+        static void ReserveGlobalTextureSpace(unsigned int space);
+
+        static unsigned int GetGlobalTextureSpace();
+
     };
 
 } // namespace dawn_engine

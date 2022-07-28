@@ -21,7 +21,7 @@ namespace dawn_engine {
     private:
     protected:
         // todo: move below to GLTexture and delete depracted part
-        const glm::vec2 DEPTH_MAP_SIZE{4096};
+        const glm::vec2 DEFAULT_DEPTH_MAP_SIZE{4096};
         glm::vec3 ambient_;
         glm::vec3 diffuse_;
         glm::vec3 specular_;
@@ -64,6 +64,8 @@ namespace dawn_engine {
         GLTexture GetShadowMapTexture() const;
 
         LightType GetLightType() const;
+
+        virtual glm::mat4 GetLightSpaceTransformMat() const = 0;
     };
 
     class DirectionalLightModule : public LightModule {
@@ -72,12 +74,8 @@ namespace dawn_engine {
 
     protected:
         glm::vec3 direction_ = {1.0f, 0.0f, 0.0f};
-        float left_ = -1;
-        float right_ = 1;
-        float bottom_ = -1;
-        float top_ = 1;
-        float z_near_ = 0.001f;
-        float z_far_ = 10.0f;
+        float box_range_[4] = {-10, 10, -10, 10}; // left,right,bottom,right
+        float z_range_[2] = {0.001f, 1000.0f};
     public:
 
         static const std::size_t type;
@@ -86,9 +84,9 @@ namespace dawn_engine {
 
         explicit DirectionalLightModule(glm::vec3 dir);
 
-        DirectionalLightModule(glm::vec3 dir,  glm::vec3 color);
+        DirectionalLightModule(glm::vec3 dir, glm::vec3 color);
 
-        DirectionalLightModule(glm::vec3 dir,  glm::vec3 ambient, glm::vec3 diffuse,
+        DirectionalLightModule(glm::vec3 dir, glm::vec3 ambient, glm::vec3 diffuse,
                                glm::vec3 specular);
 
         explicit DirectionalLightModule(glm::vec3 dir, float left, float right, float bottom, float top, float z_near,
@@ -109,21 +107,41 @@ namespace dawn_engine {
 
         [[maybe_unused]] [[nodiscard]] glm::vec3 GetDirection() const;
 
-        glm::vec3 &GetDirectionMeta();
+        glm::mat4 GetLightSpaceTransformMat() const override;
+
+        glm::vec3 GetTransformedDirection() const;
+
+        glm::vec3 &GetDirectionRef();
 
         void SetDirection(const glm::vec3 &dir);
 
         float GetLeft() const;
 
+        float &GetLeftRef();
+
         float GetRight() const;
+
+        float &GetRightRef();
 
         float GetBottom() const;
 
+        float &GetBottomRef();
+
         float GetTop() const;
+
+        float &GetTopRef();
 
         float GetZNear() const;
 
+        float &GetZNearRef();
+
         float GetZFar() const;
+
+        float &GetZFarRef();
+
+        float *GetBoxRangeRef();
+
+        float *GetZRangeRef();
     };
 
     class PointLightModule : public LightModule {
@@ -167,6 +185,8 @@ namespace dawn_engine {
         float &getQuadraticMeta();
 
         void SetQuadratic(const float &q);
+
+        glm::mat4 GetLightSpaceTransformMat() const override;
     };
 
     class SpotLightModule : public PointLightModule {
@@ -207,6 +227,8 @@ namespace dawn_engine {
 
         [[maybe_unused]] [[nodiscard]] std::vector<std::shared_ptr<ShaderUniformVariableBase>>
         getUniforms(uint32_t idx) const override;
+
+        glm::mat4 GetLightSpaceTransformMat() const override;
 
 
     };

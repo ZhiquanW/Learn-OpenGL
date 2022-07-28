@@ -1,7 +1,7 @@
 #version 430 core 
-#define MAX_POINT_LIGHT_NUM 32
-#define MAX_DIR_LIGHT_NUM 32
-#define MAX_SPOT_LIGHT_NUM 32
+#define MAX_POINT_LIGHT_NUM 8
+#define MAX_DIR_LIGHT_NUM 8
+#define MAX_SPOT_LIGHT_NUM 8
 struct Camera {
     mat4 projection;
     mat4 view;
@@ -31,6 +31,7 @@ struct PointLight{
     float constant;
     float linear;
     float quadratic;
+
 };
 struct DirectionalLight{
     bool activation;
@@ -38,6 +39,7 @@ struct DirectionalLight{
     vec3 diffuse;
     vec3 specular;
     vec3 direction;
+    mat4 light_space_transform_mat;
 };
 
 struct SpotLight{
@@ -57,15 +59,9 @@ struct SpotLight{
 in vec3 frag_normal;
 in vec3 frag_pos;  
 in vec2 frag_tex_coord;
-in vec4 frag_pos_in_light_space;
 uniform Material material;
-uniform sampler2D shadow_map;
-// uniform DirectionalLight directional_lights[MAX_DIR_LIGHT_NUM];
-// uniform PointLight point_lights[MAX_POINT_LIGHT_NUM];
-// uniform SpotLight spot_lights[MAX_SPOT_LIGHT_NUM];
-// uniform int dir_lights_num;
-// uniform int point_lights_num;
-// uniform int spot_lights_num;
+uniform sampler2D shadow_maps[MAX_DIR_LIGHT_NUM+MAX_POINT_LIGHT_NUM+MAX_SPOT_LIGHT_NUM];
+// uniform sampler2D shadow_maps[2];
 
 layout(std140,binding = 0) uniform CameraBlock{
     Camera main_camera;
@@ -137,29 +133,28 @@ vec3 compute_spot_light(SpotLight spot_light,vec3 normal,vec3 view_dir,vec3 m_di
     return vec3(0.0);
 }
 
-float shadow_calculation(vec4 frag_pos_in_light_space,vec3 normal,vec3 light_dir)
-{
+float shadow_calculation(vec4 frag_pos_in_light_space,vec3 normal,vec3 light_dir,int shadow_map_idx){
     // perform perspective divide
     vec3 proj_coords = frag_pos_in_light_space.xyz / frag_pos_in_light_space.w;
     // transform to [0,1] range
     proj_coords = proj_coords * 0.5 + 0.5;
     // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    float closest_depth = texture(shadow_map, proj_coords.xy).r; 
+    float closest_depth = texture(shadow_maps[shadow_map_idx], proj_coords.xy).r; 
     // get depth of current fragment from light's perspective
     float current_depth = proj_coords.z;
     // check whether current frag pos is in shadow
     float bias = max(0.001* (1.0 - dot(normal, light_dir)), 0.005);  
 
     float shadow = 0.0;
-    vec2 texel_size = 1.0 / textureSize(shadow_map, 0);
+    vec2 texel_size = 1.0 / textureSize(shadow_maps[shadow_map_idx], 0);
     for(int x = -1; x <= 1; ++x){
         for(int y = -1; y <= 1; ++y){
-            float pcf_depth = texture(shadow_map, proj_coords.xy + vec2(x, y) * texel_size).r; 
+            float pcf_depth = texture(shadow_maps[shadow_map_idx], proj_coords.xy + vec2(x, y) * texel_size).r; 
             shadow += (current_depth - bias) > pcf_depth ? 1.0 : 0.0;        
         }    
     }
     shadow /= 9.0;
-    if(proj_coords.z > 1.0){
+    if(proj_coords.z >= 1.0){
         shadow = 0.0;
     }
 
@@ -178,6 +173,7 @@ void main() {
     vec3 material_specular = vec3(0.0,0.0,0.0);
     vec3 material_normal = vec3(0.0,0.0,0.0);
     vec3 normal = normalize(frag_normal);
+
     if(material.enable_lighting_maps){
         material_diffuse = texture(material.diffuse_texture_0,frag_tex_coord).rgb;
         material_specular = texture(material.specular_texture_0,frag_tex_coord).rgb;
@@ -186,7 +182,14 @@ void main() {
         material_specular = material.specular;
     }
     vec3 shader_color = vec3(0.0);
-    float in_shadow = shadow_calculation(frag_pos_in_light_space,normal,directional_lights[0].direction);                      
+    float in_shadow = 0.0;
+    for(int i = 0; i < dir_lights_num; ++ i){
+        vec4 frag_pos_in_light_space =  directional_lights[i].light_space_transform_mat * vec4(frag_pos,1.0f);
+        if (shadow_calculation(frag_pos_in_light_space,normal,directional_lights[i].direction,i)==1.0){
+            in_shadow = 1.0;
+            break;
+        }
+    }
 
     for (int i = 0;i < dir_lights_num;++ i){
         shader_color += compute_directional_light(directional_lights[i],normal,view_dir,material_diffuse,material_specular,in_shadow);

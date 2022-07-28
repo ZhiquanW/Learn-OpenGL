@@ -215,8 +215,12 @@ namespace helloworld {
             ImGui::Checkbox("activation", &directionalLightModule->GetActivationMeta());
             this->EmbedBaseLightMonitor(directionalLightModule);
             ImGui::Separator();
-            ImGui::DragFloat3("direction", &directionalLightModule->GetDirectionMeta()[0], this->defaultDragSpeed,
+            ImGui::DragFloat3("direction", &directionalLightModule->GetDirectionRef()[0], this->defaultDragSpeed,
                               this->defaultMinValue, this->defaultMaxValue);
+            ImGui::DragFloat4("box range", directionalLightModule->GetBoxRangeRef(), this->defaultDragSpeed, this->defaultMinValue,
+                             this->defaultMaxValue);
+            ImGui::DragFloat2("z range", directionalLightModule->GetZRangeRef(), this->defaultDragSpeed, 0.0f,
+                              this->defaultMaxValue);
         }
     }
 

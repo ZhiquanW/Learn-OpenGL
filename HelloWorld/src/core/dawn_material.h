@@ -22,7 +22,7 @@ namespace dawn_engine {
     private:
     protected:
         ShaderInfo shader_info_ = ShaderTable::default_shader_info;
-        glm::vec3 ambient_ = glm::vec3(1.0f);
+        glm::vec3 ambient_ = glm::vec3(0.0f);
         glm::vec3 diffuse_ = glm::vec3(1.0f);
         glm::vec3 specular_ = glm::vec3(1.0f);
         float shininess_ = 3.0f;

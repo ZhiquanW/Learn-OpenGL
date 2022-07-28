@@ -1,15 +1,23 @@
 #include "graphics_layer/gl_shader_program.h"
 
 namespace dawn_engine {
-    GLShaderProgram::GLShaderProgram(const char *vertexPath, const char *fragmentPath) : vertexPath(vertexPath), fragmentPath(fragmentPath) {
+
+    unsigned int GLShaderProgram::global_texture_counter = 0;
+    unsigned int GLShaderProgram::global_texture_space = 0;
+
+    GLShaderProgram::GLShaderProgram(const char *vertexPath, const char *fragmentPath) : vertexPath(vertexPath),
+                                                                                         fragmentPath(fragmentPath) {
         // 1. retrieve the vertex/fragment source code from filePath
         this->id = this->createShaderProgram();
         vertexPath = vertexPath;
         fragmentPath = fragmentPath;
     }
 
-    GLShaderProgram::GLShaderProgram(const char *name, const char *vertexPath, const char *fragmentPath) : name(name), vertexPath(vertexPath),
-                                                                                                           fragmentPath(fragmentPath) {
+    GLShaderProgram::GLShaderProgram(const char *name, const char *vertexPath, const char *fragmentPath) : name(name),
+                                                                                                           vertexPath(
+                                                                                                                   vertexPath),
+                                                                                                           fragmentPath(
+                                                                                                                   fragmentPath) {
         this->id = this->createShaderProgram();
     }
 
@@ -152,7 +160,7 @@ namespace dawn_engine {
     }
 
     void GLShaderProgram::SetUniforms(
-            const std::map<std::string,std::shared_ptr<ShaderUniformVariableBase>> &uniforms) const {
+            const std::map<std::string, std::shared_ptr<ShaderUniformVariableBase>> &uniforms) const {
         for (const auto &uniform: uniforms) {
             ShaderUniformVariableBase *u_ptr = uniform.second.get();
             if (u_ptr->GetTypeHash() == typeid(int).hash_code()) {
@@ -215,6 +223,40 @@ namespace dawn_engine {
         return this->id;
     }
 
+
+    void GLShaderProgram::AllocateTexture(unsigned int unit_idx, unsigned int texture_id) {
+        glActiveTexture(GL_TEXTURE0 + unit_idx);
+        glBindTexture(GL_TEXTURE_2D, texture_id);
+    }
+
+    unsigned int GLShaderProgram::GetGlobalTextureCount() {
+        return GLShaderProgram::global_texture_counter;
+    }
+
+    unsigned int GLShaderProgram::AppendGlobalTexture(unsigned int texture_id) {
+//        std::cout << "global " << GLShaderProgram::global_texture_counter << " " << texture_id << std::endl;
+        if (GLShaderProgram::global_texture_counter < GLShaderProgram::global_texture_space){
+            GLShaderProgram::AllocateTexture(GLShaderProgram::global_texture_counter, texture_id);
+            return GLShaderProgram::global_texture_counter++;
+        }else{
+            throw  std::runtime_error("GLShaderProgram: Global Texture Space is full");
+        }
+
+    }
+
+    void GLShaderProgram::ClearGlobalTextureUnit() {
+        GLShaderProgram::global_texture_counter = 0;
+
+    }
+
+    void GLShaderProgram::ReserveGlobalTextureSpace(unsigned int space) {
+        GLShaderProgram::global_texture_space = space;
+
+    }
+
+    unsigned int GLShaderProgram::GetGlobalTextureSpace() {
+        return GLShaderProgram::global_texture_space;
+    }
 
 
 } // namespace dawn_engine
