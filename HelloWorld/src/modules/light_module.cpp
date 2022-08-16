@@ -4,15 +4,6 @@
 
 namespace dawn_engine {
 
-    const std::size_t LightModule::type = BaseModule::GetHashModuleName(quote(LightModule));
-    const std::size_t DirectionalLightModule::type = BaseModule::GetHashModuleName(
-            quote(DirectionalLightModule));
-    const std::size_t PointLightModule::type = BaseModule::GetHashModuleName(
-            quote(PointLightModule));
-    const std::size_t SpotLightModule::type = BaseModule::GetHashModuleName(
-            quote(SpotLightModule));
-
-
     LightModule::LightModule(LightType light_type)
             : BaseModule(), light_type_(light_type), ambient_(glm::vec3(0.1f)), diffuse_(glm::vec3(1.0f)),
               specular_(glm::vec3(1.0f)) {}
@@ -75,7 +66,7 @@ namespace dawn_engine {
 
     }
 
-    void LightModule::SetSpecular(glm::vec3 specular) {
+    [[maybe_unused]] void LightModule::SetSpecular(glm::vec3 specular) {
         this->specular_ = specular;
 
     }
@@ -86,6 +77,10 @@ namespace dawn_engine {
 
     LightType LightModule::GetLightType() const {
         return this->light_type_;
+    }
+
+    std::string LightModule::GetModuleType() {
+        return quote(LightModule);
     }
 
 
@@ -271,6 +266,10 @@ namespace dawn_engine {
         return light_projection * light_view;
     }
 
+    std::string DirectionalLightModule::GetModuleName() {
+        return quote(DirectinalLightModule);
+    }
+
 
 // point light
     PointLightModule::PointLightModule() : LightModule(LightType::PointLight), constant(1.0), linear(0.1),
@@ -311,7 +310,7 @@ namespace dawn_engine {
         return this->constant;
     }
 
-    float &PointLightModule::getConstantMeta() {
+    float &PointLightModule::GetConstantMeta() {
         return this->constant;
     }
 
@@ -346,6 +345,10 @@ namespace dawn_engine {
 
     glm::mat4 PointLightModule::GetLightSpaceTransformMat() const {
         return glm::mat4();
+    }
+
+    std::string PointLightModule::GetModuleName() {
+        return quote(PointLightModule);
     }
 
 
@@ -421,6 +424,10 @@ namespace dawn_engine {
 
     glm::mat4 SpotLightModule::GetLightSpaceTransformMat() const {
         return glm::mat4();
+    }
+
+    std::string SpotLightModule::GetModuleType() {
+        return quote(SpotLightModule);
     }
 
 

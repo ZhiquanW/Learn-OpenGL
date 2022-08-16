@@ -11,7 +11,7 @@
 #include "utils/glsl_utils.h"
 #include "graphics_layer/gl_render_object.h"
 #include "graphics_layer/gl_uniform_buffer.h"
-#include "behaviour_modules/behaviour_module.h"
+#include "behaviour_modules/behavior_module.h"
 #include "behaviour_modules/box_block.h"
 
 namespace dawn_engine {

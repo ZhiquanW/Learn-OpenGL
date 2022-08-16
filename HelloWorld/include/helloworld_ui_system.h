@@ -15,7 +15,7 @@ namespace helloworld {
     class HelloWorldUISystem : public dawn_engine::DawnUISystem {
         const std::vector<std::string> meshOpaqueOptions = {"Opaque", "Transparency"};
     private:
-        std::vector<int> gameObjectTrackerSelectionTable;
+        std::map<int, int> game_object_tracker_selection_table; // <int: game object id, int: is selected (imgui bool issue)>
         std::vector<int> prefab_selection_table{};
         std::string selected_shader_str;
         std::string selectedTransparencyTypeStr;
@@ -32,9 +32,14 @@ namespace helloworld {
 
         void UpdatePrefabManager(const std::set<std::string> &prefab_paths);
 
-        void InitGameObjectTracker(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs);
+        void InitGameObjectTrackerTable(const std::vector<dawn_engine::GameObject *> &game_object_ptrs);
+
+        void ZeroGameObjectTrackerTable();
 
         void UpdateGameObjectTracker(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs);
+
+
+        void UpdateChildGameObjectTreeNodes(unsigned int idx,GameObject * game_object_ptr);
 
         void InitGameObjectMonitors(const std::vector<dawn_engine::GameObject *> &game_obj_ptrs);
 
@@ -44,7 +49,7 @@ namespace helloworld {
 
         void EmbedModuleMonitor(dawn_engine::BaseModule *targetModule);
 
-        void UpdateBehaviourModule(dawn_engine::BehaviourModule *behaviour_module);
+        void UpdateBehaviourModule(dawn_engine::BehaviorModule *behaviour_module);
 
         void UpdateTransformModuleMonitor(dawn_engine::TransformModule *const transformModule) const;
 

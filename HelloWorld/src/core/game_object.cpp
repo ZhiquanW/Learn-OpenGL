@@ -39,7 +39,7 @@ namespace dawn_engine {
 
     uint32_t GameObject::getModuleNum() const {
         uint32_t module_num = 0;
-        for (std::pair<std::size_t, std::vector<BaseModule *>> element: this->module_dict_) {
+        for (std::pair<std::string, std::vector<BaseModule *>> element: this->module_dict_) {
             module_num += element.second.size();
         }
         return module_num;
@@ -155,8 +155,38 @@ namespace dawn_engine {
         this->name = std::move(objName);
     }
 
-    std::unordered_map<std::size_t, std::vector<BaseModule *>> GameObject::GetAllModules() const {
+    std::unordered_map<std::string, std::vector<BaseModule *>> GameObject::GetAllModules() const {
         return this->module_dict_;
+    }
+
+    /**
+     * Set the parent game object ptr by input game object
+     * Add this to parent game object's children
+     * @param parent
+     */
+    void GameObject::SetParent(GameObject *parent) {
+        this->parent_ = parent;
+        parent->children_.push_back(this);
+    }
+
+    GameObject *GameObject::GetParent() const {
+        return this->parent_;
+    }
+
+    unsigned int GameObject::GetChildrenCount() const {
+        return this->children_.size();
+    }
+
+    GameObject *GameObject::GetChild(unsigned int idx) const {
+        return this->children_[idx];
+    }
+
+    bool GameObject::IsTopLevel() const {
+        return this->parent_ == nullptr;
+    }
+
+    int GameObject::GetID() const {
+        return this->id;
     }
 
 } // namespace dawn_engine

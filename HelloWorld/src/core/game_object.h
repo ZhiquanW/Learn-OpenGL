@@ -16,9 +16,11 @@ namespace dawn_engine {
     protected:
         static uint32_t nextGameObjectID;
         bool isEntity = true;
+        GameObject *parent_ = nullptr ;
+        std::vector<GameObject *> children_ {};
         std::string name = "New Game Object";
         uint32_t id;
-        std::unordered_map<std::size_t, std::vector<BaseModule *>> module_dict_;
+        std::unordered_map<std::string, std::vector<BaseModule *>> module_dict_;
 
         void initGameObject();
 
@@ -44,12 +46,22 @@ namespace dawn_engine {
         GameObject(std::string name, bool isEntity);
 
         ~GameObject();
-
+        int GetID() const;
         std::string GetName() const;
 
         void SetName(std::string objName);
 
-        std::unordered_map<std::size_t, std::vector<BaseModule *>> GetAllModules() const;
+        void SetParent(GameObject *parent);
+
+        GameObject *GetParent() const;;
+
+        unsigned int GetChildrenCount() const;
+
+        GameObject * GetChild(unsigned int idx) const;
+
+        bool IsTopLevel() const;
+
+        std::unordered_map<std::string, std::vector<BaseModule *>> GetAllModules() const;
 
         uint32_t getModuleNum() const;
 
@@ -63,21 +75,26 @@ namespace dawn_engine {
 
     template<class ModuleType>
     ModuleType *GameObject::GetModule() const {
-        if (!this->module_dict_.count(ModuleType::type) or
-            this->module_dict_.at(ModuleType::type).empty()) {
+        if (!this->module_dict_.count(ModuleType::GetModuleType()) or
+            this->module_dict_.at(ModuleType::GetModuleType()).empty()) {
             return static_cast<ModuleType *>(nullptr);
         }
-        return static_cast<ModuleType *>(this->module_dict_.at(ModuleType::type).front());
+        return static_cast<ModuleType *>(this->module_dict_.at(ModuleType::GetModuleType()).front());
     }
 
     template<class ModuleType, typename... Args>
     void GameObject::AddModule(Args &&...params) {
-        if (!this->module_dict_.count(ModuleType::type)) {
-            this->module_dict_.insert({ModuleType::type, std::vector<BaseModule *>()});
+        if (!this->module_dict_.count(ModuleType::GetModuleType())) {
+            this->module_dict_.insert({ModuleType::GetModuleType(), std::vector<BaseModule *>()});
         }
         auto *module_ptr = new ModuleType(std::forward<Args>(params)...);
+        if (module_ptr->IsUnique() and !this->module_dict_.at(ModuleType::GetModuleType()).empty()) {
+            throw std::runtime_error(
+                    fmt::format("[GameObject:AddModule] {} is unique module that only one can exist in a game object",
+                                ModuleType::GetModuleType()));
+        }
         module_ptr->SetAttachedGameObject(this);
-        this->module_dict_.at(ModuleType::type).emplace_back(module_ptr);
+        this->module_dict_.at(ModuleType::GetModuleType()).emplace_back(module_ptr);
     }
 
 

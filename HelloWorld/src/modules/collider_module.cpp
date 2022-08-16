@@ -7,11 +7,6 @@
 
 
 namespace dawn_engine {
-
-
-    const std::size_t ColliderModule::type = BaseModule::GetHashModuleName(quote(ColliderModule));
-
-
     RayHitInfo ColliderModule::CollisionDetection(Ray ray) {
         return RayHitInfo();
     }
@@ -22,6 +17,10 @@ namespace dawn_engine {
 
     ColliderModule::ColliderModule(ColliderBox collider_shape) {
 
+    }
+
+    std::string ColliderModule::GetModuleType() {
+        return quote(ModuleType);
     }
 
 

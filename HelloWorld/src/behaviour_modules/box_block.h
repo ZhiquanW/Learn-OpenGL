@@ -5,7 +5,7 @@
 #ifndef HELLOWORLD_BOX_BLOCK_H
 #define HELLOWORLD_BOX_BLOCK_H
 
-#include "behaviour_module.h"
+#include "behavior_module.h"
 
 using namespace dawn_engine;
 
@@ -27,12 +27,12 @@ public:
     }
 };
 
-class BoxBlock : public BehaviourModule {
+class BoxBlock : public BehaviorModule {
 public:
     glm::vec3 size{};
     std::vector<AttachPoint> joints{};
 
-    explicit BoxBlock(glm::vec3 size) : BehaviourModule(__func__), size(size) {
+    explicit BoxBlock(glm::vec3 size) : BehaviorModule(__func__), size(size) {
 
 
     }

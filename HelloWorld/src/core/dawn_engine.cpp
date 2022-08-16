@@ -184,7 +184,6 @@ namespace dawn_engine {
 
 
     /**
-     *     /**
      *  Render shadow map for each light module by given depth render shader program.
      *  The shadow maps are rendered on depth framebuffer which is managed by dawn engine.
      *  Each depth texture to be rendered is stored in light module and attached to depth framebuffer before rendering,
@@ -366,7 +365,7 @@ namespace dawn_engine {
     void DawnEngine::BehaviourAwake() {
 //        this->InitGlobalUniformBlocks();
         for (const auto &g_obj : this->game_object_ptrs) {
-            auto bh_module = g_obj->GetModule<BehaviourModule>();
+            auto bh_module = g_obj->GetModule<BehaviorModule>();
             if (bh_module != nullptr) {
                 bh_module->Awake();
             }
@@ -375,7 +374,7 @@ namespace dawn_engine {
 
     void DawnEngine::BehaviourStart() {
         for (const auto &g_obj : this->game_object_ptrs) {
-            auto bh_module = g_obj->GetModule<BehaviourModule>();
+            auto bh_module = g_obj->GetModule<BehaviorModule>();
             if (bh_module != nullptr) {
                 bh_module->Start();
             }
@@ -384,7 +383,7 @@ namespace dawn_engine {
 
     void DawnEngine::BehaviourUpdate() {
         for (const auto &g_obj : this->game_object_ptrs) {
-            auto bh_module = g_obj->GetModule<BehaviourModule>();
+            auto bh_module = g_obj->GetModule<BehaviorModule>();
             if (bh_module != nullptr) {
                 bh_module->Update();
             }

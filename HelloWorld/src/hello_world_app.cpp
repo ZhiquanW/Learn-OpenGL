@@ -51,12 +51,12 @@ namespace helloworld {
         auto box_block = this->CreatePrimitive(dawn_engine::BoxPrimitive);
         box_block->SetName("box block");
         box_block->AddModule<dawn_engine::ColliderModule>(ColliderBox(box_block->GetModule<dawn_engine::TransformModule>()->GetPosition(), glm::vec3(1.0f)));
-        box_block->AddModule<BoxBlock>(box_block->GetModule<TransformModule>()->GetScale());
 
 //        box->GetModule<dawn_engine::RendererModule>()->GetMesh(0).SetMaterialPtr(std::make_shared<dawn_engine::DawnMaterial>(this->material_map.at("depth")));
 //        dawn_engine::DawnEngine::instance->AddGameObject(box_block);
 
         auto ground = this->CreatePrimitive(dawn_engine::BoxPrimitive);
+        ground->SetParent(box_block);
         ground->SetName("Ground");
         ground->GetModule<TransformModule>()->SetScale(glm::vec3(100,0.01,100));
         ground->GetModule<TransformModule>()->SetPosition(glm::vec3(0,-5,0));

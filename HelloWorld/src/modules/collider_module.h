@@ -17,11 +17,13 @@ namespace dawn_engine {
     private:
         ColliderBox collider_box_;
     public:
-        static const std::size_t type;
+        const std::string module_name = quote(ColliderModule);
 
         ColliderModule(std::vector<std::shared_ptr<ColliderFace>> collider_faces);
 
         ColliderModule(ColliderBox collider_shape);
+
+        static std::string GetModuleType();
 
         RayHitInfo CollisionDetection(Ray ray);
 

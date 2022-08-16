@@ -11,8 +11,6 @@ namespace dawn_engine {
         glm::vec3 scale;
 
     public:
-        static const std::size_t type;
-
         TransformModule();
 
         ~TransformModule() override;
@@ -48,6 +46,8 @@ namespace dawn_engine {
         glm::mat4 GetInvModelMat() const;
 
         glm::mat4 GetTransformMat() const;
+
+        static std::string GetModuleType();
     };
 
 } // namespace dawn_engine

@@ -2,15 +2,15 @@
 // Created by zhiquan on 7/21/22.
 //
 
-#ifndef HELLOWORLD_BEHAVIOUR_MODULE_H
-#define HELLOWORLD_BEHAVIOUR_MODULE_H
+#ifndef HELLOWORLD_BEHAVIOR_MODULE_H
+#define HELLOWORLD_BEHAVIOR_MODULE_H
 
 //#include <utility>
 #include "common_includes.h"
 #include "modules/base_module.h"
 
 namespace dawn_engine {
-    class BehaviourModule : public BaseModule {
+    class BehaviorModule : public BaseModule {
     protected:
         std::string name_;
 
@@ -24,9 +24,9 @@ namespace dawn_engine {
 
 
     public:
-        static const std::size_t type;
-
-        explicit BehaviourModule(std::string name) : name_(std::move(name)) {}
+        explicit BehaviorModule(std::string name) : name_(std::move(name)) {
+            this->is_unique_ = false;
+        }
 
 
         std::string GetName() const {
@@ -35,6 +35,9 @@ namespace dawn_engine {
 
         virtual void UpdateModuleMonitor() {}
 
+        static std::string GetModuleType(){
+            return quote(BehaviorModule);
+        }
     };
 
 
@@ -59,7 +62,7 @@ namespace dawn_engine {
 //
 //    bool &GetActivationMeta();
 //
-//    void setActivation(const bool &active);
+//    void SetActivation(const bool &active);
 //
 //    [[nodiscard]] GameObject *GetAttachedGameObject() const;
 //
@@ -67,4 +70,4 @@ namespace dawn_engine {
 //
 //    static std::size_t GetHashModuleName(const char *moduleType);
 //};
-#endif //HELLOWORLD_BEHAVIOUR_MODULE_H
+#endif //HELLOWORLD_BEHAVIOR_MODULE_H

@@ -2,8 +2,6 @@
 
 namespace dawn_engine {
 //  Transform Module
-    const std::size_t TransformModule::type = BaseModule::GetHashModuleName(quote(TransformModule));
-
     TransformModule::TransformModule()
             : BaseModule(), position(glm::vec3(0.0f)), rotation(glm::vec3(0.0f)), scale(glm::vec3(1.0f)) {}
 
@@ -75,6 +73,10 @@ namespace dawn_engine {
 
     glm::mat4 TransformModule::GetInvModelMat() const {
         return glm::inverse(this->GetModelMat());
+    }
+
+    std::string TransformModule::GetModuleType() {
+        return quote(TransformModule);
     }
 
 

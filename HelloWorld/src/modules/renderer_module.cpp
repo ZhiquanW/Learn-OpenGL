@@ -7,7 +7,6 @@
 namespace dawn_engine {
 
 // Visual Shape Module
-    const std::size_t RendererModule::type = BaseModule::GetHashModuleName(quote(RendererModule));
 
 
     RendererModule::RendererModule(DawnModel model) : BaseModule(), model_(std::move(model)) {
@@ -29,14 +28,11 @@ namespace dawn_engine {
                                                                                                   mesh.GetMaterialPtr()->GetSpecularTextures());
                 std::vector<unsigned int> normal_gl_texture_ids = AllocateGLTextureDataFiltered(texture_id_map,
                                                                                                 mesh.GetMaterialPtr()->GetNormalTextures());
-//                this->gl_render_objects.push_back(
-//                        std::make_shared<GLRenderObject>(gl_obj[0], gl_obj[1], gl_obj[2],
-//                                                         mesh.GetIndicesNum(),
-//                                                         diffuse_gl_texture_ids, specular_gl_texture_ids, normal_gl_texture_ids,
-//                                                         mesh.GetMaterialPtr().GetShaderInfo()));
                 this->render_obj_map.insert({i, std::make_shared<GLRenderObject>(gl_obj[0], gl_obj[1], gl_obj[2],
                                                                                  mesh.GetIndicesNum(),
-                                                                                 diffuse_gl_texture_ids, specular_gl_texture_ids, normal_gl_texture_ids,
+                                                                                 diffuse_gl_texture_ids,
+                                                                                 specular_gl_texture_ids,
+                                                                                 normal_gl_texture_ids,
                                                                                  mesh.GetMaterialPtr()->GetShaderInfo())});
             } else if (mesh.GetMaterialPtr()->GetMaterialType() == DawnMaterialType::Phong) {
                 this->render_obj_map.insert(
@@ -158,6 +154,10 @@ namespace dawn_engine {
 
     DawnModel &RendererModule::GetModelRef() {
         return this->model_;
+    }
+
+    std::string RendererModule::GetModuleType() {
+        return quote(RendererModule);
     }
 
 

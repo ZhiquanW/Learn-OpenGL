@@ -10,7 +10,7 @@ namespace helloworld {
     }
 
     void HelloWorldUISystem::start(dawn_engine::DawnEngine *enginePtr) {
-        this->InitGameObjectTracker(enginePtr->GetGameObjectPtrs());
+        this->InitGameObjectTrackerTable(enginePtr->GetGameObjectPtrs());
         this->InitGameObjectMonitors(enginePtr->GetGameObjectPtrs());
         this->InitGlobalSettingsPanel(enginePtr);
         this->InitPrefabManager();
@@ -67,37 +67,77 @@ namespace helloworld {
     }
 
 
-    void HelloWorldUISystem::InitGameObjectTracker(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs) {
-        this->gameObjectTrackerSelectionTable.resize(gameObjectPtrs.size());
+    void
+    HelloWorldUISystem::InitGameObjectTrackerTable(const std::vector<dawn_engine::GameObject *> &game_object_ptrs) {
+        this->game_object_tracker_selection_table.clear();
+        for (auto g_obj : game_object_ptrs) {
+            this->game_object_tracker_selection_table.insert({g_obj->GetID(), 0});
+        }
     }
 
     void HelloWorldUISystem::UpdateGameObjectTracker(const std::vector<dawn_engine::GameObject *> &gameObjectPtrs) {
-        if (gameObjectPtrs.size() > this->gameObjectTrackerSelectionTable.size()) {
-            this->gameObjectTrackerSelectionTable.resize(gameObjectPtrs.size());
+        if (gameObjectPtrs.size() != this->game_object_tracker_selection_table.size()) {
+            this->InitGameObjectTrackerTable(gameObjectPtrs);
         }
         ImGui::ShowDemoWindow();
         ImGui::Begin("Game Object Tracker");
-        uint32_t selection_idx = 0;
-        for (auto gObj: gameObjectPtrs) {
-            std::string indexed_name = fmt::format("{}: {}", selection_idx,
-                                                   gObj->GetName().c_str());
-            if (ImGui::Selectable(indexed_name.c_str(),
-                                  (bool) this->gameObjectTrackerSelectionTable[selection_idx],
-                                  ImGuiSelectableFlags_AllowDoubleClick)) {
-//                if (ImGui::IsMouseDoubleClicked(0)) {
-//                }
-                if (!ImGui::GetIO().KeyCtrl) { // Clear gameObjectTrackerSelectionTable when CTRL is not held
-                    memset(this->gameObjectTrackerSelectionTable.data(), 0,
-                           sizeof(int) * this->gameObjectTrackerSelectionTable.size());
-//                    for (auto v: this->gameObjectTrackerSelectionTable) {
+//        uint32_t selection_idx = 0;
+//        for (auto gObj: gameObjectPtrs) {
+//            if (gObj->IsTopLevel()) {
+//                std::string indexed_name = fmt::format("{}: {}", selection_idx, gObj->GetName().c_str());
+//                if (ImGui::Selectable(indexed_name.c_str(),
+//                                      (bool) this->game_object_tracker_selection_table[selection_idx],
+//                                      ImGuiSelectableFlags_AllowDoubleClick)) {
+//                    if (!ImGui::GetIO().KeyCtrl) { // Clear game_object_tracker_selection_table when CTRL is not held
+//                        memset(this->game_object_tracker_selection_table.data(), 0,
+//                               sizeof(int) * this->game_object_tracker_selection_table.size());
+////                    for (auto v: this->game_object_tracker_selection_table) {
+////                    }
 //                    }
-                }
-                this->gameObjectTrackerSelectionTable[selection_idx] ^= 1;
+//                    this->game_object_tracker_selection_table[selection_idx] ^= 1;
+//                }
+//                selection_idx += 1;
+//            }
+//        }
+        uint32_t selection_idx = 0;
+        for (auto g_obj : gameObjectPtrs) {
+            if (g_obj->IsTopLevel()) {
+                UpdateChildGameObjectTreeNodes(selection_idx++, g_obj);
             }
-            selection_idx += 1;
         }
         ImGui::End();
+    }
 
+
+    void HelloWorldUISystem::UpdateChildGameObjectTreeNodes(unsigned int idx,
+                                                            GameObject *game_object_ptr) {
+        std::string indexed_name = fmt::format("{}: {}", idx, game_object_ptr->GetName().c_str());
+        if (!game_object_ptr->GetChildrenCount()) {
+            if (ImGui::Selectable(indexed_name.c_str(),
+                                  (bool) this->game_object_tracker_selection_table.at(game_object_ptr->GetID()),
+                                  ImGuiSelectableFlags_AllowDoubleClick)) {
+                // Clear game_object_tracker_selection_table when CTRL is not held
+                if (!ImGui::GetIO().KeyCtrl) {
+                    this->ZeroGameObjectTrackerTable();
+                }
+                this->game_object_tracker_selection_table.at(game_object_ptr->GetID()) ^= 1;
+            }
+        } else {
+            bool node_open = ImGui::TreeNodeEx(indexed_name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow);
+            if (ImGui::IsItemClicked() &&
+                (ImGui::GetMousePos().x - ImGui::GetItemRectMin().x) > ImGui::GetTreeNodeToLabelSpacing()) {
+                if (!ImGui::GetIO().KeyCtrl) {
+                    this->ZeroGameObjectTrackerTable();
+                }
+                this->game_object_tracker_selection_table.at(game_object_ptr->GetID()) ^= 1;
+            }
+            if (node_open) {
+                for (int i = 0; i < game_object_ptr->GetChildrenCount(); ++i) {
+                    UpdateChildGameObjectTreeNodes(i, game_object_ptr->GetChild(i));
+                }
+                ImGui::TreePop();
+            }
+        }
     }
 
     void HelloWorldUISystem::InitGameObjectMonitors(const std::vector<dawn_engine::GameObject *> &game_obj_ptrs) {}
@@ -105,7 +145,7 @@ namespace helloworld {
     void HelloWorldUISystem::UpdateGameObjectMonitors(const std::vector<dawn_engine::GameObject *> &game_objs) {
         uint32_t gameObjectNum = game_objs.size();
         for (int i = 0; i < gameObjectNum; ++i) {
-            if (this->gameObjectTrackerSelectionTable[i]) {
+            if (this->game_object_tracker_selection_table[i]) {
                 std::string indexed_name = fmt::format("{}: {}", i, game_objs[i]->GetName().c_str());
                 ImGui::Begin(indexed_name.c_str());
                 for (const auto &modulesPair: game_objs[i]->GetAllModules()) {
@@ -118,7 +158,7 @@ namespace helloworld {
         }
     }
 
-    void HelloWorldUISystem::UpdateBehaviourModule(dawn_engine::BehaviourModule *behaviour_module) {
+    void HelloWorldUISystem::UpdateBehaviourModule(dawn_engine::BehaviorModule *behaviour_module) {
         if (ImGui::CollapsingHeader(behaviour_module->GetName().c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Checkbox("module activation", &behaviour_module->GetActivationMeta());
             behaviour_module->UpdateModuleMonitor();
@@ -217,8 +257,9 @@ namespace helloworld {
             ImGui::Separator();
             ImGui::DragFloat3("direction", &directionalLightModule->GetDirectionRef()[0], this->defaultDragSpeed,
                               this->defaultMinValue, this->defaultMaxValue);
-            ImGui::DragFloat4("box range", directionalLightModule->GetBoxRangeRef(), this->defaultDragSpeed, this->defaultMinValue,
-                             this->defaultMaxValue);
+            ImGui::DragFloat4("box range", directionalLightModule->GetBoxRangeRef(), this->defaultDragSpeed,
+                              this->defaultMinValue,
+                              this->defaultMaxValue);
             ImGui::DragFloat2("z range", directionalLightModule->GetZRangeRef(), this->defaultDragSpeed, 0.0f,
                               this->defaultMaxValue);
         }
@@ -264,8 +305,8 @@ namespace helloworld {
             this->UpdateMeshModuleMonitor(dynamic_cast<dawn_engine::RendererModule *> (targetModule));
         } else if (dynamic_cast<dawn_engine::ColliderModule *>(targetModule)) {
             this->UpdateColliderModuleMonitor(dynamic_cast<dawn_engine::ColliderModule *> (targetModule));
-        } else if (dynamic_cast<dawn_engine::BehaviourModule *> (targetModule)) {
-            this->UpdateBehaviourModule(dynamic_cast<dawn_engine::BehaviourModule *> (targetModule));
+        } else if (dynamic_cast<dawn_engine::BehaviorModule *> (targetModule)) {
+            this->UpdateBehaviourModule(dynamic_cast<dawn_engine::BehaviorModule *> (targetModule));
         } else {
             throw std::runtime_error("Unknown Module Type");
         }
@@ -350,8 +391,8 @@ namespace helloworld {
                 if (ImGui::IsMouseDoubleClicked(0)) {
                     DawnEngine::instance->LoadPrefab(prefab_name);
                 }
-                memset(this->gameObjectTrackerSelectionTable.data(), 0,
-                       sizeof(int) * this->gameObjectTrackerSelectionTable.size());
+                memset(this->prefab_selection_table.data(), 0,
+                       sizeof(int) * this->game_object_tracker_selection_table.size());
                 this->prefab_selection_table[selection_idx] ^= 1;
             }
 
@@ -373,6 +414,12 @@ namespace helloworld {
             }
         }
 
+    }
+
+    void HelloWorldUISystem::ZeroGameObjectTrackerTable() {
+        for (auto pair : this->game_object_tracker_selection_table) {
+            pair.second = 0;
+        }
     }
 
 

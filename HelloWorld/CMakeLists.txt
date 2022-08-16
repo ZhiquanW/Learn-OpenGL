@@ -22,6 +22,6 @@ file(GLOB_RECURSE
         ${PROJECT_SRC_DIR}/*.cpp
         )
 # exe
-add_executable(${PROJECT_NAME} ${SOURCE_FILES} src/graphics_layer/gl_texture.h src/graphics_layer/gl_allocator.h src/behaviour_modules/box_block.h src/behaviour_modules/behaviour_module.h src/behaviour_modules/behaviour_module.cpp src/behaviour_modules/reflect_member.h src/behaviour_modules/box_block.cpp)
+add_executable(${PROJECT_NAME} ${SOURCE_FILES} src/graphics_layer/gl_texture.h src/graphics_layer/gl_allocator.h src/behaviour_modules/box_block.h src/behaviour_modules/behavior_module.h src/behaviour_modules/behavior_module.cpp src/behaviour_modules/reflect_member.h src/behaviour_modules/box_block.cpp)
 # lib
 target_link_libraries(${PROJECT_NAME} deps_shared_lib)

@@ -17,11 +17,13 @@ namespace dawn_engine {
         std::unordered_map<unsigned int, std::shared_ptr<GLRenderObject>> render_obj_map;
 
     public:
-        static const std::size_t type;
+
 
         RendererModule() = default;
 
         explicit RendererModule(DawnModel model);
+
+        static std::string GetModuleType();
 
         ~RendererModule() override;
 
